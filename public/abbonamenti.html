@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piani e Abbonamenti - EnoHub</title>
+    <style>
+        :root { --main: #8a1c1c; --dark: #121212; --bg: #f5f7f9; --border: #e2e8f0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: #333; line-height: 1.6; }
+        
+        nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top:0; z-index:1000; }
+        .logo { font-size: 26px; font-weight: 900; color: var(--main); text-decoration: none; letter-spacing: -0.5px; }
+        .btn { background: var(--main); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        
+        .header { text-align: center; padding: 60px 20px 20px; }
+        .header h1 { font-size: 38px; color: var(--dark); margin-bottom: 10px; }
+        .header p { color: #666; font-size: 18px; max-width: 600px; margin: auto; }
+        
+        .section-title { text-align: center; margin: 50px 0 30px; font-size: 28px; color: var(--main); border-bottom: 2px solid var(--border); padding-bottom: 10px; width: 80%; max-width: 1200px; margin-left: auto; margin-right: auto; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; padding: 20px 5% 60px; max-width: 1200px; margin: auto; }
+        .card { background: white; border-radius: 16px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid var(--border); transition: 0.3s; position: relative; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); border-color: var(--main); box-shadow: 0 15px 40px rgba(138, 28, 28, 0.1); }
+        .card-featured { border: 2px solid var(--main); }
+        .badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--main); color: white; padding: 6px 18px; border-radius: 20px; font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+        
+        .tier-target { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 10px; }
+        .tier-name { font-size: 26px; color: var(--dark); margin: 0; }
+        .tier-price { font-size: 42px; color: var(--main); font-weight: 900; margin: 15px 0; }
+        .tier-price span { font-size: 16px; color: #888; font-weight: normal; }
+        
+        .features { list-style: none; padding: 0; margin: 20px 0 40px; text-align: left; flex: 1; }
+        .features li { padding: 12px 0; border-bottom: 1px solid #f4f4f4; font-size: 15px; color: #555; display: flex; align-items: flex-start; gap: 10px; }
+        .features li::before { content: "✓"; color: #107c41; font-weight: bold; font-size: 16px; }
+        
+        .btn-plan { background: var(--dark); color: white; border: none; padding: 16px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: auto; }
+        .btn-plan:hover { background: var(--main); }
+        .btn-free { background: white; color: var(--dark); border: 2px solid var(--dark); }
+        .btn-free:hover { background: var(--dark); color: white; border-color: var(--dark); }
+        
+        @media (max-width: 768px) { .header h1 { font-size: 30px; } .tier-price { font-size: 36px; } }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">EnoHub</a>
+        <div id="nav-actions">
+            <a href="auth/login.html" style="color: var(--main); font-weight:bold; text-decoration:none; margin-right: 20px;">Accedi</a>
+            <a href="auth/register.html" class="btn">Registrati</a>
+        </div>
+    </nav>
+
+    <div class="header">
+        <h1>I Piani di EnoHub</h1>
+        <p>Scegli l'abbonamento su misura per le tue esigenze, che tu sia un professionista del vino o un'azienda in cerca di talenti.</p>
+    </div>
+
+    <h2 class="section-title">Per i Sommelier (Candidati)</h2>
+    <div class="grid" style="max-width: 800px;">
+        
+        <div class="card">
+            <div class="tier-target">Piano Base</div>
+            <h3 class="tier-name">Freemium</h3>
+            <div class="tier-price">€0</div>
+            <ul class="features">
+                <li>Profilo base sulla piattaforma.</li>
+                <li>Ricezione notifiche generiche.</li>
+                <li>Possibilità di essere trovati (ma con visibilità ridotta).</li>
+            </ul>
+            <button class="btn-plan btn-free" onclick="goToRegister()">Inizia Gratis</button>
+        </div>
+
+        <div class="card card-featured">
+            <div class="badge">IL PIÙ SCELTO</div>
+            <div class="tier-target">Professionisti</div>
+            <h3 class="tier-name">Pro</h3>
+            <div class="tier-price">€9<span>/mese</span></div>
+            <ul class="features">
+                <li>Badge "Certificato" in evidenza.</li>
+                <li>Priorità assoluta nelle candidature.</li>
+                <li>Accesso a offerte esclusive (es. grandi eventi o export).</li>
+                <li>Statistiche dettagliate sulle visualizzazioni del profilo.</li>
+            </ul>
+            <button class="btn-plan" onclick="payUpgrade('Pro', 9)">Attiva Piano Pro</button>
+        </div>
+
+    </div>
+
+    <h2 class="section-title">Per le Cantine (Clienti)</h2>
+    <div class="grid">
+        
+        <div class="card">
+            <div class="tier-target">Piccole Cantine</div>
+            <h3 class="tier-name">Starter</h3>
+            <div class="tier-price">€0<span> (Pay-per-Match)</span></div>
+            <ul class="features">
+                <li>Zero rischi e zero costi fissi di abbonamento.</li>
+                <li>Paghi solo <b>€15</b> per sbloccare i contatti di un sommelier che ti interessa.</li>
+                <li>Esplorazione del database talenti gratuita.</li>
+            </ul>
+            <button class="btn-plan btn-free" onclick="goToRegister()">Esplora Gratis</button>
+        </div>
+
+        <div class="card card-featured">
+            <div class="badge">CONSIGLIATO</div>
+            <div class="tier-target">Aziende Medie</div>
+            <h3 class="tier-name">Business</h3>
+            <div class="tier-price">€39<span>/mese</span></div>
+            <ul class="features">
+                <li>Accesso illimitato al database dei contatti.</li>
+                <li>2 annunci "Featured" in evidenza per eventi urgenti o assunzioni.</li>
+                <li>Visibilità prioritaria del profilo cantina.</li>
+            </ul>
+            <button class="btn-plan" onclick="payUpgrade('Business', 39)">Attiva Piano Business</button>
+        </div>
+
+        <div class="card">
+            <div class="tier-target">Grandi Gruppi / Consorzi</div>
+            <h3 class="tier-name">Premium</h3>
+            <div class="tier-price">€89<span>/mese</span></div>
+            <ul class="features">
+                <li>Filtri di ricerca avanzati (lingue straniere rare, sommelier con Master).</li>
+                <li>Supporto prioritario e assistenza dedicata.</li>
+                <li>Gestione multi-account per il team aziendale.</li>
+            </ul>
+            <button class="btn-plan" onclick="payUpgrade('Premium', 89)">Attiva Piano Premium</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Riconoscimento utente loggato
+        const user = JSON.parse(localStorage.getItem('enohub_user'));
+        
+        if (user) {
+            document.getElementById('nav-actions').innerHTML = `
+                <a href="dashboard.html" class="btn" style="background:var(--dark);">Area Personale</a>
+            `;
+        }
+
+        // Funzione per i piani gratuiti
+        function goToRegister() {
+            if(user) window.location.href = 'dashboard.html';
+            else window.location.href = 'auth/register.html';
+        }
+
+        // Funzione integrata con Stripe per l'upgrade
+        async function payUpgrade(piano, prezzo) {
+            if(!user) {
+                alert("Devi accedere o registrarti prima di poter attivare un abbonamento.");
+                window.location.href = 'auth/register.html';
+                return;
+            }
+            
+            try {
+                // Chiama l'API Stripe creata in server.js
+                const response = await fetch('/api/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ piano: piano, prezzo: prezzo, type: 'upgrade', userId: user._id })
+                });
+                const data = await response.json();
+                
+                if (data.url) {
+                    window.location.href = data.url; // Reindirizza al checkout di Stripe
+                } else {
+                    alert("Errore di connessione a Stripe. Riprova più tardi.");
+                }
+            } catch(e) {
+                alert("Errore di rete. Controlla la tua connessione.");
+            }
+        }
+    </script>
+</body>
+</html>
