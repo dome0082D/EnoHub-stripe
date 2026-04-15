@@ -2,106 +2,129 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub Gold - Dashboard</title>
+    <title>Dashboard - EnoHub Gold</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --main: #8a1c1c; --side: #1a1a1a; --bg: #f8f9fa; --border: #eee; --green: #107c41; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
-        .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; position: sticky; top:0; z-index:100; }
-        .main { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 230px; background: var(--side); color: white; padding: 20px; overflow-y:auto; }
-        .content { flex: 1; padding: 25px; overflow-y: auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        :root { --main: #8a1c1c; --side: #121212; --bg: #f5f7f9; --border: #e2e8f0; --green: #107c41; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: var(--bg); color: #333; }
         
-        /* Pannello Notifiche a Riquadro */
-        .noti-panel { position: absolute; top: 60px; right: 5%; width: 300px; background: white; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; z-index: 1000; overflow: hidden; }
-        .noti-header { background: #fdfdfd; padding: 12px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        /* NAVBAR & NOTIFICHE */
+        .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; position: sticky; top:0; z-index:100; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .noti-panel { position: absolute; top: 60px; right: 5%; width: 320px; background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); display: none; z-index: 1000; overflow: hidden; transition: 0.3s; }
+        .noti-header { background: #fafafa; padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--main); }
         .noti-list { max-height: 350px; overflow-y: auto; }
-        .noti-item { padding: 12px; border-bottom: 1px solid #f9f9f9; font-size: 13px; }
-        .noti-item:hover { background: #f8f8f8; }
-        .noti-badge { background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -8px; display: none; }
+        .noti-item { padding: 15px; border-bottom: 1px solid #f0f0f0; font-size: 13px; line-height: 1.4; transition: 0.2s; }
+        .noti-item:hover { background: #fdfdfd; }
+        .noti-badge { background: #e74c3c; color: white; border-radius: 50%; padding: 3px 7px; font-size: 11px; font-weight: bold; position: absolute; top: -6px; right: -10px; display: none; box-shadow: 0 2px 5px rgba(231,76,60,0.4); }
 
-        /* Design Sommelier & Cantina */
-        .avatar { width: 110px; height: 110px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; }
-        .pill { background: #f4f4f4; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin: 0 5px 5px 0; display: inline-block; border: 1px solid #ddd; }
-        .banner-c { height: 200px; background: #eee url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=80&w=1000') center/cover; border-radius: 12px; position: relative; margin-bottom: 60px; }
-        .logo-c { width: 120px; height: 120px; background: white; border: 4px solid white; position: absolute; bottom: -40px; left: 30px; border-radius: 12px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--main); font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        /* LAYOUT PRINCIPALE */
+        .main { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 240px; background: var(--side); color: white; padding: 20px; overflow-y:auto; }
+        .content { flex: 1; padding: 30px; overflow-y: auto; }
+        .card { background: white; padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #fff; }
         
-        .chat-ui { position: fixed; bottom: 10px; right: 10px; width: 340px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display:none; flex-direction: column; z-index: 9999; border: 1px solid #ddd; }
-        .menu-btn { width: 100%; text-align: left; background: none; border: none; color: #aaa; padding: 15px 10px; cursor: pointer; font-size: 15px; border-bottom: 1px solid #222; }
-        .menu-btn:hover { color: white; background: #222; }
-        .progress-bar { height: 8px; background: var(--main); width: 0%; border-radius: 4px; transition: 0.2s; }
-        video { width: 100%; border-radius: 8px; background: black; }
-        @media (max-width: 768px) { .sidebar { display: none; } }
+        /* DESIGN: SOMMELIER & CANTINA */
+        .avatar { width: 120px; height: 120px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 45px; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .pill { background: #f8f9fa; padding: 6px 15px; border-radius: 20px; font-size: 13px; margin: 0 8px 8px 0; display: inline-block; border: 1px solid #ddd; color: #555; font-weight: 500; }
+        .banner-c { height: 220px; background: #eee url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=80&w=1000') center/cover; border-radius: 16px; position: relative; margin-bottom: 60px; box-shadow: inset 0 -50px 50px rgba(0,0,0,0.2); }
+        .logo-c { width: 130px; height: 130px; background: white; border: 5px solid white; position: absolute; bottom: -45px; left: 40px; border-radius: 16px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--main); font-size: 28px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        
+        /* 8 RIQUADRI CERTIFICAZIONI (Stile App Nativa) */
+        .cert-label { display: block; cursor: pointer; }
+        .cert-cb { display: none; }
+        .cert-box { border: 2px solid #e2e8f0; background: white; color: #888; padding: 15px 5px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .cert-label:hover .cert-box { border-color: #cbd5e1; transform: translateY(-2px); }
+        .cert-cb:checked + .cert-box { border-color: var(--main); background: var(--main); color: white; box-shadow: 0 5px 15px rgba(138,28,28,0.2); transform: translateY(-2px); }
+
+        /* CHAT UI & VIDEO */
+        .chat-ui { position: fixed; bottom: 20px; right: 20px; width: 350px; height: 520px; background: white; border-radius: 16px; box-shadow: 0 15px 50px rgba(0,0,0,0.2); display:none; flex-direction: column; z-index: 9999; border: 1px solid var(--border); overflow: hidden; }
+        .menu-btn { width: 100%; text-align: left; background: none; border: none; color: #a0aec0; padding: 16px 15px; cursor: pointer; font-size: 15px; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; font-weight: 500; }
+        .menu-btn:hover { color: white; background: rgba(255,255,255,0.1); }
+        .progress-bar { height: 8px; background: var(--main); width: 0%; border-radius: 4px; transition: width 0.3s ease; }
+        .btn-main { background: var(--main); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .btn-main:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(138,28,28,0.2); }
+        video { width: 100%; border-radius: 10px; background: black; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        @media (max-width: 768px) { .sidebar { display: none; } .content { padding: 15px; } }
     </style>
 </head>
 <body>
     <div class="nav">
-        <a href="index.html" style="font-weight:bold; color:var(--main); text-decoration:none; font-size: 24px;">EnoHub</a>
-        <div style="display:flex; align-items:center; gap:20px;">
-            <div style="position:relative; cursor:pointer;" onclick="toggleNoti()">🔔 <span id="noti-count" class="noti-badge">0</span></div>
-            <span id="nav-user" style="font-weight:600;"></span>
+        <a href="index.html" style="font-weight:900; color:var(--main); text-decoration:none; font-size: 26px; letter-spacing: -0.5px;">EnoHub</a>
+        <div style="display:flex; align-items:center; gap:25px;">
+            <div style="position:relative; cursor:pointer; font-size: 20px;" onclick="toggleNoti()">
+                🔔 <span id="noti-count" class="noti-badge">0</span>
+            </div>
+            <span id="nav-user" style="font-weight:600; color:#444;"></span>
         </div>
         <div class="noti-panel" id="noti-panel">
-            <div class="noti-header"><span>Notifiche</span><button onclick="toggleNoti()" style="border:none; background:none; cursor:pointer;">✕</button></div>
+            <div class="noti-header"><span>Ultime Notifiche</span><button onclick="toggleNoti()" style="border:none; background:none; cursor:pointer; font-size:16px; color:#888;">✕</button></div>
             <div id="noti-list" class="noti-list"></div>
         </div>
     </div>
 
     <div class="main">
         <div class="sidebar">
+            <div style="font-size:11px; color:#666; font-weight:bold; letter-spacing:1px; margin: 10px 0 15px 15px; text-transform:uppercase;">MENU PRINCIPALE</div>
             <button class="menu-btn" onclick="show('profile')">👤 Mio Profilo</button>
             <button class="menu-btn" onclick="show('media')">🎞️ Media & Libreria</button>
-            <button class="menu-btn" onclick="show('chat')">💬 Community</button>
-            <button class="menu-btn" onclick="show('subs')">💎 Upgrade</button>
+            <button class="menu-btn" onclick="show('chat')">💬 Esplora Community</button>
+            <button class="menu-btn" onclick="show('subs')">💎 Upgrade Piano</button>
             <button class="menu-btn" onclick="show('settings')">⚙️ Impostazioni</button>
-            <button class="menu-btn" onclick="logout()" style="color:#e74c3c; margin-top:20px;">📤 Esci</button>
+            <button class="menu-btn" onclick="logout()" style="color:#e74c3c; margin-top:30px;">📤 Disconnetti</button>
         </div>
+
         <div class="content">
             <div id="sec-profile"></div>
 
             <section id="sec-media" class="card" style="display:none">
-                <h3>Carica Media (Upload %)</h3>
-                <input type="file" id="f-in">
-                <div style="width:100%; height:8px; background:#eee; margin:10px 0; display:none; border-radius:4px; overflow:hidden;" id="p-cont"><div id="p-run" class="progress-bar"></div></div>
-                <button onclick="up()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px; margin-top:10px; cursor:pointer; font-weight:bold;">CARICA</button>
-                <div id="m-list" style="margin-top:30px"></div>
+                <h2 style="color:var(--main); margin-top:0;">Libreria Professionale</h2>
+                <p style="color:#666; font-size:14px; margin-bottom:20px;">I file inviati nelle chat vengono salvati automaticamente qui.</p>
+                
+                <input type="file" id="f-in" style="margin-bottom:15px;">
+                <div style="width:100%; height:8px; background:#e2e8f0; margin:10px 0; display:none; border-radius:4px; overflow:hidden;" id="p-cont">
+                    <div id="p-run" class="progress-bar"></div>
+                </div>
+                <button onclick="up()" class="btn-main">CARICA NUOVO FILE</button>
+                
+                <div id="m-list" style="margin-top:40px; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:25px;"></div>
             </section>
 
             <section id="sec-chat" class="card" style="display:none">
-                <h2>Talenti & Aziende</h2>
-                <div id="u-list"></div>
+                <h2 style="color:var(--main); margin-top:0;">Talenti & Aziende</h2>
+                <div id="u-list" style="display:flex; flex-direction:column; gap:15px; margin-top:20px;"></div>
             </section>
 
             <section id="sec-subs" class="card" style="display:none">
-                <h2>Piani Business (Stripe)</h2>
-                <div id="pricing-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px;"></div>
+                <h2 style="color:var(--main); margin-top:0;">Piani Business</h2>
+                <p style="color:#666; margin-bottom:30px;">Gestisci il tuo livello di visibilità e strumenti sulla piattaforma.</p>
+                <div id="pricing-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:25px;"></div>
             </section>
 
             <section id="sec-settings" class="card" style="display:none">
-                <h2>Modifica Dati</h2>
+                <h2 style="color:var(--main); margin-top:0;">Modifica Dati Profilo</h2>
                 <div id="settings-fields"></div>
-                <button onclick="saveSet()" style="background:var(--main); color:white; border:none; padding:10px 25px; border-radius:5px; margin-top:20px; font-weight:bold;">SALVA</button>
+                <button onclick="saveSet()" class="btn-main" style="margin-top:30px; padding:15px 35px; font-size:16px;">Salva Tutte le Modifiche</button>
             </section>
         </div>
     </div>
 
     <div id="chat-win" class="chat-ui">
-        <div style="background:var(--main); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
-            <span id="chat-title" style="font-weight:bold;">Chat</span>
-            <button onclick="document.getElementById('chat-win').style.display='none'" style="color:white; border:none; background:none; font-size:18px;">✕</button>
+        <div style="background:var(--main); color:white; padding:18px; display:flex; justify-content:space-between; align-items:center;">
+            <span id="chat-title" style="font-weight:bold; font-size:16px;">Chat Privata</span>
+            <button onclick="document.getElementById('chat-win').style.display='none'" style="color:white; border:none; background:none; font-size:20px; cursor:pointer;">✕</button>
         </div>
-        <div id="c-msgs" style="flex:1; overflow-y:auto; padding:15px; font-size:14px; background:#fafafa; display:flex; flex-direction:column; gap:10px;"></div>
-        <div style="display:flex; padding:12px; border-top:1px solid #eee; background:white; align-items:center;">
-            <button onclick="document.getElementById('chat-file').click()" style="background:none; border:none; font-size:24px; cursor:pointer;">📎</button>
+        <div id="c-msgs" style="flex:1; overflow-y:auto; padding:20px; font-size:14px; background:#f0f2f5; display:flex; flex-direction:column; gap:12px;"></div>
+        <div style="display:flex; padding:15px; border-top:1px solid #eee; background:white; align-items:center;">
+            <button onclick="document.getElementById('chat-file').click()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#888; transition:0.2s;" onmouseover="this.style.color='var(--main)'" onmouseout="this.style.color='#888'">📎</button>
             <input type="file" id="chat-file" style="display:none" onchange="upChatFile()">
-            <input type="text" id="c-in" style="flex:1; margin:0 10px; border:1px solid #ddd; border-radius:20px; padding:10px;">
-            <button onclick="send()" style="background:var(--main); color:white; border:none; padding:10px 15px; border-radius:20px;">➤</button>
+            <input type="text" id="c-in" style="flex:1; margin:0 12px; border:1px solid #ddd; border-radius:25px; padding:12px 15px; outline:none; font-size:14px;" placeholder="Scrivi un messaggio...">
+            <button onclick="send()" class="btn-main" style="padding:10px 18px; border-radius:25px;">➤</button>
         </div>
     </div>
 
     <script>
-        // --- ANTI-CRASH JSON ---
+        // --- 1. ANTI-CRASH & SETUP ---
         let user = null;
         try {
             const raw = localStorage.getItem('enohub_user');
@@ -110,7 +133,10 @@
 
         if(!user) window.location.href = "auth/login.html";
 
-        // Stripe Redirect Handler
+        // Costante: Le 8 Sigle richieste
+        const sigle = ['AIS', 'FISAR', 'ONAV', 'WSET', 'CMS', 'FIS', 'ASPI', 'AIES'];
+
+        // Ritorno da Stripe Check
         const urlP = new URLSearchParams(window.location.search);
         if(urlP.get('payment') === 'success') {
             fetch('/api/confirm-payment', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId:user._id, type:urlP.get('type'), targetId:urlP.get('target'), piano:urlP.get('piano') })})
@@ -127,140 +153,37 @@
             if(id === 'subs') renderPricing();
         }
 
-        // --- RENDER PROFILI ---
+        // --- 2. RENDER PROFILI (Duale, Elegante, con Griglia 8 Riquadri) ---
         function renderProfile() {
             const c = document.getElementById('sec-profile');
             const initial = user.nome.charAt(0).toUpperCase();
+            
             if(user.tipo === 'Cantina') {
                 c.innerHTML = `
                     <div class="banner-c"><div class="logo-c">${initial}</div></div>
-                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
-                        <div class="card">
-                            <h1>${user.nome}</h1><p style="color:#888;">${user.regione||'Italia'}</p><hr>
-                            <h3>La Nostra Storia</h3><p>${user.storia||'...'}</p>
-                            <h3>Galleria</h3><div id="g-cantina" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:25px;">
+                        <div class="card" style="margin-bottom:0;">
+                            <h1 style="margin:0 0 5px 0; color:#222; font-size:32px;">${user.nome}</h1>
+                            <p style="color:#888; font-size:15px; margin-top:0;">📍 ${user.regione||'Italia'}</p>
+                            <hr style="border:0; border-top:1px solid #eee; margin:25px 0;">
+                            <h3 style="color:var(--main); margin-bottom:15px;">La Nostra Storia</h3>
+                            <p style="line-height:1.7; color:#555;">${user.storia||'La storia della cantina non è stata ancora inserita.'}</p>
+                            <h3 style="color:var(--main); margin-top:35px; margin-bottom:15px;">Galleria Fotografica</h3>
+                            <div id="g-cantina" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:15px;"></div>
                         </div>
-                        <div class="card">
-                            <h4 style="color:var(--main);">In Breve</h4>
-                            <p><b>Filosofia:</b><br>${user.filosofia || '-'}</p>
-                            <p><b>Sito:</b><br><a href="${user.sito||'#'}" target="_blank">${user.sito || '-'}</a></p>
-                            <button style="width:100%; padding:10px; background:var(--main); color:white; border:none; border-radius:5px;" onclick="show('chat')">Contatta Cantina</button>
+                        <div class="card" style="background:#fafafa; border:1px solid #eee; margin-bottom:0; height:fit-content;">
+                            <h3 style="color:var(--main); margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">In Breve</h3>
+                            <p style="font-size:14px; margin-bottom:5px;"><b>Filosofia:</b></p>
+                            <p style="font-size:14px; color:#666; margin-top:0;">${user.filosofia || 'Non specificata'}</p>
+                            <p style="font-size:14px; margin-bottom:5px;"><b>Sito Ufficiale:</b></p>
+                            <p style="font-size:14px; margin-top:0;"><a href="${user.sito||'#'}" target="_blank" style="color:var(--main); font-weight:600; text-decoration:none;">${user.sito || 'Link mancante'}</a></p>
+                            <button class="btn-main" style="width:100%; margin-top:25px;" onclick="show('chat')">Contatta la Cantina</button>
                         </div>
                     </div>`;
                 loadGallery();
             } else {
-                c.innerHTML = `
-                    <div class="card">
-                        <div style="display:flex; gap:30px; align-items:center;">
-                            <div class="avatar">${initial}</div>
-                            <div>
-                                <h1>${user.nome}</h1>
-                                <p style="color:#666; font-weight:bold;">${user.ruolo || 'Wine Professional'} - ${user.piano}</p>
-                                <p style="color:#888;">${user.location}</p>
-                                <p style="color:var(--green); font-weight:bold;">Disponibile per consulenze</p>
-                                <button style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px;" onclick="show('chat')">Richiedi Contatto</button>
-                            </div>
-                        </div>
-                        <div style="border-top:1px solid #eee; margin-top:20px; padding-top:20px;">
-                            <p><b>Bio:</b> ${user.bio || '...'}</p>
-                            <p><b>Specializzazioni:</b> <span id="spec-list"></span></p>
-                            <p><b>Certificazioni:</b> <span id="cert-list"></span></p>
-                        </div>
-                        <hr><h3>Note di Degustazione</h3><p>${user.noteDegustazione || '...'}</p>
-                    </div>`;
-                if(user.specializzazioni) user.specializzazioni.split(',').forEach(s => document.getElementById('spec-list').innerHTML += `<span class="pill">${s.trim()}</span>`);
-                if(user.certificazioni) user.certificazioni.split(',').forEach(c => document.getElementById('cert-list').innerHTML += `<span class="pill" style="background:white;">${c.trim()}</span>`);
-            }
-        }
-
-        // --- MEDIA & VIDEO ±10S ---
-        function up() {
-            const f = document.getElementById('f-in').files[0]; if(!f) return;
-            const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
-            const xhr = new XMLHttpRequest();
-            document.getElementById('p-cont').style.display = 'block';
-            xhr.upload.onprogress = (e) => document.getElementById('p-run').style.width = Math.round((e.loaded/e.total)*100)+'%';
-            xhr.onload = () => { alert("Caricato!"); loadM(); document.getElementById('p-cont').style.display = 'none'; };
-            xhr.open('POST', '/api/upload'); xhr.send(fd);
-        }
-
-        async function loadM() {
-            const r = await fetch('/api/media'); const items = await r.json();
-            const list = document.getElementById('m-list'); list.innerHTML = '';
-            items.filter(m => m.ownerId === user._id).forEach(m => {
-                const isV = m.type.includes('video'); const isI = m.type.includes('image');
-                list.innerHTML += `<div class="card">
-                    <b>${m.name}</b><br><br>
-                    ${isV ? `<video id="v-${m._id}" src="${m.url}" controls></video><br><button onclick="document.getElementById('v-${m._id}').currentTime-=10">⏪ -10s</button><button onclick="document.getElementById('v-${m._id}').currentTime+=10">⏩ +10s</button>` : (isI ? `<img src="${m.url}" style="max-width:200px; border-radius:10px;">` : `<a href="${m.url}" target="_blank">📄 Apri File</a>`)}
-                    <br><button onclick="delM('${m._id}')" style="color:red; background:none; border:none; margin-top:10px;">🗑️ Elimina</button>
-                </div>`;
-            });
-        }
-
-        // --- NOTIFICHE ---
-        function toggleNoti() { const p = document.getElementById('noti-panel'); p.style.display = p.style.display==='block'?'none':'block'; document.getElementById('noti-count').style.display='none'; }
-        socket.on('notification', (n) => { 
-            document.getElementById('noti-count').innerText = "!"; document.getElementById('noti-count').style.display='block'; 
-            const item = `<div class="noti-item"><b>${n.title}</b><br>${n.body}</div>`;
-            document.getElementById('noti-list').innerHTML = item + document.getElementById('noti-list').innerHTML;
-        });
-
-        // --- CHAT & ALLEGATI SYNC ---
-        function upChatFile() {
-            const f = document.getElementById('chat-file').files[0]; if(!f) return;
-            const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
-            fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(media => {
-                const m = { from: user._id, to: curChat, text: "📎 Allegato (Salvato in Libreria)", fileUrl: media.url, fromName: user.nome };
-                socket.emit('send_msg', m); appendM(m, true); loadM();
-            });
-        }
-        function send() { const t = document.getElementById('c-in').value; if(!t) return; const m = {from:user._id, to:curChat, text:t, fromName:user.nome}; socket.emit('send_msg', m); appendM(m, true); document.getElementById('c-in').value=''; }
-        let curChat = null;
-        function openChat(id, n) { curChat = id; document.getElementById('chat-win').style.display='flex'; document.getElementById('chat-title').innerText = n; socket.emit('get_history', {me:user._id, to:id}); }
-        socket.on('chat_history', (ms) => { const b = document.getElementById('c-msgs'); b.innerHTML=''; ms.forEach(m => appendM(m, m.from===user._id)); });
-        socket.on('new_msg', (m) => { if(m.from===curChat) appendM(m,false); });
-        function appendM(m, me) { 
-            const b = document.getElementById('c-msgs'); 
-            let content = m.text; if(m.fileUrl) content += `<br><a href="${m.fileUrl}" target="_blank" style="color:${me?'white':'#8a1c1c'}; font-weight:bold;">Apri File</a>`;
-            b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; max-width:80%; background:${me? 'var(--main)':'#eee'}; color:${me?'white':'black'}; padding:10px 14px; border-radius:15px; border-bottom-${me?'right':'left'}-radius:0;">${content}</div>`;
-            b.scrollTop = b.scrollHeight;
-        }
-
-        // --- STRIPE & SETTINGS ---
-        function renderPricing() {
-            const l = document.getElementById('pricing-list'); l.innerHTML = '';
-            const p = user.tipo === 'Sommelier' ? [{n:'Pro',v:9}] : [{n:'Business',v:39},{n:'Premium',v:89}];
-            p.forEach(x => l.innerHTML += `<div class="card" style="text-align:center;"><h3>Piano ${x.n}</h3><h1>€${x.v}</h1><button onclick="payUpgrade('${x.n}',${x.v})" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px;">Upgrade</button></div>`);
-        }
-        async function payUpgrade(p, v) { const r = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:p,prezzo:v,type:'upgrade',userId:user._id})}); const d = await r.json(); window.location.href = d.url; }
-
-        async function loadU() {
-            const r = await fetch('/api/users'); const users = await r.json();
-            const list = document.getElementById('u-list'); list.innerHTML = '';
-            users.filter(u => u._id !== user._id).forEach(u => {
-                const isUnl = user.unlockedContacts && user.unlockedContacts.includes(u._id);
-                const can = (user.piano === 'Business' || user.piano === 'Premium' || isUnl || user.tipo === 'Sommelier');
-                list.innerHTML += `<div class="card" style="display:flex; justify-content:space-between"><span><b>${u.nome}</b> (${u.tipo})</span>${can ? `<button onclick="openChat('${u._id}','${u.nome}')" style="background:var(--main); color:white; border:none; padding:10px; border-radius:5px;">Chat</button>` : `<button onclick="payUnlock('${u._id}')" style="background:black; color:white; border:none; padding:10px; border-radius:5px;">Sblocca (15€)</button>`}</div>`;
-            });
-        }
-        async function payUnlock(tid) { const r = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:'Sblocca Contatto',prezzo:15,type:'unlock',targetId:tid,userId:user._id})}); const d = await r.json(); window.location.href = d.url; }
-
-        async function loadGallery() { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === user._id && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; border-radius:8px;">`); }
-        function renderSettings() {
-            const s = document.getElementById('settings-fields');
-            if(user.tipo === 'Cantina') s.innerHTML = `<label>Storia:</label><textarea id="s-storia" style="width:100%; height:100px;">${user.storia||''}</textarea><br><label>Sito Web:</label><input id="s-sito" value="${user.sito||''}" style="width:100%">`;
-            else s.innerHTML = `<label>Ruolo:</label><input id="s-ruolo" value="${user.ruolo||''}" style="width:100%"><br><label>Note Degustazione:</label><textarea id="s-note" style="width:100%; height:100px;">${user.noteDegustazione||''}</textarea><br><label>Bio:</label><textarea id="s-bio" style="width:100%; height:100px;">${user.bio||''}</textarea>`;
-        }
-        async function saveSet() {
-            let d = user.tipo === 'Cantina' ? { storia: document.getElementById('s-storia').value, sito: document.getElementById('s-sito').value } : { ruolo: document.getElementById('s-ruolo').value, noteDegustazione: document.getElementById('s-note').value, bio: document.getElementById('s-bio').value };
-            const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) });
-            const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); location.reload();
-        }
-        function delM(id) { fetch('/api/media/'+id, {method:'DELETE'}).then(() => loadM()); }
-        function logout() { localStorage.removeItem('enohub_user'); window.location.href="index.html"; }
-
-        document.getElementById('nav-user').innerText = "Ciao, " + user.nome;
-        renderProfile(); renderSettings();
-    </script>
-</body>
-</html>
+                // Costruzione Griglia 8 Riquadri Visiva per il Profilo
+                let certGrid = '<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-top:15px;">';
+                sigle.forEach(s => {
+                    const hasCert = user.certificazioni && user.certificazioni.includes(s);
+                    certGrid += `<div style="border: 2px solid ${hasCert ? 'var(--main)' : '#e2e8f0'}; background: ${hasCert ? 'var(--main)' : '#f8f9fa'}; color: ${hasCert ? 'white' : '#a0aec0'}; border-radius: 10px; padding: 15px 5px; text-align: center; font-weight: bold; font-size: 14px; opacity: ${hasCert ?
