@@ -8,7 +8,8 @@ const fs = require('fs-extra');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const { OAuth2Client } = require('google-auth-library');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
+// Se su Render non hai impostato la chiave STRIPE_SECRET_KEY, questa finta chiave darà errore (e ora lo vedrai nello schermo)
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_error');
 
 const app = express();
 const server = http.createServer(app);
@@ -19,7 +20,7 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ DATABASE: EnoHub Diamond V2 Staff-Ready'))
     .catch(e => console.log('❌ DATABASE ERROR:', e.message));
 
-// SCHEMA UTENTE DIAMOND
+// SCHEMA UTENTE
 const User = mongoose.model('User', new mongoose.Schema({
     nome: String, email: { type: String, unique: true }, password: { type: String }, tipo: String,
     piano: { type: String, default: "Freemium" }, googleId: String,
@@ -74,7 +75,7 @@ app.post('/api/register', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
-// STAFF & ADMIN ACTIONS
+// STAFF ADMIN
 app.post('/api/admin/delete-user', async (req, res) => {
     if(req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false });
     await User.findByIdAndDelete(req.body.targetId);
@@ -92,7 +93,7 @@ app.post('/api/admin/verify', async (req, res) => {
     await target.save(); res.json({ success: true });
 });
 
-// STRIPE REDIRECT LOGIC
+// STRIPE E CREDITI
 app.post('/api/create-checkout', async (req, res) => {
     try {
         const session = await stripe.checkout.sessions.create({
@@ -103,7 +104,10 @@ app.post('/api/create-checkout', async (req, res) => {
             cancel_url: `${req.headers.origin}/dashboard.html`,
         });
         res.json({ url: session.url });
-    } catch(e) { res.status(500).json({ error: e.message }); }
+    } catch(e) { 
+        console.error("ERRORE STRIPE:", e.message); // Questo lo vedi nei log di Render
+        res.status(500).json({ error: e.message }); // Questo lo mandiamo al front-end
+    }
 });
 
 app.post('/api/confirm-payment', async (req, res) => {
@@ -113,24 +117,33 @@ app.post('/api/confirm-payment', async (req, res) => {
     } else {
         u.piano = req.body.piano;
         if(u.tipo === 'Cantina' && req.body.piano === 'Business') { u.unlocksRemaining = 5; }
-        if(u.tipo === 'Sommelier' && req.body.piano === 'Pro') {
-             if(!u.identificativoCertificato) u.identificativoCertificato = 'EH-SOM-' + Math.floor(1000 + Math.random() * 9000);
+        if(u.tipo === 'Sommelier' && req.body.piano === 'Pro' && !u.identificativoCertificato) {
+            u.identificativoCertificato = 'EH-SOM-' + Math.floor(1000 + Math.random() * 9000);
         }
     }
     await u.save(); res.json({ success: true, user: u });
 });
 
-// MEDIA & USERS
+app.post('/api/use-credit', async (req, res) => {
+    const u = await User.findById(req.body.userId);
+    if(u.unlocksRemaining > 0 && !u.unlockedContacts.includes(req.body.targetId)) {
+        u.unlocksRemaining -= 1; u.unlockedContacts.push(req.body.targetId);
+        await u.save(); res.json({ success: true, user: u });
+    } else { res.json({ success: false }); }
+});
+
+// TAKE OUT E MEDIA
+app.delete('/api/user/:id', async (req, res) => {
+    await User.findByIdAndDelete(req.params.id);
+    await Media.deleteMany({ ownerId: req.params.id });
+    res.json({ success: true });
+});
+
 app.get('/api/users', async (req, res) => res.json(await User.find({}, '-password')));
 app.get('/api/user/:id', async (req, res) => res.json(await User.findById(req.params.id, '-password')));
 app.put('/api/user/:id', async (req, res) => {
     const u = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json({ success: true, user: u });
-});
-app.delete('/api/user/:id', async (req, res) => {
-    await User.findByIdAndDelete(req.params.id);
-    await Media.deleteMany({ ownerId: req.params.id });
-    res.json({ success: true });
 });
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
@@ -144,7 +157,7 @@ app.delete('/api/media/:id', async (req, res) => {
     res.json({ success: true });
 });
 
-// SOCKET (Chat Storico 2 Mesi + Notifiche)
+// CHAT E NOTIFICHE
 io.on('connection', (socket) => {
     socket.on('join', (id) => socket.join(id));
     socket.on('send_msg', async (d) => {
