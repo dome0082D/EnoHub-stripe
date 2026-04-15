@@ -1,6 +1,6 @@
 {
-  "name": "enohub-infinity",
-  "version": "15.0.0",
+  "name": "enohub-infinity-diamond",
+  "version": "19.0.0",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": {
