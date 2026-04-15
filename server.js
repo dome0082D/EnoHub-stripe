@@ -8,8 +8,7 @@ const fs = require('fs-extra');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const { OAuth2Client } = require('google-auth-library');
-// Se su Render non hai impostato la chiave STRIPE_SECRET_KEY, questa finta chiave darà errore (e ora lo vedrai nello schermo)
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_error');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
 const app = express();
 const server = http.createServer(app);
@@ -17,17 +16,17 @@ const io = new Server(server, { cors: { origin: "*" } });
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ DATABASE: EnoHub Diamond V2 Staff-Ready'))
+    .then(() => console.log('✅ DATABASE: EnoHub Diamond V3 Connesso'))
     .catch(e => console.log('❌ DATABASE ERROR:', e.message));
 
-// SCHEMA UTENTE
+// SCHEMA UTENTE (certFiles ora è Object per supportare il caricamento)
 const User = mongoose.model('User', new mongoose.Schema({
     nome: String, email: { type: String, unique: true }, password: { type: String }, tipo: String,
     piano: { type: String, default: "Freemium" }, googleId: String,
     location: { type: String, default: "Italia" }, bio: { type: String, default: "" },
     ruolo: { type: String, default: "Wine Professional" },
     specializzazioni: { type: String, default: "" }, certificazioni: { type: String, default: "" }, 
-    certFiles: { type: Map, of: String, default: {} },
+    certFiles: { type: Object, default: {} }, 
     noteDegustazione: { type: String, default: "" }, tastingLabelUrl: { type: String, default: "" },
     premiumText: { type: String, default: "" }, premiumImageUrl: { type: String, default: "" },
     regione: { type: String, default: "" }, filosofia: { type: String, default: "" }, 
@@ -48,7 +47,6 @@ const upload = multer({ storage: multer.diskStorage({
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 })});
 
-// AUTH
 app.post('/api/google-login', async (req, res) => {
     try {
         const ticket = await googleClient.verifyIdToken({ idToken: req.body.token, audience: process.env.GOOGLE_CLIENT_ID });
@@ -75,7 +73,6 @@ app.post('/api/register', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
-// STAFF ADMIN
 app.post('/api/admin/delete-user', async (req, res) => {
     if(req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false });
     await User.findByIdAndDelete(req.body.targetId);
@@ -87,13 +84,10 @@ app.post('/api/admin/verify', async (req, res) => {
     if(req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false });
     const target = await User.findById(req.body.targetId);
     target.isVerified = req.body.verifyStatus;
-    if(target.isVerified && !target.identificativoCertificato) {
-        target.identificativoCertificato = 'EH-STAFF-' + Math.floor(1000 + Math.random() * 9000);
-    }
+    if(target.isVerified && !target.identificativoCertificato) target.identificativoCertificato = 'EH-STAFF-' + Math.floor(1000 + Math.random() * 9000);
     await target.save(); res.json({ success: true });
 });
 
-// STRIPE E CREDITI
 app.post('/api/create-checkout', async (req, res) => {
     try {
         const session = await stripe.checkout.sessions.create({
@@ -104,10 +98,7 @@ app.post('/api/create-checkout', async (req, res) => {
             cancel_url: `${req.headers.origin}/dashboard.html`,
         });
         res.json({ url: session.url });
-    } catch(e) { 
-        console.error("ERRORE STRIPE:", e.message); // Questo lo vedi nei log di Render
-        res.status(500).json({ error: e.message }); // Questo lo mandiamo al front-end
-    }
+    } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/confirm-payment', async (req, res) => {
@@ -117,9 +108,7 @@ app.post('/api/confirm-payment', async (req, res) => {
     } else {
         u.piano = req.body.piano;
         if(u.tipo === 'Cantina' && req.body.piano === 'Business') { u.unlocksRemaining = 5; }
-        if(u.tipo === 'Sommelier' && req.body.piano === 'Pro' && !u.identificativoCertificato) {
-            u.identificativoCertificato = 'EH-SOM-' + Math.floor(1000 + Math.random() * 9000);
-        }
+        if(u.tipo === 'Sommelier' && req.body.piano === 'Pro' && !u.identificativoCertificato) u.identificativoCertificato = 'EH-SOM-' + Math.floor(1000 + Math.random() * 9000);
     }
     await u.save(); res.json({ success: true, user: u });
 });
@@ -132,7 +121,6 @@ app.post('/api/use-credit', async (req, res) => {
     } else { res.json({ success: false }); }
 });
 
-// TAKE OUT E MEDIA
 app.delete('/api/user/:id', async (req, res) => {
     await User.findByIdAndDelete(req.params.id);
     await Media.deleteMany({ ownerId: req.params.id });
@@ -157,7 +145,6 @@ app.delete('/api/media/:id', async (req, res) => {
     res.json({ success: true });
 });
 
-// CHAT E NOTIFICHE
 io.on('connection', (socket) => {
     socket.on('join', (id) => socket.join(id));
     socket.on('send_msg', async (d) => {
@@ -173,4 +160,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🚀 EnoHub DIAMOND STAFF MODE Active on ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 EnoHub V3 DIAMOND Active on ${PORT}`));
