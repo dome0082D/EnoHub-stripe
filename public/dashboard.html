@@ -5,58 +5,64 @@
     <title>EnoHub Gold - Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --main: #8a1c1c; --gold: #d4af37; --side: #121212; --bg: #f5f7f9; --border: #e2e8f0; --sidebar-width: 260px; }
+        :root { --main: #8a1c1c; --gold: #d4af37; --side: #121212; --bg: #f5f7f9; --border: #e2e8f0; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: var(--bg); color: #333; }
         
         /* NAVBAR */
-        .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; position: sticky; top:0; z-index:100; }
+        .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; position: sticky; top:0; z-index:100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .noti-badge { background: #e74c3c; color: white; border-radius: 50%; padding: 3px 7px; font-size: 11px; position: absolute; top: -6px; right: -10px; display: none; }
 
-        /* MENU A SCOMPARSA (PUNTO 2) */
-        .sidebar-slide { position: fixed; top: 0; left: -260px; width: 260px; height: 100%; background: var(--side); color: white; transition: 0.4s; z-index: 2000; padding-top: 60px; }
+        /* MENU A SCOMPARSA (L'UNICO MENU) */
+        .sidebar-slide { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--side); color: white; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2000; padding-top: 80px; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
         .sidebar-slide.active { left: 0; }
-        .sidebar-slide a { display: block; padding: 15px 25px; color: #ccc; text-decoration: none; border-bottom: 1px solid #333; }
-        .sidebar-slide a:hover { background: #333; color: white; }
-        .menu-toggle-btn { position: fixed; top: 15px; left: 15px; z-index: 2001; background: var(--main); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .sidebar-slide a { display: block; padding: 18px 25px; color: #ccc; text-decoration: none; border-bottom: 1px solid #333; font-size: 16px; transition: 0.2s; cursor: pointer; }
+        .sidebar-slide a:hover { background: #333; color: white; padding-left: 30px; }
+        .menu-toggle-btn { position: fixed; top: 12px; left: 15px; z-index: 2001; background: var(--main); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 22px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
 
         /* LAYOUT PRINCIPALE */
         .main { display: flex; flex: 1; overflow: hidden; }
-        .sidebar-internal { width: 240px; background: var(--side); color: white; padding: 20px; overflow-y:auto; flex-shrink: 0; }
-        .content { flex: 1; padding: 30px; overflow-y: auto; }
+        /* SIDEBAR INTERNA RIMOSSA COMPLETAMENTE */
+        .content { flex: 1; padding: 40px 5%; overflow-y: auto; }
         .card { background: white; padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #fff; }
         
         /* DESIGN PROFILO */
-        .avatar { width: 120px; height: 120px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 45px; }
+        .avatar { width: 120px; height: 120px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 45px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .banner-c { height: 200px; background: #eee url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=80&w=1000') center/cover; border-radius: 16px; position: relative; margin-bottom: 50px; }
         .logo-c { width: 110px; height: 110px; background: white; border: 5px solid white; position: absolute; bottom: -30px; left: 30px; border-radius: 12px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--main); font-size: 24px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .pill { background: #f8f9fa; padding: 6px 15px; border-radius: 20px; font-size: 13px; margin: 0 8px 8px 0; display: inline-block; border: 1px solid #ddd; color: #555; }
         
-        /* CERTIFICAZIONI */
-        .cert-container { position: relative; margin-bottom: 10px; }
-        .cert-box { border: 2px solid #e2e8f0; background: white; color: #888; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; }
+        /* CERTIFICAZIONI E UPGRADE */
+        .cert-container { position: relative; display: block; margin-bottom: 5px; }
+        .cert-box { border: 2px solid #e2e8f0; background: white; color: #888; padding: 12px 5px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .cert-cb:checked + .cert-box { border-color: var(--main); background: var(--main); color: white; }
         .cert-cb { display: none; }
-
-        /* BOTTONI */
-        .btn-main { background: var(--main); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-main:hover { opacity: 0.8; }
         
-        .chat-ui { position: fixed; bottom: 20px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display:none; flex-direction: column; z-index: 9999; border: 1px solid var(--border); overflow: hidden; }
-        .menu-btn { width: 100%; text-align: left; background: none; border: none; color: #a0aec0; padding: 15px; cursor: pointer; font-size: 15px; border-radius: 8px; margin-bottom: 5px; }
-        .menu-btn.active { color: white; background: var(--main); }
+        .pricing-grid, .net-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 20px; }
+        .plan-card { background: white; border-radius: 15px; padding: 30px; border: 1px solid var(--border); display: flex; flex-direction: column; }
+        .plan-price { font-size: 42px; font-weight: 900; color: var(--main); margin: 15px 0; }
+        .net-list { display: flex; flex-direction: column; gap: 10px; }
+
+        /* BOTTONI E CHAT */
+        .btn-main { background: var(--main); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; font-size: 14px; }
+        .btn-main:hover { opacity: 0.9; transform: translateY(-2px); }
+        
+        .chat-ui { position: fixed; bottom: 20px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display:none; flex-direction: column; z-index: 9999; border: 1px solid var(--border); overflow: hidden; }
     </style>
 </head>
 <body>
     <button class="menu-toggle-btn" onclick="toggleSlideMenu()">☰</button>
     <nav class="sidebar-slide" id="slide-menu">
-        <h3 style="padding: 0 25px;">EnoHub Menu</h3>
-        <a href="/dashboard.html">🏠 Dashboard</a>
-        <a href="/cantine.html">🍷 Esplora Cantine</a>
-        <a href="/messaggi.html">💬 Messaggi</a>
-        <a href="/logout" onclick="logout()" style="color: #ff5252;">🚪 Esci</a>
+        <h3 style="padding: 0 25px; color: white;">EnoHub Menu</h3>
+        <a onclick="show('profile')">👤 Il mio Profilo</a>
+        <a onclick="show('chat')">💬 Community & Network</a>
+        <a onclick="show('subs')">💎 Upgrade Piano</a>
+        <a onclick="show('settings')">⚙️ Modifica Profilo</a>
+        <hr style="border-top:1px solid #333; margin:15px 25px;">
+        <a onclick="logout()" style="color: #ff5252;">🚪 Esci</a>
     </nav>
 
     <div class="nav">
-        <a href="index.html" style="font-weight:900; color:var(--main); text-decoration:none; font-size: 24px; margin-left: 50px;">EnoHub</a>
+        <a href="index.html" style="font-weight:900; color:var(--main); text-decoration:none; font-size: 24px; margin-left: 60px;">EnoHub</a>
         <div style="display:flex; align-items:center; gap:20px;">
             <div style="position:relative; cursor:pointer;" onclick="toggleNoti()">🔔 <span id="noti-count" class="noti-badge">0</span></div>
             <span id="nav-user" style="font-weight:600; color:#444;"></span>
@@ -64,87 +70,267 @@
     </div>
 
     <div class="main">
-        <div class="sidebar-internal">
-            <button class="menu-btn active" id="m-profile" onclick="show('profile')">👤 Mio Profilo</button>
-            <button class="menu-btn" id="m-chat" onclick="show('chat')">💬 Community</button>
-            <button class="menu-btn" id="m-subs" onclick="show('subs')">💎 Upgrade</button>
-            <button class="menu-btn" id="m-settings" onclick="show('settings')">⚙️ Impostazioni</button>
-        </div>
-
         <div class="content">
             <section id="sec-profile"></section>
-            <section id="sec-chat" style="display:none"><h2>EnoHub Community</h2><div id="list-sommelier"></div><div id="list-cantine"></div></section>
-            <section id="sec-subs" style="display:none"><h2>Upgrade</h2><div id="pricing-list"></div></section>
-            <section id="sec-settings" class="card" style="display:none"><h2>Modifica Profilo</h2><div id="settings-fields"></div><button onclick="saveSet()" class="btn-main" style="margin-top:20px;">SALVA TUTTO</button></section>
+
+            <section id="sec-chat" style="display:none">
+                <h2 style="color:var(--main); margin-top:0;">EnoHub Network</h2>
+                <div class="net-grid">
+                    <div class="card" style="margin-bottom:0;"><h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">🤵 Sommelier</h3><div id="list-sommelier" class="net-list"></div></div>
+                    <div class="card" style="margin-bottom:0;"><h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">🍷 Cantine</h3><div id="list-cantine" class="net-list"></div></div>
+                </div>
+            </section>
+            
+            <section id="sec-subs" style="display:none">
+                <h2 style="color:var(--main); margin-top:0;">Scegli il tuo Upgrade</h2>
+                <div id="pricing-list" class="pricing-grid"></div>
+            </section>
+
+            <section id="sec-settings" class="card" style="display:none; max-width: 800px; margin: 0 auto;">
+                <h2 style="color:var(--main); margin-top:0;">Modifica Dati Profilo</h2>
+                <div id="settings-fields"></div>
+                <button onclick="saveSet()" class="btn-main" style="margin-top:25px; width:auto; padding:15px 40px;">💾 SALVA TUTTO</button>
+            </section>
         </div>
     </div>
 
     <div id="chat-win" class="chat-ui">
-        <div style="background:var(--main); color:white; padding:15px; display:flex; justify-content:space-between;"><b>Chat</b><button onclick="document.getElementById('chat-win').style.display='none'" style="color:white; border:none; background:none;">✕</button></div>
-        <div id="c-msgs" style="flex:1; overflow-y:auto; padding:15px; background:#f9f9f9;"></div>
-        <div style="display:flex; padding:10px; border-top:1px solid #eee;"><input type="text" id="c-in" style="flex:1; border:1px solid #ddd; padding:10px; border-radius:5px;"><button onclick="send()" class="btn-main" style="margin-left:5px;">➤</button></div>
+        <div style="background:var(--main); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <b id="chat-title">Chat</b>
+            <button onclick="document.getElementById('chat-win').style.display='none'" style="color:white; border:none; background:none; font-size: 20px; cursor: pointer;">✕</button>
+        </div>
+        <div id="c-msgs" style="flex:1; overflow-y:auto; padding:15px; background:#f0f2f5; display: flex; flex-direction: column; gap: 10px;"></div>
+        <div style="display:flex; padding:10px; border-top:1px solid #eee; background: white;">
+            <input type="text" id="c-in" style="flex:1; border:1px solid #ddd; padding:12px; border-radius:20px; outline: none;" placeholder="Scrivi un messaggio...">
+            <button onclick="send()" class="btn-main" style="width:auto; border-radius:20px; margin-left:10px; padding: 10px 15px;">➤</button>
+        </div>
     </div>
 
     <script>
-        function toggleSlideMenu() { document.getElementById('slide-menu').classList.toggle('active'); }
+        // LOGICA MENU A SCOMPARSA
+        function toggleSlideMenu() { 
+            document.getElementById('slide-menu').classList.toggle('active'); 
+        }
+
+        // INIZIALIZZAZIONE UTENTE E SOCKET
         let user = JSON.parse(localStorage.getItem('enohub_user'));
         if(!user) window.location.href = "auth/login.html";
 
         const sigle = ['AIS', 'FISAR', 'ONAV', 'WSET', 'CMS', 'FIS', 'ASPI', 'AIES'];
         const socket = io(); socket.emit('join', user._id);
 
+        // NAVIGAZIONE TRA LE SEZIONI
         function show(id) {
-            document.querySelectorAll('section, .sidebar-internal .menu-btn').forEach(el => {
-                if(el.tagName === 'SECTION') el.style.display = 'none';
-                if(el.tagName === 'BUTTON') el.classList.remove('active');
-            });
+            // Nascondi tutte le sezioni
+            document.querySelectorAll('section').forEach(el => el.style.display = 'none');
+            // Mostra quella cliccata
             document.getElementById('sec-' + id).style.display = 'block';
-            document.getElementById('m-' + id).classList.add('active');
+            
+            // Chiudi il menu a tendina dopo aver cliccato
+            document.getElementById('slide-menu').classList.remove('active');
+            
+            // Carica i dati giusti in base alla pagina
             if(id === 'profile') renderProfile();
+            if(id === 'chat') loadU();
+            if(id === 'subs') renderPricing();
             if(id === 'settings') renderSettings();
         }
 
+        // RENDER: PROFILO
         function renderProfile() {
             const c = document.getElementById('sec-profile');
             const initial = user.nome.charAt(0).toUpperCase();
             if(user.tipo === 'Cantina') {
-                c.innerHTML = `<div class="banner-c"><div class="logo-c">${initial}</div></div><div class="card"><h1>${user.nome}</h1><p>📍 ${user.regione||'Italia'}</p><hr><h3>Note Sommelier:</h3><p>${user.noteDegustazione || '...'}</p></div>`;
+                c.innerHTML = `
+                    <div class="banner-c"><div class="logo-c">${initial}</div></div>
+                    <div class="card" style="margin-top: 40px;">
+                        <h1 style="margin:0;">${user.nome}</h1>
+                        <p style="color: #666;">📍 ${user.regione || 'Italia'} | 🌐 <a href="${user.sito||'#'}" target="_blank">${user.sito||'Sito non inserito'}</a></p>
+                        <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
+                        <h3 style="color:var(--main);">La Nostra Storia:</h3>
+                        <p style="line-height:1.6;">${user.storia || 'Nessuna storia inserita.'}</p>
+                    </div>`;
             } else {
-                c.innerHTML = `<div class="card"><div style="display:flex; gap:20px; align-items:center;"><div class="avatar">${initial}</div><div><h1>${user.nome}</h1><p>${user.ruolo||'Wine Professional'}</p></div></div><hr><h3>Bio:</h3><p>${user.bio||'...'}</p><h3>Note di Degustazione:</h3><p>${user.noteDegustazione||'Nessuna nota presente.'}</p></div>`;
+                let certGrid = '<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-top:15px;">';
+                sigle.forEach(s => {
+                    const hasCert = user.certificazioni && user.certificazioni.includes(s);
+                    certGrid += `<div style="border: 2px solid ${hasCert ? 'var(--main)' : '#e2e8f0'}; background: ${hasCert ? 'var(--main)' : '#f8f9fa'}; color: ${hasCert ? 'white' : '#a0aec0'}; border-radius: 10px; padding: 10px 5px; text-align: center; font-weight: bold; font-size: 12px; opacity: ${hasCert ? '1' : '0.5'};">${s}</div>`;
+                });
+                certGrid += '</div>';
+
+                c.innerHTML = `
+                    <div class="card">
+                        <div style="display:flex; gap:30px; align-items:center;">
+                            <div class="avatar">${initial}</div>
+                            <div>
+                                <h1 style="margin:0;">${user.nome}</h1>
+                                <p style="color:var(--main); font-weight:bold; margin:5px 0;">${user.ruolo || 'Wine Professional'} - ${user.piano}</p>
+                                <p style="color:#888; margin:0;">📍 ${user.location || 'Italia'}</p>
+                            </div>
+                        </div>
+                        <div style="border-top:1px solid #eee; margin-top:30px; padding-top:20px;">
+                            <h3 style="margin-top:0;">Bio:</h3>
+                            <p>${user.bio || 'Nessuna biografia inserita.'}</p>
+                            <h3>Certificazioni:</h3>${certGrid}
+                        </div>
+                        <div style="background:#fdfdfd; padding:25px; border-radius:12px; margin-top:30px; border:1px solid #e2e8f0;">
+                            <h3 style="color:var(--main); margin-top:0;">🍷 Note di Degustazione</h3>
+                            <p style="white-space: pre-line; line-height: 1.6;">${user.noteDegustazione || 'Nessuna nota di degustazione salvata.'}</p>
+                        </div>
+                    </div>`;
             }
         }
 
+        // RENDER: IMPOSTAZIONI (Con dati base inclusi)
         function renderSettings() {
             const s = document.getElementById('settings-fields');
-            const style = "width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px;";
+            const style = "width:100%; padding:14px; margin:8px 0 20px 0; border:1px solid #ddd; border-radius:8px; box-sizing: border-box; font-family:inherit;";
+            
+            // Dati comuni a tutti
+            let baseFields = `
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <div>
+                        <label style="font-weight:bold;">Nome Display:</label>
+                        <input id="s-nome" value="${user.nome||''}" style="${style}">
+                    </div>
+                    <div>
+                        <label style="font-weight:bold;">Città/Sede:</label>
+                        <input id="s-loc" value="${user.location||''}" style="${style}">
+                    </div>
+                </div>
+            `;
+
             if(user.tipo === 'Cantina') {
-                // PUNTO 4: Rimosso campo Email
-                s.innerHTML = `<label>Regione:</label><input id="s-reg" value="${user.regione||''}" style="${style}"><label>Sito:</label><input id="s-sito" value="${user.sito||''}" style="${style}"><label>Storia:</label><textarea id="s-storia" style="${style} height:80px;">${user.storia||''}</textarea>`;
+                s.innerHTML = baseFields + `
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                        <div>
+                            <label style="font-weight:bold;">Regione:</label>
+                            <input id="s-reg" value="${user.regione||''}" style="${style}">
+                        </div>
+                        <div>
+                            <label style="font-weight:bold;">Sito Internet:</label>
+                            <input id="s-sito" value="${user.sito||''}" placeholder="es: www.cantina.it" style="${style}">
+                        </div>
+                    </div>
+                    <label style="font-weight:bold;">Storia della Cantina:</label>
+                    <textarea id="s-storia" style="${style} height:120px;">${user.storia||''}</textarea>
+                `;
             } else {
-                let certHtml = '<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px;">';
+                let certHtml = '<label style="font-weight:bold; display:block; margin-bottom:10px;">Certificazioni Possedute:</label><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom: 25px;">';
                 sigle.forEach(sig => {
                     const isCk = user.certificazioni && user.certificazioni.includes(sig);
                     certHtml += `<label class="cert-container"><input type="checkbox" value="${sig}" class="cert-cb" ${isCk?'checked':''}><div class="cert-box">${sig}</div></label>`;
                 });
                 certHtml += '</div>';
-                // PUNTO 3: Note Degustazione
-                s.innerHTML = `<label>Bio:</label><textarea id="s-bio" style="${style}">${user.bio||''}</textarea><h3>🍷 Note di Degustazione</h3><textarea id="s-note" style="${style}; height:100px;" placeholder="Descrivi il vino assaggiato...">${user.noteDegustazione||''}</textarea><input type="file" id="up-tasting" style="margin-top:5px;">${certHtml}`;
+
+                s.innerHTML = baseFields + `
+                    <label style="font-weight:bold;">Ruolo/Titolo (es. Sommelier AIS):</label>
+                    <input id="s-ruolo" value="${user.ruolo||''}" style="${style}">
+                    <label style="font-weight:bold;">Bio Personale:</label>
+                    <textarea id="s-bio" style="${style} height:100px;">${user.bio||''}</textarea>
+                    ${certHtml}
+                    <div style="background:#f4f4f4; padding:20px; border-radius:12px; border: 1px dashed #ccc;">
+                        <h3 style="color:var(--main); margin-top:0;">🍷 Appunti di Degustazione</h3>
+                        <p style="font-size:14px; color:#666;">Scrivi qui le tue impressioni, verranno mostrate sul tuo profilo.</p>
+                        <textarea id="s-note" style="${style}; height:120px; margin-bottom:0;" placeholder="Es: Rosso rubino, profumo intenso...">${user.noteDegustazione||''}</textarea>
+                        <p style="font-size:12px; margin-top:10px;">(La funzione di upload etichetta verrà attivata con il prossimo update database)</p>
+                    </div>
+                `;
             }
         }
 
+        // SALVATAGGIO DATI MODIFICATI
         async function saveSet() {
-            let d = {};
-            if(user.tipo === 'Cantina') d = { regione: document.getElementById('s-reg').value, sito: document.getElementById('s-sito').value, storia: document.getElementById('s-storia').value };
-            else {
+            let d = {
+                nome: document.getElementById('s-nome').value,
+                location: document.getElementById('s-loc').value
+            };
+
+            if(user.tipo === 'Cantina') {
+                d.regione = document.getElementById('s-reg').value;
+                d.sito = document.getElementById('s-sito').value;
+                d.storia = document.getElementById('s-storia').value;
+            } else {
+                d.ruolo = document.getElementById('s-ruolo').value;
+                d.bio = document.getElementById('s-bio').value;
+                d.noteDegustazione = document.getElementById('s-note').value;
                 let c = []; document.querySelectorAll('.cert-cb:checked').forEach(cb => c.push(cb.value));
-                d = { bio: document.getElementById('s-bio').value, noteDegustazione: document.getElementById('s-note').value, certificazioni: c.join(',') };
+                d.certificazioni = c.join(',');
             }
+
             const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) });
-            const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); location.reload();
+            const j = await r.json(); 
+            localStorage.setItem('enohub_user', JSON.stringify(j.user)); 
+            alert("Profilo aggiornato con successo!");
+            location.reload();
+        }
+
+        // RENDER: UPGRADE
+        function renderPricing() {
+            const l = document.getElementById('pricing-list'); l.innerHTML = '';
+            const plans = user.tipo === 'Sommelier' ? [
+                { n: 'Freemium', v: 0, f: ['Profilo base', 'Ricezione notifiche', 'Visibilità ridotta.'] },
+                { n: 'Pro', v: 9, f: ['Badge "Certificato"', 'Priorità candidature', 'Offerte esclusive'], feat: true }
+            ] : [
+                { n: 'Starter', v: 0, f: ['Zero rischi e costi fissi', 'Paghi €15 solo per sbloccare contatti.'] },
+                { n: 'Business', v: 39, f: ['Accesso illimitato al database', 'Annunci in evidenza.'], feat: true }
+            ];
+            plans.forEach(p => {
+                const isCurrent = user.piano === p.n;
+                l.innerHTML += `<div class="plan-card ${p.feat ? 'featured' : ''}" style="${p.feat ? 'border:2px solid var(--gold);' : ''}">
+                    <h3 style="margin-top:0;">${p.n}</h3>
+                    <div class="plan-price">€${p.v}${p.v>0?'<small style="font-size:16px;color:#888;">/mese</small>':''}</div>
+                    <ul style="list-style:none; padding:0; margin-bottom:30px; flex:1;">${p.f.map(feat => `<li style="padding:8px 0; border-bottom:1px solid #eee;">✔️ ${feat}</li>`).join('')}</ul>
+                    <button class="btn-main" style="${isCurrent?'background:#ccc;cursor:default':''}">${isCurrent?'Piano Attivo':'Seleziona'}</button>
+                </div>`;
+            });
+        }
+
+        // RENDER: COMMUNITY & CHAT
+        async function loadU() {
+            const r = await fetch('/api/users'); const users = await r.json();
+            const ls = document.getElementById('list-sommelier'); const lc = document.getElementById('list-cantine');
+            ls.innerHTML = ''; lc.innerHTML = '';
+            users.filter(u => u._id !== user._id).forEach(u => {
+                const canChat = true; // Semplificato per ora per farti testare la UI
+                const html = `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:1px solid #eee; border-radius:12px; background:#fafafa;">
+                    <div><b style="font-size:16px;">${u.nome}</b><br><span style="color:#666; font-size:13px;">${u.ruolo || u.tipo} • ${u.location || 'Italia'}</span></div>
+                    <button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:8px 15px;">Avvia Chat</button>
+                </div>`;
+                if(u.tipo === 'Sommelier') ls.innerHTML += html; else lc.innerHTML += html;
+            });
+        }
+
+        let curChat = null;
+        function openChat(id, n) { 
+            curChat = id; 
+            document.getElementById('chat-win').style.display='flex'; 
+            document.getElementById('chat-title').innerText = "Chat con " + n; 
+            socket.emit('get_history', {me:user._id, to:id}); 
+        }
+
+        function send() { 
+            const t = document.getElementById('c-in').value; 
+            if(!t) return; 
+            const m = {from:user._id, to:curChat, text:t, fromName:user.nome}; 
+            socket.emit('send_msg', m); 
+            appendM(m, true); 
+            document.getElementById('c-in').value=''; 
+        }
+
+        socket.on('chat_history', (ms) => { const b = document.getElementById('c-msgs'); b.innerHTML=''; ms.forEach(m => appendM(m, m.from===user._id)); });
+        socket.on('new_msg', (m) => { if(m.from===curChat) appendM(m,false); });
+        function appendM(m, me) { 
+            const b = document.getElementById('c-msgs'); 
+            b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; max-width:80%; background:${me? 'var(--main)':'white'}; color:${me?'white':'#222'}; padding:12px 16px; border-radius:15px; border-bottom-${me?'right':'left'}-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-size:14px;">${m.text}</div>`; 
+            b.scrollTop = b.scrollHeight; 
         }
 
         function logout() { localStorage.removeItem('enohub_user'); window.location.href="index.html"; }
-        document.getElementById('nav-user').innerText = "Ciao, " + user.nome;
+
+        // AVVIO
+        document.getElementById('nav-user').innerText = "Area Personale: " + user.nome;
         show('profile');
     </script>
 </body>
