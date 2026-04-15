@@ -1,9 +1,177 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="UTF-8"><title>EnoHub - Home</title>
-<style>body { font-family: sans-serif; margin: 0; background: #fafafa; } nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); } .logo { font-size: 24px; font-weight: bold; color: #8a1c1c; text-decoration: none; } .btn { background: #8a1c1c; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; text-decoration: none; font-weight: bold; } .hero { text-align: center; padding: 120px 20px; }</style></head>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnoHub - L'Elite del Vino Digitale</title>
+    <style>
+        :root { 
+            --main: #8a1c1c; 
+            --dark: #1a1a1a; 
+            --light: #f8f9fa; 
+            --gray: #666;
+            --border: #eaeaea;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            background: var(--light); 
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        /* NAVBAR */
+        nav { 
+            background: white; 
+            padding: 15px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+        }
+        .logo { 
+            font-size: 26px; 
+            font-weight: 800; 
+            color: var(--main); 
+            text-decoration: none; 
+            letter-spacing: -0.5px;
+        }
+        .btn-outline {
+            color: var(--main);
+            border: 2px solid var(--main);
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .btn-outline:hover { background: var(--main); color: white; }
+        
+        .btn-main { 
+            background: var(--main); 
+            color: white; 
+            border: none; 
+            padding: 12px 28px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            text-decoration: none; 
+            font-weight: bold; 
+            font-size: 16px;
+            display: inline-block;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(138, 28, 28, 0.3);
+        }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(138, 28, 28, 0.4); }
+
+        /* HERO SECTION */
+        .hero { 
+            text-align: center; 
+            padding: 120px 20px; 
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=2000') center/cover;
+            color: white;
+        }
+        .hero h1 { font-size: 48px; margin-bottom: 10px; font-weight: 800; }
+        .hero p { font-size: 20px; margin-bottom: 40px; color: #ddd; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+        /* FEATURES & PRICING (Basato sulle tue foto) */
+        .section-title { text-align: center; margin: 60px 0 30px 0; font-size: 32px; color: var(--dark); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; padding: 0 5%; margin-bottom: 60px; max-width: 1200px; margin-left: auto; margin-right: auto; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); text-align: center; border: 1px solid var(--border); transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); border-color: var(--main); }
+        .card h3 { font-size: 24px; margin-top: 0; color: var(--main); }
+        .card h2 { font-size: 40px; margin: 10px 0; color: var(--dark); }
+        .card p { color: var(--gray); font-size: 15px; margin-bottom: 25px; }
+
+        /* FOOTER */
+        footer { background: var(--dark); color: white; text-align: center; padding: 30px; font-size: 14px; }
+
+        @media (max-width: 768px) { .hero h1 { font-size: 36px; } .hero { padding: 80px 20px; } }
+    </style>
+</head>
 <body>
-<nav><a href="index.html" class="logo">EnoHub Gold</a><div id="nav-links"><a href="auth/login.html" class="btn">Accedi</a></div></nav>
-<div class="hero"><h1>Elite del Vino Digitale</h1><p>Connettiamo i Sommelier certificati con le migliori Cantine.</p><div id="cta"><a href="auth/register.html" class="btn" style="background:#444">Registrati Ora</a></div></div>
-<script>
-    try { const raw = localStorage.getItem('enohub_user'); if(raw && raw !== "undefined") { const u = JSON.parse(raw); document.getElementById('nav-links').innerHTML = `<a href="dashboard.html" class="btn">Il mio Profilo</a>`; document.getElementById('welcome').innerText = `Bentornato, ${u.nome}`; document.getElementById('cta').innerHTML = `<a href="dashboard.html" class="btn">Vai alla Dashboard</a>`; } } catch(e) { localStorage.removeItem('enohub_user'); }
-</script></body></html>
+
+    <nav>
+        <a href="index.html" class="logo">EnoHub</a>
+        <div id="nav-actions">
+            <a href="auth/login.html" class="btn-outline" style="margin-right: 10px;">Accedi</a>
+            <a href="auth/register.html" class="btn-main">Registrati</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1 id="hero-title">Il Network dell'Eccellenza Vinicola</h1>
+        <p id="hero-subtitle">Connettiamo i migliori Sommelier certificati con le Cantine d'eccellenza, attraverso un sistema di matchmaking intelligente e sicuro.</p>
+        <div id="hero-cta">
+            <a href="auth/register.html" class="btn-main" style="font-size: 18px; padding: 15px 35px;">Inizia Subito</a>
+        </div>
+    </div>
+
+    <h2 class="section-title">Piani pensati per il tuo Business</h2>
+    
+    <div class="grid">
+        <div class="card">
+            <span style="background:#eee; padding:5px 15px; border-radius:20px; font-size:12px; font-weight:bold; color:#555;">PER I SOMMELIER</span>
+            <h3>Profilo Pro</h3>
+            <h2>€9<span style="font-size:16px; color:#888;">/mese</span></h2>
+            <p>Badge "Certificato", priorità assoluta nelle candidature, accesso a offerte esclusive (eventi, export) e statistiche dettagliate sul profilo.</p>
+            <a href="auth/register.html" class="btn-outline" style="display:block;">Scopri di più</a>
+        </div>
+
+        <div class="card" style="border: 2px solid var(--main); position:relative;">
+            <div style="position:absolute; top:-15px; left:50%; transform:translateX(-50%); background:var(--main); color:white; padding:5px 15px; border-radius:20px; font-size:12px; font-weight:bold;">IL PIÙ SCELTO</div>
+            <span style="background:#eee; padding:5px 15px; border-radius:20px; font-size:12px; font-weight:bold; color:#555;">PER LE CANTINE</span>
+            <h3>Pay-per-Match</h3>
+            <h2>€15<span style="font-size:16px; color:#888;">/contatto</span></h2>
+            <p>Zero abbonamenti fissi. Esplora il database gratuitamente e paga solo €15 per sbloccare i contatti diretti del Sommelier perfetto per te.</p>
+            <a href="auth/register.html" class="btn-main" style="display:block; width:100%; box-sizing:border-box;">Inizia Gratis</a>
+        </div>
+
+        <div class="card">
+            <span style="background:#eee; padding:5px 15px; border-radius:20px; font-size:12px; font-weight:bold; color:#555;">PER GRUPPI & CONSORZI</span>
+            <h3>Premium</h3>
+            <h2>€89<span style="font-size:16px; color:#888;">/mese</span></h2>
+            <p>Filtri avanzati (lingue straniere rare, Master), supporto prioritario dedicato e gestione multi-account per le grandi aziende.</p>
+            <a href="auth/register.html" class="btn-outline" style="display:block;">Scopri di più</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 EnoHub Enterprise. Tutti i diritti riservati. Piattaforma sicura con Stripe.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const rawUser = localStorage.getItem('enohub_user');
+                
+                // Se c'è un utente valido salvato in memoria...
+                if (rawUser && rawUser !== "undefined") {
+                    const user = JSON.parse(rawUser);
+                    
+                    // 1. Cambia i bottoni della Navbar
+                    document.getElementById('nav-actions').innerHTML = `
+                        <span style="margin-right:20px; font-weight:600; color:var(--main);">Ciao, ${user.nome}</span>
+                        <a href="dashboard.html" class="btn-main">Vai alla Dashboard</a>
+                    `;
+
+                    // 2. Cambia il testo principale (Hero Section)
+                    document.getElementById('hero-title').innerText = `Bentornato su EnoHub!`;
+                    document.getElementById('hero-subtitle').innerText = `Accedi alla tua area personale per esplorare la rete, gestire i tuoi abbonamenti e controllare le nuove notifiche.`;
+                    
+                    // 3. Cambia il bottone gigante centrale
+                    document.getElementById('hero-cta').innerHTML = `
+                        <a href="dashboard.html" class="btn-main" style="font-size: 18px; padding: 15px 35px; background:white; color:var(--main);">Entra nel tuo Profilo</a>
+                    `;
+                }
+            } catch (e) {
+                // Se la memoria è rotta, la puliamo per non bloccare il sito
+                console.error("Memoria pulita preventivamente.");
+                localStorage.removeItem('enohub_user');
+            }
+        });
+    </script>
+</body>
+</html>

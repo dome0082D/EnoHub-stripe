@@ -2,41 +2,49 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - EnoHub Infinity</title>
+    <title>EnoHub Gold - Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --main: #8a1c1c; --side: #2c3e50; --bg: #f4f4f4; --gold: #d4af37; --green: #27ae60; }
+        :root { --main: #8a1c1c; --side: #1a1a1a; --bg: #f8f9fa; --border: #eee; --green: #107c41; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
-        .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; align-items: center; position: sticky; top:0; z-index:100; }
+        .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; position: sticky; top:0; z-index:100; }
         .main { display: flex; flex: 1; overflow: hidden; }
         .sidebar { width: 230px; background: var(--side); color: white; padding: 20px; overflow-y:auto; }
         .content { flex: 1; padding: 25px; overflow-y: auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border); }
         
-        /* Layout Foto: Cantina & Sommelier */
-        .cantina-banner { height: 200px; background: #ddd url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=80&w=1000') center/cover; border-radius: 12px; position: relative; margin-bottom: 60px; }
-        .cantina-logo { width: 120px; height: 120px; background: white; border: 4px solid white; position: absolute; bottom: -40px; left: 30px; border-radius: 12px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--main); font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .avatar { width: 110px; height: 110px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; }
-        .pill { background: #f0f0f0; padding: 5px 12px; border-radius: 15px; font-size: 13px; margin: 2px; display: inline-block; border: 1px solid #ddd; }
-        
-        /* Player & Notifiche */
-        .progress-bar { height: 10px; background: var(--main); width: 0%; border-radius: 5px; transition: 0.2s; }
-        .chat-ui { position: fixed; bottom: 10px; right: 10px; width: 340px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.2); display:none; flex-direction: column; z-index: 9999; }
+        /* Pannello Notifiche a Riquadro */
+        .noti-panel { position: absolute; top: 60px; right: 5%; width: 300px; background: white; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; z-index: 1000; overflow: hidden; }
+        .noti-header { background: #fdfdfd; padding: 12px; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        .noti-list { max-height: 350px; overflow-y: auto; }
+        .noti-item { padding: 12px; border-bottom: 1px solid #f9f9f9; font-size: 13px; }
+        .noti-item:hover { background: #f8f8f8; }
         .noti-badge { background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -8px; display: none; }
-        .menu-btn { width: 100%; text-align: left; background: none; border: none; color: white; padding: 15px 0; border-bottom: 1px solid #3e4f5f; cursor: pointer; font-size: 15px; }
+
+        /* Design Sommelier & Cantina */
+        .avatar { width: 110px; height: 110px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+        .pill { background: #f4f4f4; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin: 0 5px 5px 0; display: inline-block; border: 1px solid #ddd; }
+        .banner-c { height: 200px; background: #eee url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=80&w=1000') center/cover; border-radius: 12px; position: relative; margin-bottom: 60px; }
+        .logo-c { width: 120px; height: 120px; background: white; border: 4px solid white; position: absolute; bottom: -40px; left: 30px; border-radius: 12px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--main); font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
+        .chat-ui { position: fixed; bottom: 10px; right: 10px; width: 340px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display:none; flex-direction: column; z-index: 9999; border: 1px solid #ddd; }
+        .menu-btn { width: 100%; text-align: left; background: none; border: none; color: #aaa; padding: 15px 10px; cursor: pointer; font-size: 15px; border-bottom: 1px solid #222; }
+        .menu-btn:hover { color: white; background: #222; }
+        .progress-bar { height: 8px; background: var(--main); width: 0%; border-radius: 4px; transition: 0.2s; }
+        video { width: 100%; border-radius: 8px; background: black; }
         @media (max-width: 768px) { .sidebar { display: none; } }
     </style>
 </head>
 <body>
     <div class="nav">
-        <a href="index.html" style="font-weight:bold; color:var(--main); text-decoration:none; font-size: 24px;">EnoHub Home</a>
+        <a href="index.html" style="font-weight:bold; color:var(--main); text-decoration:none; font-size: 24px;">EnoHub</a>
         <div style="display:flex; align-items:center; gap:20px;">
             <div style="position:relative; cursor:pointer;" onclick="toggleNoti()">🔔 <span id="noti-count" class="noti-badge">0</span></div>
-            <span id="nav-user" style="font-weight:bold;"></span>
+            <span id="nav-user" style="font-weight:600;"></span>
         </div>
-        <div id="noti-panel" style="position:absolute; top:60px; right:5%; width:260px; background:white; border:1px solid #ddd; display:none; padding:10px; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.1); z-index: 1000;">
-            <b>Notifiche</b><hr><div id="noti-list" style="font-size:12px;"></div>
+        <div class="noti-panel" id="noti-panel">
+            <div class="noti-header"><span>Notifiche</span><button onclick="toggleNoti()" style="border:none; background:none; cursor:pointer;">✕</button></div>
+            <div id="noti-list" class="noti-list"></div>
         </div>
     </div>
 
@@ -45,55 +53,55 @@
             <button class="menu-btn" onclick="show('profile')">👤 Mio Profilo</button>
             <button class="menu-btn" onclick="show('media')">🎞️ Media & Libreria</button>
             <button class="menu-btn" onclick="show('chat')">💬 Community</button>
-            <button class="menu-btn" onclick="show('subs')">💎 Upgrade Abbonamento</button>
+            <button class="menu-btn" onclick="show('subs')">💎 Upgrade</button>
             <button class="menu-btn" onclick="show('settings')">⚙️ Impostazioni</button>
-            <button class="menu-btn" onclick="logout()" style="color:#ff7675; margin-top:20px;">📤 Esci</button>
+            <button class="menu-btn" onclick="logout()" style="color:#e74c3c; margin-top:20px;">📤 Esci</button>
         </div>
         <div class="content">
             <div id="sec-profile"></div>
 
             <section id="sec-media" class="card" style="display:none">
-                <h3>Libreria (Upload %)</h3>
+                <h3>Carica Media (Upload %)</h3>
                 <input type="file" id="f-in">
-                <div style="width:100%; height:10px; background:#eee; margin:10px 0; display:none;" id="p-cont"><div id="p-run" class="progress-bar"></div></div>
-                <button onclick="up()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px; margin-top:10px; cursor:pointer;">CARICA FILE (%)</button>
+                <div style="width:100%; height:8px; background:#eee; margin:10px 0; display:none; border-radius:4px; overflow:hidden;" id="p-cont"><div id="p-run" class="progress-bar"></div></div>
+                <button onclick="up()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px; margin-top:10px; cursor:pointer; font-weight:bold;">CARICA</button>
                 <div id="m-list" style="margin-top:30px"></div>
             </section>
 
             <section id="sec-chat" class="card" style="display:none">
-                <h2>Rete Sommelier e Cantine</h2>
+                <h2>Talenti & Aziende</h2>
                 <div id="u-list"></div>
             </section>
 
             <section id="sec-subs" class="card" style="display:none">
-                <h2>Piani Business (Stripe Integration)</h2>
-                <div id="pricing-list" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:20px;"></div>
+                <h2>Piani Business (Stripe)</h2>
+                <div id="pricing-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px;"></div>
             </section>
 
             <section id="sec-settings" class="card" style="display:none">
                 <h2>Modifica Dati</h2>
                 <div id="settings-fields"></div>
-                <button onclick="saveSet()" style="background:var(--main); color:white; border:none; padding:10px 25px; border-radius:5px; margin-top:20px; font-weight:bold; cursor:pointer;">SALVA</button>
+                <button onclick="saveSet()" style="background:var(--main); color:white; border:none; padding:10px 25px; border-radius:5px; margin-top:20px; font-weight:bold;">SALVA</button>
             </section>
         </div>
     </div>
 
     <div id="chat-win" class="chat-ui">
-        <div style="background:var(--main); color:white; padding:15px; display:flex; justify-content:space-between; border-radius:15px 15px 0 0;">
-            <span id="chat-title" style="font-weight:bold;">Chat Privata</span>
+        <div style="background:var(--main); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <span id="chat-title" style="font-weight:bold;">Chat</span>
             <button onclick="document.getElementById('chat-win').style.display='none'" style="color:white; border:none; background:none; font-size:18px;">✕</button>
         </div>
-        <div id="c-msgs" style="flex:1; overflow-y:auto; padding:15px; font-size:14px; background:#fafafa;"></div>
+        <div id="c-msgs" style="flex:1; overflow-y:auto; padding:15px; font-size:14px; background:#fafafa; display:flex; flex-direction:column; gap:10px;"></div>
         <div style="display:flex; padding:12px; border-top:1px solid #eee; background:white; align-items:center;">
             <button onclick="document.getElementById('chat-file').click()" style="background:none; border:none; font-size:24px; cursor:pointer;">📎</button>
             <input type="file" id="chat-file" style="display:none" onchange="upChatFile()">
-            <input type="text" id="c-in" style="flex:1; margin:0 10px; border:1px solid #ddd; border-radius:10px; padding:10px;">
-            <button onclick="send()" style="background:var(--main); color:white; border:none; padding:10px 15px; border-radius:10px;">➤</button>
+            <input type="text" id="c-in" style="flex:1; margin:0 10px; border:1px solid #ddd; border-radius:20px; padding:10px;">
+            <button onclick="send()" style="background:var(--main); color:white; border:none; padding:10px 15px; border-radius:20px;">➤</button>
         </div>
     </div>
 
     <script>
-        // --- ANTI-CRASH MEMORY ---
+        // --- ANTI-CRASH JSON ---
         let user = null;
         try {
             const raw = localStorage.getItem('enohub_user');
@@ -102,7 +110,7 @@
 
         if(!user) window.location.href = "auth/login.html";
 
-        // GESTIONE RITORNO STRIPE
+        // Stripe Redirect Handler
         const urlP = new URLSearchParams(window.location.search);
         if(urlP.get('payment') === 'success') {
             fetch('/api/confirm-payment', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId:user._id, type:urlP.get('type'), targetId:urlP.get('target'), piano:urlP.get('piano') })})
@@ -125,18 +133,18 @@
             const initial = user.nome.charAt(0).toUpperCase();
             if(user.tipo === 'Cantina') {
                 c.innerHTML = `
-                    <div class="cantina-banner"><div class="cantina-logo">${initial}</div></div>
+                    <div class="banner-c"><div class="logo-c">${initial}</div></div>
                     <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
                         <div class="card">
                             <h1>${user.nome}</h1><p style="color:#888;">${user.regione||'Italia'}</p><hr>
                             <h3>La Nostra Storia</h3><p>${user.storia||'...'}</p>
-                            <h3>Galleria Cantina</h3><div id="g-cantina" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+                            <h3>Galleria</h3><div id="g-cantina" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
                         </div>
                         <div class="card">
                             <h4 style="color:var(--main);">In Breve</h4>
                             <p><b>Filosofia:</b><br>${user.filosofia || '-'}</p>
-                            <p><b>Sito Web:</b><br><a href="${user.sito||'#'}" target="_blank">${user.sito || '-'}</a></p>
-                            <button style="width:100%; padding:10px; background:var(--main); color:white; border:none; border-radius:5px; cursor:pointer;" onclick="show('chat')">Contatta Cantina</button>
+                            <p><b>Sito:</b><br><a href="${user.sito||'#'}" target="_blank">${user.sito || '-'}</a></p>
+                            <button style="width:100%; padding:10px; background:var(--main); color:white; border:none; border-radius:5px;" onclick="show('chat')">Contatta Cantina</button>
                         </div>
                     </div>`;
                 loadGallery();
@@ -147,10 +155,10 @@
                             <div class="avatar">${initial}</div>
                             <div>
                                 <h1>${user.nome}</h1>
-                                <p style="color:#666; font-weight:bold;">${user.tipo} - ${user.piano}</p>
+                                <p style="color:#666; font-weight:bold;">${user.ruolo || 'Wine Professional'} - ${user.piano}</p>
                                 <p style="color:#888;">${user.location}</p>
                                 <p style="color:var(--green); font-weight:bold;">Disponibile per consulenze</p>
-                                <button style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px; margin-top:10px;" onclick="show('chat')">Richiedi Contatto</button>
+                                <button style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px;" onclick="show('chat')">Richiedi Contatto</button>
                             </div>
                         </div>
                         <div style="border-top:1px solid #eee; margin-top:20px; padding-top:20px;">
@@ -180,48 +188,32 @@
             const r = await fetch('/api/media'); const items = await r.json();
             const list = document.getElementById('m-list'); list.innerHTML = '';
             items.filter(m => m.ownerId === user._id).forEach(m => {
-                const isV = m.type.includes('video');
-                const isI = m.type.includes('image');
+                const isV = m.type.includes('video'); const isI = m.type.includes('image');
                 list.innerHTML += `<div class="card">
                     <b>${m.name}</b><br><br>
-                    ${isV ? `<video id="v-${m._id}" src="${m.url}" controls></video><br><button style="background:#444; color:white; border:none; padding:5px; margin-top:5px;" onclick="document.getElementById('v-${m._id}').currentTime-=10">⏪ -10s</button><button style="background:#444; color:white; border:none; padding:5px; margin-top:5px; margin-left:5px;" onclick="document.getElementById('v-${m._id}').currentTime+=10">⏩ +10s</button>` : (isI ? `<img src="${m.url}" style="max-width:200px; border-radius:10px;">` : `<a href="${m.url}" target="_blank">📄 Apri File</a>`)}
-                    <br><button onclick="delM('${m._id}')" style="color:red; background:none; border:none; cursor:pointer; margin-top:10px;">🗑️ Elimina</button>
+                    ${isV ? `<video id="v-${m._id}" src="${m.url}" controls></video><br><button onclick="document.getElementById('v-${m._id}').currentTime-=10">⏪ -10s</button><button onclick="document.getElementById('v-${m._id}').currentTime+=10">⏩ +10s</button>` : (isI ? `<img src="${m.url}" style="max-width:200px; border-radius:10px;">` : `<a href="${m.url}" target="_blank">📄 Apri File</a>`)}
+                    <br><button onclick="delM('${m._id}')" style="color:red; background:none; border:none; margin-top:10px;">🗑️ Elimina</button>
                 </div>`;
             });
         }
+
+        // --- NOTIFICHE ---
+        function toggleNoti() { const p = document.getElementById('noti-panel'); p.style.display = p.style.display==='block'?'none':'block'; document.getElementById('noti-count').style.display='none'; }
+        socket.on('notification', (n) => { 
+            document.getElementById('noti-count').innerText = "!"; document.getElementById('noti-count').style.display='block'; 
+            const item = `<div class="noti-item"><b>${n.title}</b><br>${n.body}</div>`;
+            document.getElementById('noti-list').innerHTML = item + document.getElementById('noti-list').innerHTML;
+        });
 
         // --- CHAT & ALLEGATI SYNC ---
         function upChatFile() {
             const f = document.getElementById('chat-file').files[0]; if(!f) return;
             const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
             fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(media => {
-                const m = { from: user._id, to: curChat, text: "📎 Allegato (In Libreria)", fileUrl: media.url, fromName: user.nome };
+                const m = { from: user._id, to: curChat, text: "📎 Allegato (Salvato in Libreria)", fileUrl: media.url, fromName: user.nome };
                 socket.emit('send_msg', m); appendM(m, true); loadM();
             });
         }
-
-        // --- COMMUNITY & PAY-PER-MATCH ---
-        async function loadU() {
-            const r = await fetch('/api/users'); const users = await r.json();
-            const list = document.getElementById('u-list'); list.innerHTML = '';
-            users.filter(u => u._id !== user._id).forEach(u => {
-                const isUnl = user.unlockedContacts && user.unlockedContacts.includes(u._id);
-                const can = (user.piano === 'Business' || user.piano === 'Premium' || isUnl || user.tipo === 'Sommelier');
-                list.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><b>${u.nome}</b> (${u.tipo})</span>
-                    ${can ? `<button onclick="openChat('${u._id}','${u.nome}')" style="padding:10px; background:var(--main); color:white; border:none; border-radius:5px; cursor:pointer;">Contatta</button>` : `<button onclick="payUnlock('${u._id}')" style="padding:10px; background:black; color:white; border:none; border-radius:5px; cursor:pointer;">Sblocca (15€)</button>`}
-                </div>`;
-            });
-        }
-        async function payUnlock(tid) { const r = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:'Sblocca Contatto',prezzo:15,type:'unlock',targetId:tid,userId:user._id})}); const d = await r.json(); window.location.href = d.url; }
-
-        function renderPricing() {
-            const l = document.getElementById('pricing-list'); l.innerHTML = '';
-            const p = user.tipo === 'Sommelier' ? [{n:'Pro',v:9}] : [{n:'Business',v:39},{n:'Premium',v:89}];
-            p.forEach(x => l.innerHTML += `<div class="card" style="text-align:center;"><h3>Piano ${x.n}</h3><h1>€${x.v}</h1><button onclick="payUpgrade('${x.n}',${x.v})" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Upgrade</button></div>`);
-        }
-        async function payUpgrade(p, v) { const r = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:p,prezzo:v,type:'upgrade',userId:user._id})}); const d = await r.json(); window.location.href = d.url; }
-
         function send() { const t = document.getElementById('c-in').value; if(!t) return; const m = {from:user._id, to:curChat, text:t, fromName:user.nome}; socket.emit('send_msg', m); appendM(m, true); document.getElementById('c-in').value=''; }
         let curChat = null;
         function openChat(id, n) { curChat = id; document.getElementById('chat-win').style.display='flex'; document.getElementById('chat-title').innerText = n; socket.emit('get_history', {me:user._id, to:id}); }
@@ -229,22 +221,38 @@
         socket.on('new_msg', (m) => { if(m.from===curChat) appendM(m,false); });
         function appendM(m, me) { 
             const b = document.getElementById('c-msgs'); 
-            let content = m.text; if(m.fileUrl) content += `<br><a href="${m.fileUrl}" target="_blank" style="color:${me?'white':'blue'}; font-weight:bold;">Vedi File</a>`;
-            b.innerHTML += `<div style="text-align:${me?'right':'left'}; margin-bottom:10px;"><span style="background:${me?'var(--main)':'#eee'}; color:${me?'white':'black'}; padding:10px; border-radius:10px; display:inline-block; max-width:80%;">${content}</span></div>`;
+            let content = m.text; if(m.fileUrl) content += `<br><a href="${m.fileUrl}" target="_blank" style="color:${me?'white':'#8a1c1c'}; font-weight:bold;">Apri File</a>`;
+            b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; max-width:80%; background:${me? 'var(--main)':'#eee'}; color:${me?'white':'black'}; padding:10px 14px; border-radius:15px; border-bottom-${me?'right':'left'}-radius:0;">${content}</div>`;
             b.scrollTop = b.scrollHeight;
         }
 
-        function toggleNoti() { const p = document.getElementById('noti-panel'); p.style.display = p.style.display==='block'?'none':'block'; document.getElementById('noti-count').style.display='none'; }
-        socket.on('notification', (n) => { document.getElementById('noti-count').innerText = "!"; document.getElementById('noti-count').style.display='block'; document.getElementById('noti-list').innerHTML = `<p><b>${n.title}</b><br>${n.body}</p><hr>` + document.getElementById('noti-list').innerHTML; });
+        // --- STRIPE & SETTINGS ---
+        function renderPricing() {
+            const l = document.getElementById('pricing-list'); l.innerHTML = '';
+            const p = user.tipo === 'Sommelier' ? [{n:'Pro',v:9}] : [{n:'Business',v:39},{n:'Premium',v:89}];
+            p.forEach(x => l.innerHTML += `<div class="card" style="text-align:center;"><h3>Piano ${x.n}</h3><h1>€${x.v}</h1><button onclick="payUpgrade('${x.n}',${x.v})" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px;">Upgrade</button></div>`);
+        }
+        async function payUpgrade(p, v) { const r = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:p,prezzo:v,type:'upgrade',userId:user._id})}); const d = await r.json(); window.location.href = d.url; }
 
-        async function loadGallery() { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === user._id && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">`); }
+        async function loadU() {
+            const r = await fetch('/api/users'); const users = await r.json();
+            const list = document.getElementById('u-list'); list.innerHTML = '';
+            users.filter(u => u._id !== user._id).forEach(u => {
+                const isUnl = user.unlockedContacts && user.unlockedContacts.includes(u._id);
+                const can = (user.piano === 'Business' || user.piano === 'Premium' || isUnl || user.tipo === 'Sommelier');
+                list.innerHTML += `<div class="card" style="display:flex; justify-content:space-between"><span><b>${u.nome}</b> (${u.tipo})</span>${can ? `<button onclick="openChat('${u._id}','${u.nome}')" style="background:var(--main); color:white; border:none; padding:10px; border-radius:5px;">Chat</button>` : `<button onclick="payUnlock('${u._id}')" style="background:black; color:white; border:none; padding:10px; border-radius:5px;">Sblocca (15€)</button>`}</div>`;
+            });
+        }
+        async function payUnlock(tid) { const r = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:'Sblocca Contatto',prezzo:15,type:'unlock',targetId:tid,userId:user._id})}); const d = await r.json(); window.location.href = d.url; }
+
+        async function loadGallery() { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === user._id && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; border-radius:8px;">`); }
         function renderSettings() {
             const s = document.getElementById('settings-fields');
             if(user.tipo === 'Cantina') s.innerHTML = `<label>Storia:</label><textarea id="s-storia" style="width:100%; height:100px;">${user.storia||''}</textarea><br><label>Sito Web:</label><input id="s-sito" value="${user.sito||''}" style="width:100%">`;
-            else s.innerHTML = `<label>Note Degustazione:</label><textarea id="s-note" style="width:100%; height:100px;">${user.noteDegustazione||''}</textarea><br><label>Bio:</label><textarea id="s-bio" style="width:100%; height:100px;">${user.bio||''}</textarea>`;
+            else s.innerHTML = `<label>Ruolo:</label><input id="s-ruolo" value="${user.ruolo||''}" style="width:100%"><br><label>Note Degustazione:</label><textarea id="s-note" style="width:100%; height:100px;">${user.noteDegustazione||''}</textarea><br><label>Bio:</label><textarea id="s-bio" style="width:100%; height:100px;">${user.bio||''}</textarea>`;
         }
         async function saveSet() {
-            let d = user.tipo === 'Cantina' ? { storia: document.getElementById('s-storia').value, sito: document.getElementById('s-sito').value } : { noteDegustazione: document.getElementById('s-note').value, bio: document.getElementById('s-bio').value };
+            let d = user.tipo === 'Cantina' ? { storia: document.getElementById('s-storia').value, sito: document.getElementById('s-sito').value } : { ruolo: document.getElementById('s-ruolo').value, noteDegustazione: document.getElementById('s-note').value, bio: document.getElementById('s-bio').value };
             const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) });
             const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); location.reload();
         }
