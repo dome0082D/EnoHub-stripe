@@ -148,4 +148,12 @@ io.on('connection', (socket) => {
         io.to(d.to).emit('new_msg', m);
         io.to(d.to).emit('notification', { title: d.fromName, body: d.text ? d.text.substring(0,30) : "📎 File ricevuto" });
     });
-    socket
+    socket.on('get_history', async ({ me, to }) => {
+        const limit = new Date(); limit.setMonth(limit.getMonth() - 2);
+        const msgs = await Message.find({ $or:[{from:me,to:to},{from:to,to:me}], time:{$gte:limit} }).sort({time:1});
+        socket.emit('chat_history', msgs);
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`🚀 EnoHub Diamond Active on ${PORT}`));
