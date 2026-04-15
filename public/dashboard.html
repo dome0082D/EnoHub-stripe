@@ -2,10 +2,10 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub Gold - Dashboard</title>
+    <title>Dashboard - EnoHub Infinity</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --main: #8a1c1c; --side: #2c3e50; --bg: #f4f4f4; --gold: #d4af37; }
+        :root { --main: #8a1c1c; --side: #2c3e50; --bg: #f4f4f4; --gold: #d4af37; --green: #27ae60; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: var(--bg); }
         .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; align-items: center; position: sticky; top:0; z-index:100; }
         .main { display: flex; flex: 1; overflow: hidden; }
@@ -19,17 +19,18 @@
         .avatar { width: 110px; height: 110px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 40px; }
         .pill { background: #f0f0f0; padding: 5px 12px; border-radius: 15px; font-size: 13px; margin: 2px; display: inline-block; border: 1px solid #ddd; }
         
-        /* Media & Chat */
+        /* Player & Notifiche */
         .progress-bar { height: 10px; background: var(--main); width: 0%; border-radius: 5px; transition: 0.2s; }
         .chat-ui { position: fixed; bottom: 10px; right: 10px; width: 340px; height: 500px; background: white; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.2); display:none; flex-direction: column; z-index: 9999; }
         .noti-badge { background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -8px; display: none; }
-        .menu-btn { width: 100%; text-align: left; background: none; border: none; color: white; padding: 15px 0; border-bottom: 1px solid #3e4f5f; cursor: pointer; }
+        .menu-btn { width: 100%; text-align: left; background: none; border: none; color: white; padding: 15px 0; border-bottom: 1px solid #3e4f5f; cursor: pointer; font-size: 15px; }
+        
         @media (max-width: 768px) { .sidebar { display: none; } }
     </style>
 </head>
 <body>
     <div class="nav">
-        <a href="index.html" style="font-weight:bold; color:var(--main); text-decoration:none; font-size: 24px;">EnoHub Gold</a>
+        <a href="index.html" style="font-weight:bold; color:var(--main); text-decoration:none; font-size: 24px;">EnoHub Home</a>
         <div style="display:flex; align-items:center; gap:20px;">
             <div style="position:relative; cursor:pointer;" onclick="toggleNoti()">🔔 <span id="noti-count" class="noti-badge">0</span></div>
             <span id="nav-user" style="font-weight:bold;"></span>
@@ -43,7 +44,7 @@
         <div class="sidebar">
             <button class="menu-btn" onclick="show('profile')">👤 Mio Profilo</button>
             <button class="menu-btn" onclick="show('media')">🎞️ Media & Libreria</button>
-            <button class="menu-btn" onclick="show('chat')">💬 Community EnoHub</button>
+            <button class="menu-btn" onclick="show('chat')">💬 Community</button>
             <button class="menu-btn" onclick="show('subs')">💎 Upgrade Abbonamento</button>
             <button class="menu-btn" onclick="show('settings')">⚙️ Impostazioni</button>
             <button class="menu-btn" onclick="logout()" style="color:#ff7675; margin-top:20px;">📤 Esci</button>
@@ -52,10 +53,10 @@
             <div id="sec-profile"></div>
 
             <section id="sec-media" class="card" style="display:none">
-                <h3>Libreria (Sincronizzata con Chat)</h3>
+                <h3>Libreria (Upload %)</h3>
                 <input type="file" id="f-in">
                 <div style="width:100%; height:10px; background:#eee; margin:10px 0; display:none;" id="p-cont"><div id="p-run" class="progress-bar"></div></div>
-                <button onclick="up()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold;">CARICA FILE (%)</button>
+                <button onclick="up()" style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px; margin-top:10px; cursor:pointer;">CARICA FILE (%)</button>
                 <div id="m-list" style="margin-top:30px"></div>
             </section>
 
@@ -65,7 +66,7 @@
             </section>
 
             <section id="sec-subs" class="card" style="display:none">
-                <h2>Abbonamenti & Pagamenti Reali</h2>
+                <h2>Piani Business (Stripe Integration)</h2>
                 <div id="pricing-list" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:20px;"></div>
             </section>
 
@@ -101,7 +102,7 @@
 
         if(!user) window.location.href = "auth/login.html";
 
-        // Stripe Success Hook
+        // GESTIONE RITORNO STRIPE
         const urlP = new URLSearchParams(window.location.search);
         if(urlP.get('payment') === 'success') {
             fetch('/api/confirm-payment', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId:user._id, type:urlP.get('type'), targetId:urlP.get('target'), piano:urlP.get('piano') })})
@@ -118,7 +119,7 @@
             if(id === 'subs') renderPricing();
         }
 
-        // --- RENDER PROFILI (Identici alle foto) ---
+        // --- RENDER PROFILI ---
         function renderProfile() {
             const c = document.getElementById('sec-profile');
             const initial = user.nome.charAt(0).toUpperCase();
@@ -134,7 +135,7 @@
                         <div class="card">
                             <h4 style="color:var(--main);">In Breve</h4>
                             <p><b>Filosofia:</b><br>${user.filosofia || '-'}</p>
-                            <p><b>Sito:</b><br><a href="${user.sito||'#'}" target="_blank">${user.sito || '-'}</a></p>
+                            <p><b>Sito Web:</b><br><a href="${user.sito||'#'}" target="_blank">${user.sito || '-'}</a></p>
                             <button style="width:100%; padding:10px; background:var(--main); color:white; border:none; border-radius:5px; cursor:pointer;" onclick="show('chat')">Contatta Cantina</button>
                         </div>
                     </div>`;
@@ -148,7 +149,7 @@
                                 <h1>${user.nome}</h1>
                                 <p style="color:#666; font-weight:bold;">${user.tipo} - ${user.piano}</p>
                                 <p style="color:#888;">${user.location}</p>
-                                <p style="color:green; font-weight:bold;">Disponibile per consulenze</p>
+                                <p style="color:var(--green); font-weight:bold;">Disponibile per consulenze</p>
                                 <button style="background:var(--main); color:white; border:none; padding:10px 20px; border-radius:5px; margin-top:10px;" onclick="show('chat')">Richiedi Contatto</button>
                             </div>
                         </div>
@@ -157,14 +158,14 @@
                             <p><b>Specializzazioni:</b> <span id="spec-list"></span></p>
                             <p><b>Certificazioni:</b> <span id="cert-list"></span></p>
                         </div>
-                        <hr><h3>Note di Degustazione</h3><p>${user.noteDegustazione || 'Nessuna nota pubblicata.'}</p>
+                        <hr><h3>Note di Degustazione</h3><p>${user.noteDegustazione || '...'}</p>
                     </div>`;
                 if(user.specializzazioni) user.specializzazioni.split(',').forEach(s => document.getElementById('spec-list').innerHTML += `<span class="pill">${s.trim()}</span>`);
                 if(user.certificazioni) user.certificazioni.split(',').forEach(c => document.getElementById('cert-list').innerHTML += `<span class="pill" style="background:white;">${c.trim()}</span>`);
             }
         }
 
-        // --- VIDEO ±10S & SYNC ALLEGATI ---
+        // --- MEDIA & VIDEO ±10S ---
         function up() {
             const f = document.getElementById('f-in').files[0]; if(!f) return;
             const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
@@ -189,16 +190,26 @@
             });
         }
 
-        // --- STRIPE & SBLOCCO CONTATTI (15€) ---
+        // --- CHAT & ALLEGATI SYNC ---
+        function upChatFile() {
+            const f = document.getElementById('chat-file').files[0]; if(!f) return;
+            const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
+            fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(media => {
+                const m = { from: user._id, to: curChat, text: "📎 Allegato (In Libreria)", fileUrl: media.url, fromName: user.nome };
+                socket.emit('send_msg', m); appendM(m, true); loadM();
+            });
+        }
+
+        // --- COMMUNITY & PAY-PER-MATCH ---
         async function loadU() {
             const r = await fetch('/api/users'); const users = await r.json();
             const list = document.getElementById('u-list'); list.innerHTML = '';
             users.filter(u => u._id !== user._id).forEach(u => {
-                const isUnlocked = user.unlockedContacts && user.unlockedContacts.includes(u._id);
-                const canContact = (user.piano === 'Business' || user.piano === 'Premium' || isUnlocked || user.tipo === 'Sommelier');
+                const isUnl = user.unlockedContacts && user.unlockedContacts.includes(u._id);
+                const can = (user.piano === 'Business' || user.piano === 'Premium' || isUnl || user.tipo === 'Sommelier');
                 list.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
                     <span><b>${u.nome}</b> (${u.tipo})</span>
-                    ${canContact ? `<button onclick="openChat('${u._id}','${u.nome}')" style="padding:10px; background:var(--main); color:white; border:none; border-radius:5px; cursor:pointer;">Contatta</button>` : `<button onclick="payUnlock('${u._id}')" style="padding:10px; background:black; color:white; border:none; border-radius:5px; cursor:pointer;">Sblocca (15€)</button>`}
+                    ${can ? `<button onclick="openChat('${u._id}','${u.nome}')" style="padding:10px; background:var(--main); color:white; border:none; border-radius:5px; cursor:pointer;">Contatta</button>` : `<button onclick="payUnlock('${u._id}')" style="padding:10px; background:black; color:white; border:none; border-radius:5px; cursor:pointer;">Sblocca (15€)</button>`}
                 </div>`;
             });
         }
@@ -211,15 +222,6 @@
         }
         async function payUpgrade(p, v) { const r = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:p,prezzo:v,type:'upgrade',userId:user._id})}); const d = await r.json(); window.location.href = d.url; }
 
-        // --- CHAT & ALLEGATI ---
-        function upChatFile() {
-            const f = document.getElementById('chat-file').files[0]; if(!f) return;
-            const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
-            fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(media => {
-                const m = { from: user._id, to: curChat, text: "📎 Allegato (Salvato in Libreria)", fileUrl: media.url, fromName: user.nome };
-                socket.emit('send_msg', m); appendM(m, true); loadM();
-            });
-        }
         function send() { const t = document.getElementById('c-in').value; if(!t) return; const m = {from:user._id, to:curChat, text:t, fromName:user.nome}; socket.emit('send_msg', m); appendM(m, true); document.getElementById('c-in').value=''; }
         let curChat = null;
         function openChat(id, n) { curChat = id; document.getElementById('chat-win').style.display='flex'; document.getElementById('chat-title').innerText = n; socket.emit('get_history', {me:user._id, to:id}); }
@@ -227,16 +229,15 @@
         socket.on('new_msg', (m) => { if(m.from===curChat) appendM(m,false); });
         function appendM(m, me) { 
             const b = document.getElementById('c-msgs'); 
-            let content = m.text; if(m.fileUrl) content += `<br><a href="${m.fileUrl}" target="_blank" style="color:${me?'white':'blue'}; font-weight:bold;">Apri Allegato</a>`;
-            b.innerHTML += `<div style="text-align:${me?'right':'left'}; margin-bottom:12px;"><span style="background:${me?'var(--main)':'#eee'}; color:${me?'white':'black'}; padding:12px; border-radius:15px; display:inline-block; max-width:80%;">${content}</span></div>`;
+            let content = m.text; if(m.fileUrl) content += `<br><a href="${m.fileUrl}" target="_blank" style="color:${me?'white':'blue'}; font-weight:bold;">Vedi File</a>`;
+            b.innerHTML += `<div style="text-align:${me?'right':'left'}; margin-bottom:10px;"><span style="background:${me?'var(--main)':'#eee'}; color:${me?'white':'black'}; padding:10px; border-radius:10px; display:inline-block; max-width:80%;">${content}</span></div>`;
             b.scrollTop = b.scrollHeight;
         }
 
-        // --- LOGOUT & SETTINGS ---
         function toggleNoti() { const p = document.getElementById('noti-panel'); p.style.display = p.style.display==='block'?'none':'block'; document.getElementById('noti-count').style.display='none'; }
         socket.on('notification', (n) => { document.getElementById('noti-count').innerText = "!"; document.getElementById('noti-count').style.display='block'; document.getElementById('noti-list').innerHTML = `<p><b>${n.title}</b><br>${n.body}</p><hr>` + document.getElementById('noti-list').innerHTML; });
 
-        async function loadGallery() { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); items.filter(m => m.ownerId === user._id && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">`); }
+        async function loadGallery() { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === user._id && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">`); }
         function renderSettings() {
             const s = document.getElementById('settings-fields');
             if(user.tipo === 'Cantina') s.innerHTML = `<label>Storia:</label><textarea id="s-storia" style="width:100%; height:100px;">${user.storia||''}</textarea><br><label>Sito Web:</label><input id="s-sito" value="${user.sito||''}" style="width:100%">`;
