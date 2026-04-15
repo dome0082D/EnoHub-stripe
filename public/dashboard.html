@@ -30,6 +30,9 @@
         
         .pill { background: #f8f9fa; padding: 6px 15px; border-radius: 20px; font-size: 13px; margin: 0 8px 8px 0; display: inline-block; border: 1px solid #ddd; color: #555; font-weight: 500; }
         .cert-box { border: 1px solid #ddd; padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; cursor: pointer; background: #fafafa; transition: 0.2s; position: relative; }
+        .cert-cb:checked + .cert-box { border-color: var(--main); background: var(--main); color: white; }
+        .cert-cb { display: none; }
+        .cert-up-btn { position: absolute; top: -8px; right: -8px; background: white; border: 1px solid #ddd; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--main); z-index: 11; }
 
         #staff-panel { position: fixed; bottom: 20px; right: 20px; width: 340px; height: 450px; background: white; border: 2px solid var(--gold); border-radius: 16px; display: none; flex-direction: column; z-index: 9999; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
         .staff-header { background: var(--gold); color: black; padding: 15px; font-weight: 900; display: flex; justify-content: space-between; border-radius: 14px 14px 0 0; }
@@ -50,7 +53,7 @@
                 <button onclick="document.getElementById('media-modal').style.display='none'" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">✕</button>
             </div>
             <div id="media-modal-content" style="flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#f5f5f5;">
-                </div>
+            </div>
         </div>
     </div>
 
@@ -58,9 +61,7 @@
     <nav class="sidebar-slide" id="side-menu">
         <h3 style="padding: 0 25px; color: white;">EnoHub Diamond</h3>
         <a onclick="show('profile')">👤 Il mio Profilo</a>
-        
         <a id="nav-tastings" onclick="show('tastings')" style="display:none; color:var(--gold); font-weight:bold;">🍷 Le mie Degustazioni</a>
-        
         <a onclick="show('media')">🎞️ Media & Libreria</a>
         <a onclick="show('chat')">💬 Community Network</a>
         <a onclick="show('subs')">💎 Upgrade Piano</a>
@@ -76,9 +77,10 @@
 
     <div class="nav">
         <a href="index.html" style="font-weight:900; color:var(--main); text-decoration:none; font-size: 24px; margin-left: 60px;">EnoHub</a>
-        <div style="display:flex; align-items:center; gap:25px;">
+        <div style="display:flex; align-items:center; gap:20px;">
             <div style="position:relative; cursor:pointer;" onclick="toggleNoti()">🔔 <span id="noti-count" class="noti-badge">0</span></div>
-            <span id="nav-user" style="font-weight:600; color:#444;"></span>
+            <span id="nav-user" style="font-weight:600; color:#444; display:none;"></span>
+            <button onclick="logout()" style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">Esci</button>
         </div>
         <div class="noti-panel" id="noti-panel" style="position:absolute; top:60px; right:5%; width:300px; background:white; border:1px solid #ddd; display:none; z-index:2001; border-radius:10px;"><div id="noti-list" style="padding:15px;"></div></div>
     </div>
@@ -176,18 +178,20 @@
             .then(r => r.json()).then(d => { localStorage.setItem('enohub_user', JSON.stringify(d.user)); window.location.href="dashboard.html"; });
         }
 
-        // MOTORE LETTORE MULTIMEDIALE
-        function openMedia(url, name = 'File Visualizzatore') {
+        // MOTORE LETTORE MULTIMEDIALE (FIX ANTICRASH data-url)
+        function openMedia(url, name = 'Visualizzatore File') {
+            if(!url || url === 'undefined') return;
             document.getElementById('media-modal-title').innerText = name;
             const content = document.getElementById('media-modal-content');
             const lUrl = url.toLowerCase();
+            const safeUrl = encodeURI(url);
             
             if (lUrl.includes('.pdf')) {
-                content.innerHTML = `<iframe src="${url}" style="width:100%; height:70vh; border:none; border-radius:8px;"></iframe><br><a href="${url}" target="_blank" style="display:block; text-align:center; margin-top:15px; color:var(--blue); font-weight:bold;">↗️ Apri in una nuova finestra</a>`;
+                content.innerHTML = `<iframe src="${safeUrl}" style="width:100%; height:70vh; border:none; border-radius:8px;"></iframe><br><a href="${safeUrl}" target="_blank" style="display:block; text-align:center; margin-top:15px; color:var(--blue); font-weight:bold;">↗️ Apri in una nuova finestra</a>`;
             } else if (lUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
-                content.innerHTML = `<video src="${url}" controls autoplay style="max-width:100%; max-height:70vh; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.2);"></video>`;
+                content.innerHTML = `<video src="${safeUrl}" controls autoplay style="max-width:100%; max-height:70vh; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.2);"></video>`;
             } else {
-                content.innerHTML = `<img src="${url}" style="max-width:100%; max-height:70vh; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.2); object-fit:contain;">`;
+                content.innerHTML = `<img src="${safeUrl}" style="max-width:100%; max-height:70vh; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.2); object-fit:contain;">`;
             }
             document.getElementById('media-modal').style.display = 'flex';
         }
@@ -204,7 +208,7 @@
             if(id === 'tastings') renderTastingsList();
         }
 
-        // PROFILO PUBBLICO
+        // PROFILO PUBBLICO (Con data-url per evitare errori stringhe)
         function renderProfile(target) {
             const c = document.getElementById('sec-profile');
             const initial = target.nome.charAt(0).toUpperCase();
@@ -225,8 +229,8 @@
                 sigle.forEach(s => {
                     const hasCert = target.certificazioni && target.certificazioni.includes(s);
                     const fileUrl = target.certFiles && target.certFiles[s];
-                    // Ora cliccando si apre il nostro visualizzatore elegante
-                    certGrid += `<div onclick="${fileUrl ? `openMedia('${fileUrl}', 'Certificato ${s}')` : ''}" class="cert-box" style="opacity:${hasCert?'1':'0.4'}; background:${hasCert?'var(--main)':'#f8f9fa'}; color:${hasCert?'white':'#888'}; cursor:${fileUrl?'pointer':'default'}; font-size:12px; padding:12px;">${s} ${fileUrl ? '📄 Vedi' : ''}</div>`;
+                    const clickEvent = fileUrl ? `data-url="${fileUrl}" onclick="if(this.dataset.url) openMedia(this.dataset.url, 'Certificato ${s}')"` : '';
+                    certGrid += `<div ${clickEvent} class="cert-box" style="opacity:${hasCert?'1':'0.4'}; background:${hasCert?'var(--main)':'#f8f9fa'}; color:${hasCert?'white':'#888'}; cursor:${fileUrl?'pointer':'default'}; font-size:12px; padding:12px;">${s} ${fileUrl ? '📄 Vedi' : ''}</div>`;
                 });
                 certGrid += '</div>';
 
@@ -237,10 +241,9 @@
                     target.degustazioni.forEach(d => {
                         let mediaHtml = '';
                         if(d.imageUrl) {
-                            // Immagine/PDF Cliccabile
-                            mediaHtml = `<div onclick="openMedia('${d.imageUrl}', '${d.vino}')" style="cursor:pointer; display:inline-block; border-radius:8px; overflow:hidden; border:1px solid #ccc; margin-bottom:10px;">`;
+                            mediaHtml = `<div data-url="${d.imageUrl}" onclick="if(this.dataset.url) openMedia(this.dataset.url, '${d.vino.replace(/'/g, "\\'")}')" style="cursor:pointer; display:inline-block; border-radius:8px; overflow:hidden; border:1px solid #ccc; margin-bottom:10px;">`;
                             if(d.imageUrl.toLowerCase().includes('.pdf')) mediaHtml += `<div style="background:#eee; padding:15px; color:var(--main); font-weight:bold;">📄 Apri PDF Appunti</div>`;
-                            else mediaHtml += `<img src="${d.imageUrl}" style="max-height:120px; display:block;">`;
+                            else mediaHtml += `<img src="${encodeURI(d.imageUrl)}" style="max-height:120px; display:block;">`;
                             mediaHtml += `</div>`;
                         }
                         tastingsHtml += `<div style="background:#f9f9f9; padding:20px; border-radius:10px; border:1px solid #eee; margin-bottom:15px;"><h4 style="margin-top:0; color:var(--main); font-size:18px;">${d.vino}</h4>${mediaHtml}<p style="white-space:pre-line; line-height:1.6; margin-bottom:0;">${d.nota}</p></div>`;
@@ -262,15 +265,16 @@
 
         async function viewUser(id) { const r = await fetch('/api/user/' + id); const t = await r.json(); show('profile'); renderProfile(t); }
 
-        // LOGICA LA MIA PAGINA DEGUSTAZIONI (Aggiunta e Modifica)
+        // LOGICA LA MIA PAGINA DEGUSTAZIONI 
         let tempTastingUrl = '';
         let currentEditTastingId = null;
 
         function renderTastingPreview() {
             const p = document.getElementById('t-preview');
             if(!tempTastingUrl) { p.innerHTML = ''; return; }
-            if(tempTastingUrl.toLowerCase().includes('.pdf')) p.innerHTML = `<iframe src="${tempTastingUrl}" style="width:100%; height:200px; border:none; border-radius:8px;"></iframe>`;
-            else p.innerHTML = `<img src="${tempTastingUrl}" style="max-height:150px; border-radius:8px; border:1px solid #ccc;">`;
+            const safeUrl = encodeURI(tempTastingUrl);
+            if(tempTastingUrl.toLowerCase().includes('.pdf')) p.innerHTML = `<iframe src="${safeUrl}" style="width:100%; height:200px; border:none; border-radius:8px;"></iframe>`;
+            else p.innerHTML = `<img src="${safeUrl}" style="max-height:150px; border-radius:8px; border:1px solid #ccc;">`;
         }
 
         async function uploadTastingFile(input) {
@@ -286,12 +290,10 @@
             if(!user.degustazioni) user.degustazioni = [];
 
             if(currentEditTastingId) {
-                // Modalità Modifica
                 const idx = user.degustazioni.findIndex(d => d.id === currentEditTastingId);
                 if(idx !== -1) { user.degustazioni[idx].vino = vino; user.degustazioni[idx].nota = nota; user.degustazioni[idx].imageUrl = tempTastingUrl; }
                 currentEditTastingId = null;
             } else {
-                // Nuova Degustazione
                 user.degustazioni.push({ id: Date.now().toString(), vino: vino, nota: nota, imageUrl: tempTastingUrl });
             }
             
@@ -307,12 +309,8 @@
         function editTasting(id) {
             const t = user.degustazioni.find(d => d.id === id);
             if(!t) return;
-            currentEditTastingId = id;
-            document.getElementById('t-vino').value = t.vino;
-            document.getElementById('t-note').value = t.nota;
-            tempTastingUrl = t.imageUrl || '';
-            renderTastingPreview();
-            document.getElementById('btn-save-tasting').innerText = "💾 AGGIORNA DEGUSTAZIONE";
+            currentEditTastingId = id; document.getElementById('t-vino').value = t.vino; document.getElementById('t-note').value = t.nota;
+            tempTastingUrl = t.imageUrl || ''; renderTastingPreview(); document.getElementById('btn-save-tasting').innerText = "💾 AGGIORNA DEGUSTAZIONE";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -324,19 +322,12 @@
             user.degustazioni.forEach(d => {
                 let imgHtml = '';
                 if(d.imageUrl) {
-                    imgHtml = d.imageUrl.toLowerCase().includes('.pdf') ? '📄 PDF Allegato' : `<img src="${d.imageUrl}" style="max-height:60px; border-radius:5px; border:1px solid #ccc; cursor:pointer;" onclick="openMedia('${d.imageUrl}', '${d.vino}')">`;
+                    imgHtml = d.imageUrl.toLowerCase().includes('.pdf') ? '📄 PDF Allegato' : `<img src="${encodeURI(d.imageUrl)}" data-url="${d.imageUrl}" onclick="if(this.dataset.url) openMedia(this.dataset.url, '${d.vino.replace(/'/g, "\\'")}')" style="max-height:60px; border-radius:5px; border:1px solid #ccc; cursor:pointer;">`;
                 }
                 html += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:20px; border:1px solid #ddd; border-radius:12px; margin-bottom:15px; background:#fff;">
-                    <div style="flex:1;">
-                        <b style="font-size:18px; color:var(--main);">${d.vino}</b><br>
-                        <div style="margin:10px 0;">${imgHtml}</div>
-                        <small style="color:#555;">${d.nota.substring(0, 100)}...</small>
-                    </div>
-                    <div style="display:flex; gap:10px; flex-direction:column;">
-                        <button onclick="editTasting('${d.id}')" style="background:var(--blue); color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">👁️ Espandi / Modifica</button>
-                        <button onclick="deleteTasting('${d.id}')" style="background:#e74c3c; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">🗑️ Elimina</button>
-                    </div>
+                    <div style="flex:1;"><b style="font-size:18px; color:var(--main);">${d.vino}</b><br><div style="margin:10px 0;">${imgHtml}</div><small style="color:#555;">${d.nota.substring(0, 100)}...</small></div>
+                    <div style="display:flex; gap:10px; flex-direction:column;"><button onclick="editTasting('${d.id}')" style="background:var(--blue); color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">👁️ Espandi / Modifica</button><button onclick="deleteTasting('${d.id}')" style="background:#e74c3c; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">🗑️ Elimina</button></div>
                 </div>`;
             });
             l.innerHTML = html;
@@ -346,8 +337,7 @@
             if(!confirm("Eliminare questa degustazione dal diario?")) return;
             user.degustazioni = user.degustazioni.filter(d => d.id !== id);
             const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni: user.degustazioni})});
-            const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); user = j.user;
-            renderTastingsList();
+            const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); user = j.user; renderTastingsList();
         }
 
         // CARICAMENTO MEDIA UNIVERSALE (Foto, Video, PDF)
@@ -356,15 +346,16 @@
             const r = await fetch('/api/media'); const items = await r.json(); const list = document.getElementById('m-list'); list.innerHTML = ''; 
             items.filter(m => m.ownerId === user._id).forEach(m => { 
                 const isV = m.type.includes('video'); const isP = m.type.includes('pdf'); let html = '';
-                if(isV) html = `<video src="${m.url}" controls style="width:100%; border-radius:8px; height:150px; object-fit:cover;"></video>`;
-                else if(isP) html = `<div style="width:100%; height:150px; background:#eee; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:40px; cursor:pointer;" onclick="openMedia('${m.url}', '${m.name}')">📄</div>`;
-                else html = `<img src="${m.url}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="openMedia('${m.url}', '${m.name}')">`;
+                const safeUrl = encodeURI(m.url);
+                if(isV) html = `<video src="${safeUrl}" controls style="width:100%; border-radius:8px; height:150px; object-fit:cover;"></video>`;
+                else if(isP) html = `<div data-url="${m.url}" onclick="if(this.dataset.url) openMedia(this.dataset.url, '${m.name}')" style="width:100%; height:150px; background:#eee; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:40px; cursor:pointer;">📄</div>`;
+                else html = `<img src="${safeUrl}" data-url="${m.url}" onclick="if(this.dataset.url) openMedia(this.dataset.url, '${m.name}')" style="width:100%; height:150px; object-fit:cover; border-radius:8px; cursor:pointer;">`;
                 list.innerHTML += `<div class="card" style="padding:15px; text-align:center; border:1px solid #ddd;"><b>${m.name}</b><br><div style="margin:10px 0;">${html}</div><button onclick="delM('${m._id}')" style="width:100%; color:white; background:#e74c3c; border:none; font-weight:bold; padding:10px; border-radius:5px; cursor:pointer;">🗑️ Elimina File</button></div>`; 
             }); 
         }
         function delM(id) { fetch('/api/media/'+id, {method:'DELETE'}).then(() => loadM()); }
 
-        // IMPOSTAZIONI: CERTIFICAZIONI RISOLTE! (Non più click sovrapposti)
+        // IMPOSTAZIONI: CERTIFICAZIONI RISOLTE (Tasti protetti dal submit accidentale)
         function triggerCertUpload(sigla) { document.getElementById('up-' + sigla).click(); }
         async function uploadCertFile(input, sigla) { 
             const f = input.files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); 
@@ -381,7 +372,6 @@
             let common = `<label style="font-weight:bold;">Nome Display:</label><input id="s-nome" value="${user.nome}" style="${style}"><label style="font-weight:bold;">Città di Riferimento:</label><input id="s-loc" value="${user.location}" style="${style}">`;
             
             if(user.tipo === 'Sommelier') {
-                // Layout certificazioni rifatto per essere 100% interattivo senza conflitti
                 let certs = '<label style="font-weight:bold;">Certificazioni Possedute:</label><div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:20px; margin-top:5px;">';
                 sigle.forEach(sig => { 
                     const isCk = user.certificazioni && user.certificazioni.includes(sig); 
@@ -393,8 +383,8 @@
                             <b style="color:${isCk?'var(--main)':'#444'}; font-size:16px;">${sig}</b>
                         </label>
                         <div style="display:flex; gap:10px;">
-                            ${hasF ? `<button onclick="openMedia('${user.certFiles[sig]}', 'Diploma ${sig}')" title="Visualizza File" style="background:var(--blue); color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer;">👁️ Vedi</button>` : ''}
-                            <button onclick="triggerCertUpload('${sig}')" title="Allega File" style="background:var(--main); color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer;">📎 Allega</button>
+                            ${hasF ? `<button type="button" data-url="${user.certFiles[sig]}" onclick="if(this.dataset.url) openMedia(this.dataset.url, 'Diploma ${sig}')" title="Visualizza File" style="background:var(--blue); color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer;">👁️ Vedi</button>` : ''}
+                            <button type="button" onclick="triggerCertUpload('${sig}')" title="Allega File" style="background:var(--main); color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer;">📎 Allega</button>
                             <input type="file" id="up-${sig}" style="display:none" onchange="uploadCertFile(this, '${sig}')">
                         </div>
                     </div>`; 
@@ -460,7 +450,7 @@
                 list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><div><b>${u.nome}</b><br><small>${u.email}</small></div><button onclick="adminDelete('${u._id}')" style="color:white; background:red; border:none; font-weight:bold; cursor:pointer; padding:8px; border-radius:5px;">ELIMINA</button></div>`;
             });
         }
-        async function adminDelete(id) { if(confirm("Cancellare definitivamente?")) { await fetch('/api/admin/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail:user.email, targetId:id})}); loadAdminPanel(); loadU(); } }
+        async function adminDelete(id) { if(confirm("Cancellare definitivamente l'utente?")) { await fetch('/api/admin/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail:user.email, targetId:id})}); loadAdminPanel(); loadU(); } }
         async function toggleVerify(tid, s) { await fetch('/api/admin/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail: user.email, targetId: tid, verifyStatus: !s})}); loadU(); }
         async function useCredit(tid) { const r = await fetch('/api/use-credit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId: user._id, targetId: tid})}); const d = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(d.user)); user = d.user; loadU(); }
 
@@ -470,12 +460,12 @@
         function upChatFile() { const f = document.getElementById('chat-file').files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(m => { socket.emit('send_msg', { from: user._id, to: curChat, text: "📎 Allegato", fileUrl: m.url, fromName: user.nome }); appendM({text:"📎 Allegato", fileUrl: m.url}, true); }); }
         socket.on('chat_history', (ms) => { const b = document.getElementById('c-msgs'); b.innerHTML=''; ms.forEach(m => appendM(m, m.from===user._id)); });
         socket.on('new_msg', (m) => { if(m.from===curChat) appendM(m,false); });
-        function appendM(m, me) { const b = document.getElementById('c-msgs'); let c = m.text; if(m.fileUrl) c += `<br><b onclick="openMedia('${m.fileUrl}')" style="color:${me?'white':'var(--main)'}; cursor:pointer; text-decoration:underline;">Apri File</b>`; b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; background:${me?'var(--main)':'white'}; color:${me?'white':'black'}; padding:10px 15px; border-radius:10px; max-width:80%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">${c}</div>`; b.scrollTop = b.scrollHeight; }
+        function appendM(m, me) { const b = document.getElementById('c-msgs'); let c = m.text; if(m.fileUrl) c += `<br><b data-url="${m.fileUrl}" onclick="if(this.dataset.url) openMedia(this.dataset.url)" style="color:${me?'white':'var(--main)'}; cursor:pointer; text-decoration:underline;">Apri File</b>`; b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; background:${me?'var(--main)':'white'}; color:${me?'white':'black'}; padding:10px; border-radius:10px; max-width:80%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">${c}</div>`; b.scrollTop = b.scrollHeight; }
 
         async function takeOut() { if(confirm("Cancellare tutto? Questa azione è irreversibile.")) { await fetch('/api/user/'+user._id, { method:'DELETE' }); localStorage.clear(); window.location.href="/index.html"; } }
         function toggleNoti() { const p = document.getElementById('noti-panel'); p.style.display = p.style.display==='block'?'none':'block'; document.getElementById('noti-count').style.display='none'; }
         socket.on('notification', (n) => { document.getElementById('noti-count').innerText = "!"; document.getElementById('noti-count').style.display='block'; document.getElementById('noti-list').innerHTML = `<div style="padding:15px; border-bottom:1px solid #eee;"><b>${n.title}</b><br>${n.body}</div>` + document.getElementById('noti-list').innerHTML; });
-        async function loadGallery(oid) { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === oid && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="openMedia('${m.url}')">`); }
+        async function loadGallery(oid) { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === oid && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${encodeURI(m.url)}" data-url="${m.url}" onclick="if(this.dataset.url) openMedia(this.dataset.url)" style="width:100%; height:120px; object-fit:cover; border-radius:8px; cursor:pointer;">`); }
         function logout() { localStorage.clear(); window.location.href="/index.html"; }
         
         document.getElementById('nav-user').innerText = (IS_STAFF ? "Staff: " : "") + user.nome;
