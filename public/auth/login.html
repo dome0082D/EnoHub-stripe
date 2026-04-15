@@ -1,27 +1,8 @@
 <!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8"><title>Accedi - EnoHub</title>
-    <style>body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f4; margin: 0; } .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; } input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; } .btn { width: 100%; padding: 12px; background: #8a1c1c; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; margin-top:10px;}</style>
-</head>
-<body>
-    <div class="card">
-        <div style="text-align:left; margin-bottom:20px;"><a href="../index.html" style="color:#8a1c1c; text-decoration:none; font-weight:bold;">← EnoHub Home</a></div>
-        <h2>Accedi</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
-        <button class="btn" onclick="login()">ENTRA</button>
-        <p style="margin-top:20px; font-size:14px;">Nuovo? <a href="register.html" style="color:#8a1c1c;">Registrati</a></p>
-    </div>
-    <script>
-        async function login() {
-            try {
-                const r = await fetch('/api/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ email: email.value, password: password.value }) });
-                const d = await r.json();
-                if(d.success) { localStorage.setItem('enohub_user', JSON.stringify(d.user)); location.href="../dashboard.html"; } 
-                else alert("Email o Password errati.");
-            } catch(e) { alert("Errore di connessione."); }
-        }
-    </script>
-</body>
-</html>
+<html lang="it"><head><meta charset="UTF-8"><title>Accedi - EnoHub</title><script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>body { font-family: sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f4f4f4; margin:0; } .card { background:white; padding:40px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); width:320px; text-align:center; } input { width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:5px; box-sizing:border-box; } .btn { width:100%; padding:12px; background:#8a1c1c; color:white; border:none; cursor:pointer; border-radius:5px; font-weight:bold; margin-top:10px;}</style></head>
+<body><div class="card"><a href="../index.html" style="color:#8a1c1c; text-decoration:none; font-weight:bold;">← EnoHub Home</a><h2>Accedi</h2><input type="email" id="email" placeholder="Email"><input type="password" id="password" placeholder="Password"><button class="btn" onclick="login()">ENTRA</button><hr style="margin:20px 0;">
+<div id="g_id_onload" data-client_id="IL_TUO_GOOGLE_CLIENT_ID" data-callback="handleGoogle"></div><div class="g_id_signin" data-type="standard"></div></div>
+<script>
+    async function login() { const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email.value,password:password.value})}); const d = await r.json(); if(d.success) { localStorage.setItem('enohub_user',JSON.stringify(d.user)); location.href="../dashboard.html"; } else alert("Dati errati"); }
+</script></body></html>
