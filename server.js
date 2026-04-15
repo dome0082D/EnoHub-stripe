@@ -7,16 +7,16 @@ const path = require('path');
 const fs = require('fs-extra');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
-const stripe = require('stripe')('LA_TUA_CHIAVE_SEGRETA_STRIPE');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'CHIAVE_TEST');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-const MONGO_URI = process.env.MONGO_URI || 'IL_TUO_LINK_ATLAS';
-mongoose.connect(MONGO_URI).then(() => console.log('✅ EnoHub 14.0 Gold - DB Connesso'));
+const MONGO_URI = process.env.MONGO_URI;
+mongoose.connect(MONGO_URI).then(() => console.log('✅ EnoHub Infinity 14.0 - DB OK')).catch(e => console.log('❌ ERR DB:', e.message));
 
-// --- SCHEMA TOTALE ---
+// --- SCHEMA PROFESSIONALE ---
 const User = mongoose.model('User', new mongoose.Schema({
     nome: String, email: { type: String, unique: true }, password: { type: String }, tipo: String,
     piano: { type: String, default: "Freemium" }, googleId: String,
@@ -44,7 +44,7 @@ const upload = multer({ storage: multer.diskStorage({
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 })});
 
-// --- API PAGAMENTI (Sblocco 15€ e Piani) ---
+// --- API PAGAMENTI STRIPE (Piani & Pay-per-Match) ---
 app.post('/api/create-checkout', async (req, res) => {
     const { piano, prezzo, type, targetId, userId } = req.body;
     const session = await stripe.checkout.sessions.create({
@@ -60,13 +60,13 @@ app.post('/api/create-checkout', async (req, res) => {
 app.post('/api/confirm-payment', async (req, res) => {
     const { userId, type, targetId, piano } = req.body;
     let user = await User.findById(userId);
-    if(type === 'unlock') user.unlockedContacts.push(targetId);
+    if(type === 'unlock') { if(!user.unlockedContacts.includes(targetId)) user.unlockedContacts.push(targetId); }
     else user.piano = piano;
     await user.save();
     res.json({ success: true, user });
 });
 
-// --- API MEDIA & SYNC CHAT ---
+// --- API MEDIA & SYNC ---
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     const m = new Media({ ownerId: req.body.ownerId, url: '/uploads/media/'+req.file.filename, name: req.file.originalname, type: req.file.mimetype });
     await m.save(); res.json(m);
@@ -78,22 +78,27 @@ app.delete('/api/media/:id', async (req, res) => {
     res.json({ success: true });
 });
 
-// --- AUTH & USERS ---
+// --- API USERS & AUTH ---
 app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ email: req.body.email });
     if (user && await bcrypt.compare(req.body.password, user.password)) res.json({ success: true, user });
     else res.status(401).json({ success: false });
 });
+
 app.post('/api/register', async (req, res) => {
-    const hashed = await bcrypt.hash(req.body.password, 10);
-    const piano = req.body.tipo === 'Sommelier' ? 'Freemium' : 'Starter';
-    const newUser = new User({ ...req.body, password: hashed, piano });
-    await newUser.save(); res.json({ success: true });
+    try {
+        const hashed = await bcrypt.hash(req.body.password, 10);
+        const piano = req.body.tipo === 'Sommelier' ? 'Freemium' : 'Starter';
+        const newUser = new User({ ...req.body, password: hashed, piano });
+        await newUser.save(); res.json({ success: true });
+    } catch(e) { res.status(500).json({ success: false }); }
 });
+
 app.put('/api/user/:id', async (req, res) => {
     const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json({ success: true, user: updated });
 });
+
 app.get('/api/users', async (req, res) => res.json(await User.find({}, '-password')));
 
 // --- CHAT & NOTIFICHE ---
@@ -102,7 +107,7 @@ io.on('connection', (socket) => {
     socket.on('send_msg', async (d) => {
         const m = new Message(d); await m.save();
         io.to(d.to).emit('new_msg', m);
-        io.to(d.to).emit('notification', { title: d.fromName, body: d.fileUrl ? "Ti ha mandato un file" : d.text });
+        io.to(d.to).emit('notification', { title: d.fromName, body: d.fileUrl ? "📎 Allegato" : d.text });
     });
     socket.on('get_history', async ({ me, to }) => {
         const limit = new Date(); limit.setMonth(limit.getMonth() - 2);
