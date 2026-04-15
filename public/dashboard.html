@@ -2,36 +2,50 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub Gold - Diamond V2</title>
+    <title>EnoHub Gold - Staff Diamond</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root { --main: #8a1c1c; --gold: #d4af37; --side: #121212; --bg: #f5f7f9; --border: #e2e8f0; --blue: #3498db; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: #333; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: #333; display: flex; flex-direction: column; height: 100vh; }
         
-        /* NAVBAR */
+        /* NAVBAR & NOTIFICHE */
         .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; position: sticky; top:0; z-index:100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .noti-badge { background: #e74c3c; color: white; border-radius: 50%; padding: 3px 7px; font-size: 11px; position: absolute; top: -6px; right: -10px; display: none; }
+        .noti-badge { background: #e74c3c; color: white; border-radius: 50%; padding: 3px 7px; font-size: 11px; font-weight: bold; position: absolute; top: -6px; right: -10px; display: none; }
 
-        /* MENU A SCOMPARSA */
+        /* MENU A SCOMPARSA UNICO */
         .sidebar-slide { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--side); color: white; transition: 0.4s; z-index: 2000; padding-top: 80px; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
         .sidebar-slide.active { left: 0; }
         .sidebar-slide a { display: block; padding: 18px 25px; color: #ccc; text-decoration: none; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s; }
-        .sidebar-slide a:hover { background: #333; color: white; }
+        .sidebar-slide a:hover { background: #333; color: white; padding-left: 30px; }
         .menu-toggle-btn { position: fixed; top: 12px; left: 15px; z-index: 2001; background: var(--main); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
 
-        /* LAYOUT */
-        .content { padding: 30px; max-width: 1200px; margin: auto; }
-        .card { background: white; padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #fff; position: relative; }
-        .avatar { width: 100px; height: 100px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 35px; }
+        /* LAYOUT & CARDS */
+        .main { flex: 1; overflow: hidden; display: flex; }
+        .content { flex: 1; padding: 30px; overflow-y: auto; max-width: 1200px; margin: auto; width: 100%; }
+        .card { background: white; padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #fff; position: relative; overflow: hidden; }
         
-        /* ADMIN PANEL (FLOATING) */
-        #staff-panel { position: fixed; bottom: 20px; right: 20px; width: 320px; height: 400px; background: white; border: 2px solid var(--gold); border-radius: 12px; display: none; flex-direction: column; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .staff-header { background: var(--gold); color: black; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; }
+        /* VISUALS PROFILI */
+        .hero-banner { height: 250px; width: 100%; position: absolute; top: 0; left: 0; background-size: cover; background-position: center; }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 250px; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,1) 100%); }
+        .profile-header { position: relative; margin-top: 140px; display: flex; align-items: flex-end; gap: 20px; }
+        .avatar { width: 130px; height: 130px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 45px; border: 5px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 10; }
+        
+        .pill { background: #f8f9fa; padding: 6px 15px; border-radius: 20px; font-size: 13px; margin: 0 8px 8px 0; display: inline-block; border: 1px solid #ddd; color: #555; font-weight: 500; }
+        .cert-box { border: 1px solid #ddd; padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; cursor: pointer; background: #fafafa; transition: 0.2s; position: relative; }
+        .cert-cb:checked + .cert-box { border-color: var(--main); background: var(--main); color: white; }
+        .cert-cb { display: none; }
+        .cert-up-btn { position: absolute; top: -8px; right: -8px; background: white; border: 1px solid #ddd; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--main); z-index: 11; }
+
+        /* STAFF PANEL */
+        #staff-panel { position: fixed; bottom: 20px; right: 20px; width: 340px; height: 450px; background: white; border: 2px solid var(--gold); border-radius: 16px; display: none; flex-direction: column; z-index: 9999; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+        .staff-header { background: var(--gold); color: black; padding: 15px; font-weight: 900; display: flex; justify-content: space-between; border-radius: 14px 14px 0 0; }
         
         .btn-main { background: var(--main); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; }
         .btn-main:hover { opacity: 0.9; transform: translateY(-2px); }
-        .chat-ui { position: fixed; bottom: 20px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 16px; display:none; flex-direction: column; z-index: 9998; border: 1px solid var(--border); overflow: hidden; }
-        .verified-badge { color: var(--blue); font-size: 18px; margin-left: 5px; }
+        
+        .chat-ui { position: fixed; bottom: 20px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 16px; display:none; flex-direction: column; z-index: 9998; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .verified-badge { color: var(--blue); font-size: 20px; margin-left: 8px; }
+        .progress-bar { height: 8px; background: var(--main); width: 0%; border-radius: 4px; transition: 0.3s; }
     </style>
 </head>
 <body>
@@ -39,195 +53,213 @@
     <nav class="sidebar-slide" id="side-menu">
         <h3 style="padding: 0 25px; color: white;">EnoHub Diamond</h3>
         <a onclick="show('profile')">👤 Il mio Profilo</a>
-        <a onclick="show('chat')">💬 Community & Network</a>
+        <a onclick="show('media')">🎞️ Media & Libreria</a>
+        <a onclick="show('chat')">💬 Community Network</a>
         <a onclick="show('subs')">💎 Upgrade Piano</a>
         <a onclick="show('settings')">⚙️ Modifica Profilo</a>
+        
+        <div id="admin-menu-item" style="display:none;">
+            <hr style="border-top:1px solid #333; margin:15px 25px;">
+            <a onclick="loadAdminPanel()" style="color: var(--gold); font-weight:bold;">🛡️ Pannello Staff</a>
+        </div>
         <hr style="border-top:1px solid #333; margin:15px 25px;">
         <a onclick="logout()" style="color: #ff5252;">🚪 Esci</a>
     </nav>
 
     <div class="nav">
         <a href="index.html" style="font-weight:900; color:var(--main); text-decoration:none; font-size: 24px; margin-left: 60px;">EnoHub</a>
-        <span id="nav-user" style="font-weight:600; color:#444;"></span>
+        <div style="display:flex; align-items:center; gap:25px;">
+            <div style="position:relative; cursor:pointer;" onclick="toggleNoti()">🔔 <span id="noti-count" class="noti-badge">0</span></div>
+            <span id="nav-user" style="font-weight:600; color:#444;"></span>
+        </div>
+        <div class="noti-panel" id="noti-panel" style="position:absolute; top:60px; right:5%; width:300px; background:white; border:1px solid #ddd; display:none; z-index:2001; border-radius:10px;"><div id="noti-list" style="padding:15px;"></div></div>
     </div>
 
-    <div class="content">
-        <section id="sec-profile"></section>
+    <div class="main">
+        <div class="content">
+            <section id="sec-profile"></section>
 
-        <section id="sec-chat" style="display:none">
-            <h2 style="color:var(--main);">EnoHub Community</h2>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                <div class="card"><h3>🤵 Sommelier</h3><div id="list-sommelier"></div></div>
-                <div class="card"><h3>🍷 Cantine</h3><div id="list-cantine"></div></div>
-            </div>
-        </section>
+            <section id="sec-media" class="card" style="display:none">
+                <h2>Libreria Multimediale</h2>
+                <input type="file" id="f-in">
+                <div style="width:100%; height:8px; background:#e2e8f0; margin:10px 0; display:none; border-radius:4px; overflow:hidden;" id="p-cont"><div id="p-run" style="height:100%; background:var(--main); width:0%;"></div></div>
+                <button onclick="up()" class="btn-main" style="width:auto; margin-top:10px;">CARICA MEDIA</button>
+                <div id="m-list" style="margin-top:30px; display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:15px;"></div>
+            </section>
 
-        <section id="sec-subs" style="display:none">
-            <h2>Upgrade Account</h2>
-            <div id="pricing-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;"></div>
-        </section>
+            <section id="sec-chat" style="display:none">
+                <h2 style="color:var(--main);">EnoHub Network</h2>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;">
+                    <div class="card"><h3>🤵 Sommelier</h3><div id="list-sommelier"></div></div>
+                    <div class="card"><h3>🍷 Cantine</h3><div id="list-cantine"></div></div>
+                </div>
+            </section>
 
-        <section id="sec-settings" class="card" style="display:none; max-width:700px; margin:auto;">
-            <h2>Modifica Profilo</h2>
-            <div id="settings-fields"></div>
-            <button onclick="saveSet()" class="btn-main" style="margin-top:20px;">💾 SALVA MODIFICHE</button>
-            <hr style="margin:30px 0;">
-            <div style="background:#fff1f1; padding:20px; border-radius:10px; border: 1px solid #ffcccc;">
-                <h4 style="color:#c0392b; margin:0;">Take Out - Gestione Dati</h4>
-                <p style="font-size:13px;">Rimuovi definitivamente tutte le tue informazioni e file dal nostro database.</p>
-                <button onclick="takeOut()" style="background:#c0392b; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;">❌ ELIMINA ACCOUNT</button>
-            </div>
-        </section>
+            <section id="sec-subs" style="display:none">
+                <h2>Upgrade Piano Professionale</h2>
+                <div id="pricing-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;"></div>
+            </section>
+
+            <section id="sec-settings" class="card" style="display:none; max-width:750px; margin:auto;">
+                <h2>Modifica Profilo</h2>
+                <div id="settings-fields"></div>
+                <button onclick="saveSet()" class="btn-main" style="margin-top:20px;">💾 SALVA MODIFICHE</button>
+                <button onclick="takeOut()" style="background:#c0392b; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:20px; width:100%;">❌ ELIMINA ACCOUNT DEFINITIVAMENTE</button>
+            </section>
+        </div>
     </div>
 
     <div id="staff-panel">
-        <div class="staff-header">🛡️ STAFF CONTROL <span onclick="this.parentElement.parentElement.style.display='none'" style="cursor:pointer;">✕</span></div>
-        <div id="staff-user-list" style="flex:1; overflow-y:auto; padding:10px;"></div>
+        <div class="staff-header">🛡️ STAFF ADMIN <span onclick="this.parentElement.parentElement.style.display='none'" style="cursor:pointer;">✕</span></div>
+        <div id="staff-user-list" style="flex:1; overflow-y:auto; padding:15px;"></div>
     </div>
 
     <div id="chat-win" class="chat-ui">
         <div style="background:var(--main); color:white; padding:15px; display:flex; justify-content:space-between;"><b id="chat-title">Chat</b><button onclick="document.getElementById('chat-win').style.display='none'" style="color:white; border:none; background:none; cursor:pointer;">✕</button></div>
         <div id="c-msgs" style="flex:1; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px; background:#f0f2f5;"></div>
-        <div style="display:flex; padding:10px; border-top:1px solid #eee; background:white;"><input type="text" id="c-in" style="flex:1; border:1px solid #ddd; padding:10px; border-radius:20px;"><button onclick="send()" class="btn-main" style="width:auto; border-radius:20px; margin-left:5px;">➤</button></div>
+        <div style="display:flex; padding:10px; border-top:1px solid #eee; background:white;"><button onclick="document.getElementById('chat-file').click()" style="border:none; background:none; font-size:20px; cursor:pointer;">📎</button><input type="file" id="chat-file" style="display:none" onchange="upChatFile()"><input type="text" id="c-in" style="flex:1; margin:0 10px; border:1px solid #ddd; border-radius:20px; padding:10px;"><button onclick="send()" class="btn-main" style="width:auto; border-radius:20px;">➤</button></div>
     </div>
 
     <script>
         function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); }
         let user = JSON.parse(localStorage.getItem('enohub_user'));
         if(!user) window.location.href = "auth/login.html";
-
         const socket = io(); socket.emit('join', user._id);
         const IS_STAFF = user.email === 'dome0082@gmail.com';
+        const sigle = ['AIS', 'FISAR', 'ONAV', 'WSET', 'CMS', 'FIS', 'ASPI', 'AIES'];
+
+        if(IS_STAFF) document.getElementById('admin-menu-item').style.display = 'block';
+
+        const urlP = new URLSearchParams(window.location.search);
+        if(urlP.get('payment') === 'success') {
+            fetch('/api/confirm-payment', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId:user._id, type:urlP.get('type'), targetId:urlP.get('target'), piano:urlP.get('piano') })})
+            .then(r => r.json()).then(d => { localStorage.setItem('enohub_user', JSON.stringify(d.user)); window.location.href="dashboard.html"; });
+        }
 
         function show(id) {
             document.querySelectorAll('section').forEach(s => s.style.display = 'none');
             document.getElementById('sec-' + id).style.display = 'block';
             document.getElementById('side-menu').classList.remove('active');
-            if(id === 'profile') renderProfile();
+            if(id === 'profile') renderProfile(user);
+            if(id === 'media') loadM();
             if(id === 'chat') loadU();
             if(id === 'subs') renderPricing();
             if(id === 'settings') renderSettings();
         }
 
-        // RENDER PROFILO (PUNTO DEGUSTAZIONI)
-        function renderProfile() {
+        function renderProfile(target) {
             const c = document.getElementById('sec-profile');
-            const initial = user.nome.charAt(0).toUpperCase();
-            const spunta = user.isVerified ? '<span class="verified-badge">✔️</span>' : '';
+            const initial = target.nome.charAt(0).toUpperCase();
+            const spunta = target.isVerified ? '<span class="verified-badge">✅ 🍷</span>' : '';
+            const banner = target.tipo === 'Cantina' ? 'https://images.unsplash.com/photo-1560493676-04071c5f467b?q=80&w=1500' : 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=1500';
 
-            if(user.tipo === 'Cantina') {
-                // EMAIL RIMOSSA DA PROFILO CANTINA
-                c.innerHTML = `<div class="card"><h1>${user.nome}</h1><p>📍 ${user.regione}</p><hr><h3>La Nostra Storia</h3><p>${user.storia}</p></div>`;
-            } else {
+            if(target.tipo === 'Cantina') {
                 c.innerHTML = `
-                <div class="card">
-                    <div style="display:flex; gap:20px; align-items:center;">
-                        <div class="avatar">${initial}</div>
-                        <div><h1>${user.nome}${spunta}</h1><p>${user.ruolo}</p></div>
-                    </div>
-                    <hr>
-                    <div id="degustazione-box" style="background:#f9f9f9; padding:20px; border-radius:12px; margin-top:20px; border:1px solid #eee;">
-                        <h3 style="margin-top:0; color:var(--main);">🍷 Note di Degustazione</h3>
-                        ${user.tastingLabelUrl ? `<img src="${user.tastingLabelUrl}" style="max-width:150px; border-radius:8px; margin-bottom:10px; display:block;">` : ''}
-                        <p style="font-style:italic;">"${user.noteDegustazione || 'Nessuna nota inserita.'}"</p>
+                <div class="card" style="padding-top:0;">
+                    <div class="hero-banner" style="background-image: url('${banner}')"></div><div class="hero-overlay"></div>
+                    <div class="profile-header"><div class="avatar">${initial}</div><div><h1 style="margin:0;">${target.nome}</h1><p>📍 ${target.regione} | 🌐 ${target.sito || '-'}</p></div></div>
+                    <div style="margin-top:30px;"><h3>🏛️ Storia & Filosofia</h3><p>${target.storia || '-'}</p><p><i>"${target.filosofia || ''}"</i></p></div>
+                    <h3>📸 Galleria</h3><div id="g-cantina" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px;"></div>
+                </div>`;
+                loadGallery(target._id);
+            } else {
+                let certGrid = '<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-top:15px;">';
+                sigle.forEach(s => {
+                    const hasCert = target.certificazioni && target.certificazioni.includes(s);
+                    const fileUrl = target.certFiles && target.certFiles[s];
+                    certGrid += `<div onclick="${fileUrl ? `window.open('${fileUrl}', '_blank')` : ''}" class="cert-box" style="opacity:${hasCert?'1':'0.4'}; background:${hasCert?'var(--main)':'#f8f9fa'}; color:${hasCert?'white':'#888'};">${s} ${fileUrl ? '📄' : ''}</div>`;
+                });
+                certGrid += '</div>';
+
+                c.innerHTML = `
+                <div class="card" style="padding-top:0;">
+                    <div class="hero-banner" style="background-image: url('${banner}')"></div><div class="hero-overlay"></div>
+                    <div class="profile-header"><div class="avatar">${initial}</div><div><h1 style="margin:0;">${target.nome}${spunta}</h1><p>${target.ruolo} • ${target.piano}</p><p>ID: ${target.identificativoCertificato || '-'}</p></div></div>
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-top:30px;">
+                        <div><h3>🍷 Note di Degustazione</h3><div style="background:#f9f9f9; padding:20px; border-radius:10px; border:1px solid #eee;">${target.tastingLabelUrl ? `<img src="${target.tastingLabelUrl}" style="max-width:150px; border-radius:8px; margin-bottom:10px; display:block;">` : ''}<p>${target.noteDegustazione || 'Nessuna nota.'}</p></div></div>
+                        <div><h4>Bio</h4><p>${target.bio || '-'}</p><h4>Specializzazioni</h4><div id="spec-list"></div><h4>Certificazioni</h4>${certGrid}</div>
                     </div>
                 </div>`;
+                if(target.specializzazioni) target.specializzazioni.split(',').forEach(s => document.getElementById('spec-list').innerHTML += `<span class="pill">${s.trim()}</span>`);
             }
         }
 
-        function renderSettings() {
-            const s = document.getElementById('settings-fields');
-            const style = "width:100%; padding:12px; margin:8px 0 15px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;";
-            let common = `<label>Nome:</label><input id="s-nome" value="${user.nome}" style="${style}"><label>Città:</label><input id="s-loc" value="${user.location}" style="${style}">`;
-            
-            if(user.tipo === 'Sommelier') {
-                s.innerHTML = common + `
-                <label>Bio:</label><textarea id="s-bio" style="${style}">${user.bio}</textarea>
-                <h3>🍷 Note di Degustazione</h3>
-                <textarea id="s-note" style="${style} height:80px;" placeholder="Descrizione degustazione...">${user.noteDegustazione}</textarea>
-                <label>Foto Etichetta:</label><input type="file" id="up-tasting" onchange="uploadTasting(this)" style="margin-bottom:15px;">
-                <h3>🔒 Contenuti Premium (Solo per sbloccati)</h3>
-                <input id="s-p-text" placeholder="Messaggio segreto..." value="${user.premiumText||''}" style="${style}">
-                `;
-            } else {
-                s.innerHTML = common + `<label>Regione:</label><input id="s-reg" value="${user.regione}" style="${style}"><label>Storia:</label><textarea id="s-storia" style="${style}">${user.storia}</textarea>`;
-            }
-        }
-
-        async function uploadTasting(input) {
-            const fd = new FormData(); fd.append('file', input.files[0]); fd.append('ownerId', user._id);
-            const r = await fetch('/api/upload', { method:'POST', body:fd });
-            const m = await r.json();
-            user.tastingLabelUrl = m.url; alert("Etichetta caricata!");
-        }
-
-        async function saveSet() {
-            let d = { nome: document.getElementById('s-nome').value, location: document.getElementById('s-loc').value };
-            if(user.tipo === 'Sommelier') { d.bio = document.getElementById('s-bio').value; d.noteDegustazione = document.getElementById('s-note').value; d.tastingLabelUrl = user.tastingLabelUrl; d.premiumText = document.getElementById('s-p-text').value; }
-            const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) });
-            const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); location.reload();
-        }
-
-        async function takeOut() {
-            if(!confirm("⚠️ ATTENZIONE: Questo eliminerà per sempre tutti i tuoi dati. Procedere?")) return;
-            await fetch('/api/user/'+user._id, { method:'DELETE' });
-            logout();
-        }
-
-        function renderPricing() {
-            const l = document.getElementById('pricing-list'); l.innerHTML = '';
-            const plans = user.tipo === 'Sommelier' 
-                ? [{n:'Freemium',v:0,f:['Profilo base']},{n:'Pro',v:19,f:['Spunta Blu','Contatti Illimitati'],feat:true}] 
-                : [{n:'Starter',v:0,f:['Sblocchi a 15€']},{n:'Business',v:39,f:['5 Sblocchi inclusi'],feat:true}];
-            plans.forEach(p => {
-                l.innerHTML += `<div class="card" style="${p.feat?'border:2px solid var(--gold)':''}"><h3>${p.n}</h3><div style="font-size:30px; font-weight:bold;">€${p.v}</div><button onclick="payUpgrade('${p.n}',${p.v})" class="btn-main" style="margin-top:15px;">Seleziona</button></div>`;
-            });
-        }
-
-        async function payUpgrade(p, v) {
-            const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:p, prezzo:v, userId:user._id, type:'upgrade'})});
-            const d = await r.json(); if(d.url) window.location.href = d.url;
-        }
+        async function viewUser(id) { const r = await fetch('/api/user/' + id); const t = await r.json(); show('profile'); renderProfile(t); }
 
         async function loadU() {
             const r = await fetch('/api/users'); const users = await r.json();
             const ls = document.getElementById('list-sommelier'); const lc = document.getElementById('list-cantine');
             ls.innerHTML = ''; lc.innerHTML = '';
             users.filter(u => u._id !== user._id).forEach(u => {
-                const btn = `<button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:5px 15px;">Contatta</button>`;
-                const html = `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee;"><div><b>${u.nome}</b><br><small>${u.location}</small></div>${btn}</div>`;
+                const s = u.isVerified ? '<span style="color:green;">✅ 🍷</span>' : '';
+                let btn = '';
+                if(IS_STAFF) btn = `<button onclick="toggleVerify('${u._id}', ${u.isVerified})" style="background:${u.isVerified?'red':'green'}; color:white; padding:5px 10px; border:none; border-radius:5px; margin-right:5px;">${u.isVerified?'DE-VER':'VERIFICA'}</button> <button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:5px 10px;">Chat</button>`;
+                else if (user.tipo === 'Cantina' && u.tipo === 'Sommelier') {
+                    if (user.unlockedContacts?.includes(u._id)) btn = `<button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto;">Chat</button>`;
+                    else if (user.piano === 'Business' && user.unlocksRemaining > 0) btn = `<button onclick="useCredit('${u._id}')" style="background:var(--gold); border:none; padding:8px; border-radius:5px;">Usa Credito (${user.unlocksRemaining})</button>`;
+                    else btn = `<button onclick="payUnlock('${u._id}')" style="background:black; color:white; border:none; padding:8px; border-radius:5px;">Sblocca (€15)</button>`;
+                } else btn = `<button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:6px 15px;">Chat</button>`;
+                
+                const link = IS_STAFF ? `<b onclick="viewUser('${u._id}')" style="cursor:pointer; color:var(--blue); text-decoration:underline;">${u.nome} ${s}</b>` : `<b>${u.nome} ${s}</b>`;
+                const html = `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee; background:#fafafa; border-radius:10px; margin-bottom:8px;"><div>${link}<br><small>${u.location} • ${u.ruolo}</small></div>${btn}</div>`;
                 if(u.tipo === 'Sommelier') ls.innerHTML += html; else lc.innerHTML += html;
             });
         }
 
         async function loadAdminPanel() {
-            if(!IS_STAFF) return;
             document.getElementById('staff-panel').style.display = 'flex';
             const r = await fetch('/api/users'); const users = await r.json();
             const list = document.getElementById('staff-user-list'); list.innerHTML = '';
-            users.forEach(u => {
-                if(u.email === 'dome0082@gmail.com') return;
-                list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; font-size:12px;"><b>${u.nome}</b> (${u.email}) <button onclick="adminDelete('${u._id}')" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold;">ELIMINA</button></div>`;
-            });
+            users.forEach(u => { if(u.email === 'dome0082@gmail.com') return; list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><div><b>${u.nome}</b> (${u.email})</div><button onclick="adminDelete('${u._id}')" style="color:white; background:red; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Elimina</button></div>`; });
         }
+        async function adminDelete(id) { if(confirm("Cancellare definitivamente?")) { await fetch('/api/admin/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail:user.email, targetId:id})}); loadAdminPanel(); loadU(); } }
+        async function toggleVerify(tid, s) { await fetch('/api/admin/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail: user.email, targetId: tid, verifyStatus: !s})}); loadU(); }
+        async function useCredit(tid) { const r = await fetch('/api/use-credit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId: user._id, targetId: tid})}); const d = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(d.user)); user = d.user; loadU(); }
 
-        async function adminDelete(id) {
-            if(!confirm("Eliminare definitivamente l'utente?")) return;
-            await fetch('/api/admin/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail:user.email, targetId:id})});
-            loadAdminPanel();
+        function up() { const f = document.getElementById('f-in').files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); const xhr = new XMLHttpRequest(); document.getElementById('p-cont').style.display='block'; xhr.upload.onprogress = (e) => document.getElementById('p-run').style.width = Math.round((e.loaded/e.total)*100)+'%'; xhr.onload = () => { alert("Caricato!"); loadM(); document.getElementById('p-cont').style.display='none'; }; xhr.open('POST', '/api/upload'); xhr.send(fd); }
+        async function loadM() { const r = await fetch('/api/media'); const items = await r.json(); const list = document.getElementById('m-list'); list.innerHTML = ''; items.filter(m => m.ownerId === user._id).forEach(m => { const isV = m.type.includes('video'); list.innerHTML += `<div class="card" style="padding:10px;"><b>${m.name}</b><br>${isV ? `<video src="${m.url}" controls style="width:100%; border-radius:5px;"></video>` : `<img src="${m.url}" style="width:100%; border-radius:5px;">`}<button onclick="delM('${m._id}')" style="width:100%; color:red; border:none; background:none; margin-top:5px; cursor:pointer;">Elimina</button></div>`; }); }
+        function delM(id) { fetch('/api/media/'+id, {method:'DELETE'}).then(() => loadM()); }
+
+        function triggerCertUpload(sigla) { document.getElementById('up-' + sigla).click(); }
+        async function uploadCertFile(input, sigla) { const f = input.files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); const res = await fetch('/api/upload', { method:'POST', body:fd }); const media = await res.json(); if(!user.certFiles) user.certFiles = {}; user.certFiles[sigla] = media.url; let cArr = user.certificazioni ? user.certificazioni.split(',') : []; if(!cArr.includes(sigla)) cArr.push(sigla); user.certificazioni = cArr.join(','); const upRes = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ certFiles: user.certFiles, certificazioni: user.certificazioni }) }); const updated = await upRes.json(); localStorage.setItem('enohub_user', JSON.stringify(updated.user)); location.reload(); }
+        async function uploadTasting(input) { const fd = new FormData(); fd.append('file', input.files[0]); fd.append('ownerId', user._id); const r = await fetch('/api/upload', { method:'POST', body:fd }); const m = await r.json(); user.tastingLabelUrl = m.url; alert("Etichetta caricata! Ricorda di salvare."); }
+        async function loadGallery(oid) { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === oid && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">`); }
+
+        function renderPricing() {
+            const l = document.getElementById('pricing-list'); l.innerHTML = '';
+            const plans = user.tipo === 'Sommelier' ? [{n:'Freemium',v:0,f:['Profilo base']},{n:'Pro',v:19,f:['Badge Staff','ID Ufficiale','Oltre 20 Cantine'],feat:true}] : [{n:'Starter',v:0,f:['Sblocchi a 15€']},{n:'Business',v:39,f:['5 Sblocchi inclusi al mese'],feat:true}];
+            plans.forEach(p => { l.innerHTML += `<div class="card" style="text-align:center; ${p.feat?'border:3px solid var(--gold)':''}"><h3>Piano ${p.n}</h3><div style="font-size:36px; font-weight:900;">€${p.v}</div><ul style="padding:0; list-style:none; text-align:left;">${p.f.map(f=>`<li>✔️ ${f}</li>`).join('')}</ul><button onclick="${p.v===0?'':`payUpgrade('${p.n}',${p.v})`}" class="btn-main">${user.piano===p.n?'Attivo':'Attiva Ora'}</button></div>`; });
         }
+        async function payUpgrade(p, v) { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:p, prezzo:v, userId:user._id, type:'upgrade'})}); const d = await r.json(); if(d.url) window.location.href = d.url; }
+        async function payUnlock(tid) { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:'Sblocca Contatto', prezzo:15, type:'unlock', targetId:tid, userId:user._id})}); const d = await r.json(); if(d.url) window.location.href = d.url; }
 
         let curChat = null;
         function openChat(id, n) { curChat = id; document.getElementById('chat-win').style.display='flex'; document.getElementById('chat-title').innerText = n; socket.emit('get_history', {me:user._id, to:id}); }
         function send() { const t = document.getElementById('c-in').value; if(!t) return; const m = {from:user._id, to:curChat, text:t, fromName:user.nome}; socket.emit('send_msg', m); appendM(m, true); document.getElementById('c-in').value=''; }
+        function upChatFile() { const f = document.getElementById('chat-file').files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(m => { socket.emit('send_msg', { from: user._id, to: curChat, text: "📎 Allegato", fileUrl: m.url, fromName: user.nome }); appendM({text:"📎 Allegato", fileUrl: m.url}, true); }); }
         socket.on('chat_history', (ms) => { const b = document.getElementById('c-msgs'); b.innerHTML=''; ms.forEach(m => appendM(m, m.from===user._id)); });
         socket.on('new_msg', (m) => { if(m.from===curChat) appendM(m,false); });
-        function appendM(m, me) { const b = document.getElementById('c-msgs'); b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; background:${me?'var(--main)':'white'}; color:${me?'white':'black'}; padding:10px; border-radius:10px; max-width:80%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">${m.text}</div>`; b.scrollTop = b.scrollHeight; }
-        function logout() { localStorage.removeItem('enohub_user'); window.location.href="/index.html"; }
+        function appendM(m, me) { const b = document.getElementById('c-msgs'); let c = m.text; if(m.fileUrl) c += `<br><a href="${m.fileUrl}" target="_blank" style="color:${me?'white':'var(--main)'}"><b>Apri File</b></a>`; b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; background:${me?'var(--main)':'white'}; color:${me?'white':'black'}; padding:10px; border-radius:10px; max-width:80%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">${c}</div>`; b.scrollTop = b.scrollHeight; }
 
-        document.getElementById('nav-user').innerText = "Diamond Staff: " + user.nome;
+        function renderSettings() {
+            const s = document.getElementById('settings-fields');
+            const style = "width:100%; padding:12px; margin:8px 0 15px 0; border:1px solid #ddd; border-radius:10px; box-sizing:border-box;";
+            let common = `<label>Nome:</label><input id="s-nome" value="${user.nome}" style="${style}"><label>Città:</label><input id="s-loc" value="${user.location}" style="${style}">`;
+            if(user.tipo === 'Sommelier') {
+                let certs = '<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:15px;">';
+                sigle.forEach(sig => { const isCk = user.certificazioni && user.certificazioni.includes(sig); const hasF = user.certFiles && user.certFiles[sig]; certs += `<div class="cert-container"><label class="cert-label"><input type="checkbox" value="${sig}" class="cert-cb" ${isCk?'checked':''}><div class="cert-box">${sig} ${hasF?'📄':''}</div></label><button class="cert-up-btn" onclick="triggerCertUpload('${sig}')">📎</button><input type="file" id="up-${sig}" style="display:none" onchange="uploadCertFile(this, '${sig}')"></div>`; });
+                s.innerHTML = common + `<label>Ruolo:</label><input id="s-ruolo" value="${user.ruolo}" style="${style}"><label>Specializzazioni:</label><input id="s-spec" value="${user.specializzazioni}" style="${style}"><label>Bio:</label><textarea id="s-bio" style="${style}">${user.bio}</textarea>${certs}</div><h3>🍷 Degustazione</h3><textarea id="s-note" style="${style}">${user.noteDegustazione}</textarea><label>Etichetta:</label><input type="file" onchange="uploadTasting(this)">`;
+            } else {
+                s.innerHTML = common + `<label>Regione:</label><input id="s-reg" value="${user.regione}" style="${style}"><label>Sito:</label><input id="s-sito" value="${user.sito}" style="${style}"><label>Storia:</label><textarea id="s-storia" style="${style}">${user.storia}</textarea>`;
+            }
+        }
+        async function saveSet() { let d = { nome: document.getElementById('s-nome').value, location: document.getElementById('s-loc').value }; if(user.tipo === 'Sommelier') { d.ruolo = document.getElementById('s-ruolo').value; d.specializzazioni = document.getElementById('s-spec').value; d.bio = document.getElementById('s-bio').value; d.noteDegustazione = document.getElementById('s-note').value; let c = []; document.querySelectorAll('.cert-cb:checked').forEach(cb => c.push(cb.value)); d.certificazioni = c.join(','); } else { d.regione = document.getElementById('s-reg').value; d.sito = document.getElementById('s-sito').value; d.storia = document.getElementById('s-storia').value; } const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }); const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); location.reload(); }
+        async function takeOut() { if(confirm("Cancellare tutto?")) { await fetch('/api/user/'+user._id, { method:'DELETE' }); localStorage.clear(); window.location.href="/index.html"; } }
+        function toggleNoti() { const p = document.getElementById('noti-panel'); p.style.display = p.style.display==='block'?'none':'block'; document.getElementById('noti-count').style.display='none'; }
+        socket.on('notification', (n) => { document.getElementById('noti-count').innerText = "!"; document.getElementById('noti-count').style.display='block'; document.getElementById('noti-list').innerHTML = `<div style="padding:15px; border-bottom:1px solid #eee;"><b>${n.title}</b><br>${n.body}</div>` + document.getElementById('noti-list').innerHTML; });
+        function logout() { localStorage.clear(); window.location.href="/index.html"; }
+        document.getElementById('nav-user').innerText = (IS_STAFF ? "Staff: " : "") + user.nome;
         show('profile');
-        if(IS_STAFF) loadAdminPanel();
     </script>
 </body>
 </html>
