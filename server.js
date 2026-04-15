@@ -19,7 +19,7 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ DATABASE: EnoHub Diamond V3 Connesso'))
     .catch(e => console.log('❌ DATABASE ERROR:', e.message));
 
-// SCHEMA UTENTE (certFiles ora è Object per supportare il caricamento)
+// SCHEMA UTENTE (Aggiunto Array per Degustazioni Multiple)
 const User = mongoose.model('User', new mongoose.Schema({
     nome: String, email: { type: String, unique: true }, password: { type: String }, tipo: String,
     piano: { type: String, default: "Freemium" }, googleId: String,
@@ -27,6 +27,10 @@ const User = mongoose.model('User', new mongoose.Schema({
     ruolo: { type: String, default: "Wine Professional" },
     specializzazioni: { type: String, default: "" }, certificazioni: { type: String, default: "" }, 
     certFiles: { type: Object, default: {} }, 
+    
+    // NUOVO: Archivio degustazioni multiple
+    degustazioni: { type: Array, default: [] },
+    
     noteDegustazione: { type: String, default: "" }, tastingLabelUrl: { type: String, default: "" },
     premiumText: { type: String, default: "" }, premiumImageUrl: { type: String, default: "" },
     regione: { type: String, default: "" }, filosofia: { type: String, default: "" }, 
