@@ -5,47 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EnoHub - Connessione Vinicola</title>
     <style>
-        body { font-family: 'Arial', sans-serif; margin: 0; padding: 0; color: #333; }
+        :root { --main: #8a1c1c; }
+        body { font-family: 'Arial', sans-serif; margin: 0; padding: 0; color: #333; overflow-x: hidden; }
         
-        /* 1. Header con Vigneti e Logo */
+        /* Header Hero */
         .hero {
             background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=1920') center/cover;
-            height: 60vh; position: relative; display: flex; flex-direction: column;
+            height: 65vh; position: relative; display: flex; flex-direction: column;
         }
-        .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; }
-        .logo { color: white; font-size: 32px; font-weight: bold; }
-        .auth-btns a { text-decoration: none; background: white; color: #333; padding: 10px 20px; border-radius: 5px; margin-left: 10px; font-weight: bold; }
+        .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; }
+        .logo { color: white; font-size: 32px; font-weight: bold; text-decoration: none; }
+        .auth-btns a { text-decoration: none; background: white; color: var(--main); padding: 10px 20px; border-radius: 5px; margin-left: 10px; font-weight: bold; transition: 0.3s; }
+        .auth-btns a:hover { background: #eee; }
 
-        /* 2. Cosa puoi fare */
-        .info-section { padding: 60px 20px; text-align: center; }
+        /* Cosa puoi fare */
+        .info-section { padding: 60px 5%; text-align: center; background: #fff; }
         .info-section h2 { font-size: 32px; margin-bottom: 40px; }
         .container-box { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
-        .feature-box { background: #f4f4f4; padding: 30px; border-radius: 12px; width: 350px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .feature-box i { font-size: 40px; display: block; margin-bottom: 15px; }
+        .feature-box { background: #f9f9f9; padding: 35px; border-radius: 12px; width: 320px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .feature-box i { font-size: 45px; display: block; margin-bottom: 15px; }
 
-        /* 3. Il fascino del vino */
-        .fascino { padding: 60px 20px; text-align: center; background: #fff; }
+        /* Il fascino del vino */
+        .fascino { padding: 60px 5%; text-align: center; background: #f4f4f4; }
         .fascino-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
         .fascino-item { position: relative; width: 300px; height: 400px; overflow: hidden; border-radius: 10px; }
         .fascino-item img { width: 100%; height: 100%; object-fit: cover; }
-        .fascino-item span { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); color: white; font-size: 26px; font-weight: bold; text-shadow: 2px 2px 8px rgba(0,0,0,0.7); }
+        .fascino-item span { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); color: white; font-size: 24px; font-weight: bold; text-shadow: 2px 2px 8px rgba(0,0,0,0.8); width: 100%; }
 
-        /* 4. Banner Rosso Community */
-        .red-banner { background-color: #b71c1c; color: white; padding: 60px 20px; text-align: center; }
-        .red-banner h2 { font-size: 38px; margin-bottom: 20px; }
-        .red-banner p { font-size: 20px; margin-bottom: 30px; }
-        .btn-reg { background: white; color: #b71c1c; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 20px; transition: 0.3s; }
-        .btn-reg:hover { background: #eee; }
+        /* Banner Rosso Community */
+        .red-banner { background-color: #b71c1c; color: white; padding: 70px 5%; text-align: center; }
+        .red-banner h2 { font-size: 36px; margin-bottom: 20px; }
+        .red-banner p { font-size: 18px; margin-bottom: 35px; max-width: 700px; margin-left: auto; margin-right: auto; }
+        .btn-reg { background: white; color: #b71c1c; padding: 18px 45px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 18px; transition: 0.3s; }
+        .btn-reg:hover { background: #f0f0f0; }
     </style>
 </head>
 <body>
 
     <header class="hero">
         <div class="nav-top">
-            <div class="logo">EnoHub</div>
+            <a href="#" class="logo">EnoHub</a>
             <div class="auth-btns">
-                <a href="/login">Accedi</a>
-                <a href="https://enohub-stripe.onrender.com/auth/register.html">Registrati</a>
+                <a href="/auth/login.html">Accedi</a>
+                <a href="/auth/register.html">Registrati</a>
             </div>
         </div>
     </header>
@@ -61,7 +63,7 @@
             <div class="feature-box">
                 <i>👥</i>
                 <p><strong>Trova Sommelier</strong></p>
-                <p>Cerca professionisti del vino e Restaurant Manager per specializzazione, certificazione e disponibilita.</p>
+                <p>Cerca professionisti del vino e Restaurant Manager per specializzazione, certificazione e disponibilità.</p>
             </div>
         </div>
     </section>
@@ -71,15 +73,15 @@
         <div class="fascino-grid">
             <div class="fascino-item">
                 <span>Degustazione</span>
-                <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=500" alt="Vino Rosso">
+                <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=500" alt="Degustazione">
             </div>
             <div class="fascino-item">
                 <span>Tradizione</span>
-                <img src="https://images.unsplash.com/photo-1568213816046-0ee1c42bd559?q=80&w=500" alt="Botti">
+                <img src="https://images.unsplash.com/photo-1568213816046-0ee1c42bd559?q=80&w=500" alt="Tradizione">
             </div>
             <div class="fascino-item">
-                <span>professionalità</span>
-                <img src="https://images.unsplash.com/photo-1578911373434-0cb395d2cbfb?q=80&w=500" alt="Sommelier">
+                <span>Professionalità</span>
+                <img src="https://images.unsplash.com/photo-1578911373434-0cb395d2cbfb?q=80&w=500" alt="Professionalità">
             </div>
         </div>
     </section>
