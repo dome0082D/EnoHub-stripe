@@ -3,40 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnoHub Gold - Upgrade del Piano</title>
+    <title>Upgrade Piano - EnoHub Gold</title>
     <style>
-        :root { --main: #8a1c1c; --gold: #d4af37; --dark: #121212; --bg: #f5f7f9; --border: #e2e8f0; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: #333; line-height: 1.6; }
+        :root { --main: #8a1c1c; --gold: #d4af37; --bg: #f5f7f9; --dark: #121212; --border: #e2e8f0; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; line-height: 1.6; }
         
         nav { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top:0; z-index:1000; }
         .logo { font-size: 24px; font-weight: 900; color: var(--main); text-decoration: none; }
         
-        .container { max-width: 1200px; margin: 50px auto; padding: 0 20px; }
+        .container { max-width: 1100px; margin: 50px auto; padding: 0 20px; }
         .header { text-align: center; margin-bottom: 50px; }
         .header h1 { font-size: 36px; color: var(--dark); margin-bottom: 10px; }
-        .header p { color: #666; font-size: 18px; }
-
-        .section-title { font-size: 24px; color: var(--main); border-bottom: 2px solid var(--main); display: inline-block; padding-bottom: 5px; margin-bottom: 30px; }
-
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-bottom: 60px; }
         
-        /* CARD DESIGN */
-        .card { background: white; border-radius: 20px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--border); transition: 0.3s; position: relative; display: flex; flex-direction: column; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
+
+        /* CARD STYLE */
+        .card { background: white; border-radius: 20px; padding: 40px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid var(--border); transition: 0.3s; display: flex; flex-direction: column; position: relative; }
         .card:hover { transform: translateY(-10px); border-color: var(--gold); }
-        .card-pro { border: 2px solid var(--gold); }
-        .card-pro::after { content: "CONSIGLIATO"; position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--gold); color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .card-featured { border: 2px solid var(--gold); }
+        .card-featured::after { content: "CONSIGLIATO"; position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--gold); color: white; padding: 5px 15px; border-radius: 20px; font-size: 11px; font-weight: bold; }
 
         .tier-name { font-size: 22px; font-weight: bold; margin: 0; color: var(--dark); }
-        .tier-target { font-size: 13px; color: #888; font-weight: 600; text-transform: uppercase; margin-top: 5px; }
-        .tier-price { font-size: 48px; font-weight: 900; color: var(--main); margin: 20px 0; }
-        .tier-price span { font-size: 18px; color: #888; font-weight: normal; }
+        .tier-price { font-size: 44px; color: var(--main); font-weight: 900; margin: 15px 0; }
+        .tier-price small { font-size: 16px; color: #888; font-weight: normal; }
 
-        .features { list-style: none; padding: 0; margin: 20px 0 40px; flex-grow: 1; }
-        .features li { padding: 12px 0; border-bottom: 1px solid #f8f9fa; font-size: 15px; display: flex; align-items: flex-start; gap: 10px; }
+        .features { list-style: none; padding: 0; margin: 20px 0 35px; flex-grow: 1; }
+        .features li { padding: 10px 0; border-bottom: 1px solid #f8f9fa; font-size: 14px; color: #555; display: flex; align-items: flex-start; gap: 10px; }
         .features li::before { content: "✓"; color: #27ae60; font-weight: bold; }
 
-        .btn-upgrade { background: var(--dark); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; }
-        .btn-upgrade:hover { background: var(--main); transform: scale(1.02); }
+        .btn-upgrade { background: var(--dark); color: white; border: none; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; }
+        .btn-upgrade:hover { background: var(--main); }
         .btn-active { background: #e2e8f0; color: #888; cursor: default; }
 
         @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
@@ -46,134 +42,127 @@
 
     <nav>
         <a href="index.html" class="logo">EnoHub</a>
-        <a href="dashboard.html" style="text-decoration:none; color:var(--dark); font-weight:600;">← Torna alla Dashboard</a>
+        <a href="dashboard.html" style="text-decoration:none; color:var(--dark); font-weight:bold;">← Dashboard</a>
     </nav>
 
     <div class="container">
-        
         <div class="header">
-            <h1>Upgrade del tuo Account</h1>
-            <p>Scegli il piano perfetto per potenziare il tuo business nel mondo del vino.</p>
+            <h1 id="title-type">Piani e Abbonamenti</h1>
+            <p>Potenzia il tuo profilo con le funzionalità avanzate di EnoHub.</p>
         </div>
 
-        <div id="sommelier-plans" style="display:none;">
-            <h2 class="section-title">Piani per Sommelier</h2>
-            <div class="grid">
-                <div class="card" id="card-Freemium">
-                    <h3 class="tier-name">Freemium</h3>
-                    <p class="tier-target">Profilo Base</p>
-                    <div class="tier-price">€0</div>
-                    <ul class="features">
-                        <li>Profilo base sulla piattaforma</li>
-                        <li>Ricezione notifiche generiche</li>
-                        <li>Possibilità di essere trovati (visibilità ridotta)</li>
-                    </ul>
-                    <button class="btn-upgrade btn-active" disabled>Piano Attuale</button>
-                </div>
-
-                <div class="card card-pro" id="card-Pro">
-                    <h3 class="tier-name">Pro</h3>
-                    <p class="tier-target">Wine Specialist</p>
-                    <div class="tier-price">€9<span>/mese</span></div>
-                    <ul class="features">
-                        <li><b>Badge "Certificato"</b> sul profilo</li>
-                        <li><b>Priorità</b> nelle candidature</li>
-                        <li>Accesso a <b>offerte esclusive</b> (Grandi eventi, Export)</li>
-                        <li><b>Statistiche</b> sulle visualizzazioni del profilo</li>
-                    </ul>
-                    <button class="btn-upgrade" onclick="pay('Pro', 9)">Attiva Piano Pro</button>
-                </div>
+        <div id="pricing-grid" class="grid">
             </div>
-        </div>
-
-        <div id="cantina-plans" style="display:none;">
-            <h2 class="section-title">Piani per Cantine e Aziende</h2>
-            <div class="grid">
-                <div class="card" id="card-Starter">
-                    <h3 class="tier-name">Starter</h3>
-                    <p class="tier-target">Piccole Cantine</p>
-                    <div class="tier-price">€0<span> (Pay-per-Match)</span></div>
-                    <ul class="features">
-                        <li>Zero rischi e costi fissi</li>
-                        <li>Paghi solo <b>€15 per sbloccare</b> i contatti di un sommelier</li>
-                        <li>Esplorazione database gratuita</li>
-                    </ul>
-                    <button class="btn-upgrade btn-active" disabled>Piano Attuale</button>
-                </div>
-
-                <div class="card card-pro" id="card-Business">
-                    <h3 class="tier-name">Business</h3>
-                    <p class="tier-target">Aziende Medie</p>
-                    <div class="tier-price">€39<span>/mese</span></div>
-                    <ul class="features">
-                        <li><b>Accesso illimitato</b> al database contatti</li>
-                        <li><b>2 Annunci "Featured"</b> in evidenza per eventi urgenti</li>
-                        <li>Visibilità prioritaria del profilo aziendale</li>
-                    </ul>
-                    <button class="btn-upgrade" onclick="pay('Business', 39)">Attiva Business</button>
-                </div>
-
-                <div class="card" id="card-Premium">
-                    <h3 class="tier-name">Premium</h3>
-                    <p class="tier-target">Grandi Gruppi / Consorzi</p>
-                    <div class="tier-price">€89<span>/mese</span></div>
-                    <ul class="features">
-                        <li><b>Filtri avanzati</b> (lingue rare, Master Sommelier)</li>
-                        <li><b>Supporto prioritario</b> e assistenza dedicata</li>
-                        <li><b>Gestione multi-account</b> per team aziendale</li>
-                    </ul>
-                    <button class="btn-upgrade" onclick="pay('Premium', 89)">Attiva Premium</button>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <script>
-        // 1. Recupero dati utente
+        // 1. Recupero Utente
         const user = JSON.parse(localStorage.getItem('enohub_user'));
         if(!user) window.location.href = "auth/login.html";
 
-        // 2. Mostro i piani in base al tipo (Sommelier o Cantina)
-        if(user.tipo === 'Sommelier') {
-            document.getElementById('sommelier-plans').style.display = 'block';
-        } else {
-            document.getElementById('cantina-plans').style.display = 'block';
-        }
+        const grid = document.getElementById('pricing-grid');
+        const title = document.getElementById('title-type');
 
-        // 3. Evidenzio il piano attuale
-        const currentCard = document.getElementById('card-' + user.piano);
-        if(currentCard) {
-            const btn = currentCard.querySelector('.btn-upgrade');
-            btn.innerText = "Piano Attivo";
-            btn.classList.add('btn-active');
-            btn.disabled = true;
-        }
+        // 2. Definizione Piani dalle TUE IMMAGINI
+        const plans = {
+            Sommelier: [
+                {
+                    nome: "Freemium",
+                    prezzo: 0,
+                    target: "Profilo Base",
+                    features: [
+                        "Profilo base sulla piattaforma",
+                        "Ricezione notifiche generiche",
+                        "Possibilità di essere trovati (visibilità ridotta)"
+                    ]
+                },
+                {
+                    nome: "Pro",
+                    prezzo: 9,
+                    target: "Wine Specialist",
+                    featured: true,
+                    features: [
+                        "Badge 'Certificato' sul profilo",
+                        "Priorità nelle candidature",
+                        "Accesso a offerte esclusive (Grandi eventi, Export)",
+                        "Statistiche sulle visualizzazioni del profilo"
+                    ]
+                }
+            ],
+            Cantina: [
+                {
+                    nome: "Starter",
+                    prezzo: 0,
+                    target: "Piccole Cantine",
+                    features: [
+                        "Zero rischi e costi fissi",
+                        "Paghi solo <b>€15 per sbloccare</b> i contatti di un sommelier",
+                        "Esplorazione database gratuita"
+                    ]
+                },
+                {
+                    nome: "Business",
+                    prezzo: 39,
+                    target: "Aziende Medie",
+                    featured: true,
+                    features: [
+                        "Accesso illimitato al database contatti",
+                        "2 Annunci 'Featured' in evidenza per eventi urgenti",
+                        "Visibilità prioritaria del profilo aziendale"
+                    ]
+                },
+                {
+                    nome: "Premium",
+                    prezzo: 89,
+                    target: "Grandi Gruppi",
+                    features: [
+                        "Filtri avanzati (Lingue rare, Master Sommelier)",
+                        "Supporto prioritario e assistenza dedicata",
+                        "Gestione multi-account per team aziendale"
+                    ]
+                }
+            ]
+        };
 
-        // 4. Integrazione Stripe
+        // 3. Renderizzazione
+        const userType = user.tipo === 'Cantina' ? 'Cantina' : 'Sommelier';
+        title.innerText = "Piani per " + userType;
+
+        plans[userType].forEach(plan => {
+            const isCurrent = (user.piano === plan.nome);
+            const card = document.createElement('div');
+            card.className = `card ${plan.featured ? 'card-featured' : ''}`;
+            
+            card.innerHTML = `
+                <div style="font-size:12px; color:#888; font-weight:bold; text-transform:uppercase;">${plan.target}</div>
+                <h3 class="tier-name">${plan.nome}</h3>
+                <div class="tier-price">€${plan.prezzo}${plan.prezzo > 0 ? '<small>/mese</small>' : ''}</div>
+                <ul class="features">
+                    ${plan.features.map(f => `<li>${f}</li>`).join('')}
+                </ul>
+                <button class="btn-upgrade ${isCurrent ? 'btn-active' : ''}" 
+                        ${isCurrent ? 'disabled' : ''} 
+                        onclick="pay('${plan.nome}', ${plan.prezzo})">
+                    ${isCurrent ? 'Piano Attivo' : (plan.prezzo === 0 ? 'Attivo di Base' : 'Attiva Ora')}
+                </button>
+            `;
+            grid.appendChild(card);
+        });
+
+        // 4. Funzione Pagamento Stripe
         async function pay(piano, prezzo) {
+            if(prezzo === 0) return;
             try {
                 const response = await fetch('/api/create-checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        piano: piano, 
-                        prezzo: prezzo, 
-                        type: 'upgrade', 
-                        userId: user._id 
-                    })
+                    body: JSON.stringify({ piano, prezzo, type: 'upgrade', userId: user._id })
                 });
                 const data = await response.json();
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    alert("Errore nel collegamento con Stripe.");
-                }
-            } catch(e) {
-                alert("Errore tecnico. Riprova più tardi.");
-            }
+                if (data.url) window.location.href = data.url;
+                else alert("Errore Stripe: verifica la chiave segreta sul server.");
+            } catch(e) { alert("Errore di rete."); }
         }
     </script>
 </body>
 </html>
-
