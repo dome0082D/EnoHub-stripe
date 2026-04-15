@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>EnoHub - Chat Privata</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <script src="../../scripts/api.js"></script>
+</head>
+<body class="chat-page">
+    <div class="container">
+        <div class="chat-header-info">
+            <h2 id="chatWith">Chat con...</h2>
+        </div>
+
+        <div id="chatMessages" class="chat-box-display">
+            </div>
+
+        <form id="chatForm" class="chat-controls">
+            <div class="input-wrapper">
+                <input type="text" id="msgText" placeholder="Scrivi un messaggio..." required>
+                <label for="msgFile" class="file-label">📎</label>
+                <input type="file" id="msgFile" style="display:none;">
+            </div>
+            <button type="submit" class="btn-send-wine">INVIA</button>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const toId = urlParams.get('to');
+        const me = JSON.parse(localStorage.getItem('enoUser'));
+
+        async function loadMessages() {
+            // Chiamata al server per recuperare la cronologia
+            const res = await fetch(`/api/chat/history?me=${me.id}&to=${toId}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('enoUserToken')}` }
+            });
+            const messages = await res.json();
+            const display = document.getElementById('chatMessages');
+            
+            display.innerHTML = messages.map(m => `
+                <div class="msg-bubble ${m.mittente === me.id ? 'msg-me' : 'msg-them'}">
+                    <p>${m.testo}</p>
+                    ${m.file ? `<a href="../../${m.file}" target="_blank" class="chat-file-link">📁 Visualizza allegato</a>` : ''}
+                    <small>${new Date(m.data).toLocaleTimeString()}</small>
+                </div>
+            `).join('');
+            display.scrollTop = display.scrollHeight;
+        }
+
+        document.getElementById('chatForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('destinatario', toId);
+            fd.append('testo', document.getElementById('msgText').value);
+            const file = document.getElementById('msgFile').files[0];
+            if(file) fd.append('allegato', file);
+
+            const res = await fetch('/api/chat/send', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('enoUserToken')}` },
+                body: fd
+            });
+
+            if(res.ok) {
+                document.getElementById('msgText').value = '';
+                document.getElementById('msgFile').value = '';
+                loadMessages();
+            }
+        };
+
+        setInterval(loadMessages, 4000); // Ricarica ogni 4 secondi
+        loadMessages();
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat di Gruppo - EnoHub</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+</head>
+<body>
+    <div class="container chat-page">
+        <div class="chat__content">
+            <div class="chat__header"><h2>EnoHub Group Chat</h2></div>
+            <div class="chat__body" id="groupChatBody"></div>
+            <div class="chat__footer">
+                <input type="text" id="groupMsg" class="chat__input" placeholder="Scrivi a tutti...">
+                <button onclick="sendGroup()" class="chat__btn-send">INVIA</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Logica semplificata: carica ogni 3 secondi (per renderla dinamica senza Socket.io)
+        async function loadGroup() {
+            const res = await fetch('/api/chat/gruppo');
+            const data = await res.json();
+            document.getElementById('groupChatBody').innerHTML = data.map(m => `
+                <div class="message message--received">
+                    <strong>${m.nome}:</strong> ${m.testo}
+                </div>
+            `).join('');
+        }
+        setInterval(loadGroup, 3000);
+    </script>
+</body>
+</html>

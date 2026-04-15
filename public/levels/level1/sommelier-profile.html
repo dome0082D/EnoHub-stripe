@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Profilo Sommelier - EnoHub</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <script src="../../scripts/api.js"></script>
+</head>
+<body>
+    <div class="container profile-page">
+        <div class="profile-header">
+            <img id="p-foto" src="../../img/default-user.jpg" class="profile-img-round">
+            <div class="profile-info">
+                <h1 id="p-nome">Caricamento...</h1>
+                <p id="p-qualifica">Qualifica</p>
+                <p id="p-citta" style="color: grey;">Città, Italia</p>
+                <button onclick="startChat()" class="btn-red">RICHIEDI CONTATTO / CHAT</button>
+            </div>
+        </div>
+
+        <div class="profile-details">
+            <div class="detail-box">
+                <h3>Bio</h3>
+                <p id="p-bio">...</p>
+            </div>
+            <div class="detail-box">
+                <h3>Specializzazioni</h3>
+                <p id="p-spec">...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id');
+
+        async function loadProfile() {
+            const res = await fetch(`/api/utenti/${userId}`);
+            const u = await res.json();
+            document.getElementById('p-nome').innerText = u.nome + " " + u.cognome;
+            document.getElementById('p-qualifica').innerText = u.qualifica;
+            document.getElementById('p-citta').innerText = u.citta;
+            document.getElementById('p-bio').innerText = u.bio;
+            document.getElementById('p-spec').innerText = u.specializzazione;
+            if(u.foto) document.getElementById('p-foto').src = "../../" + u.foto;
+        }
+
+        function startChat() {
+            // Reindirizza alla chat privata passando l'ID del destinatario
+            window.location.href = `../level2/chat-privata.html?to=${userId}`;
+        }
+        loadProfile();
+    </script>
+</body>
+</html>

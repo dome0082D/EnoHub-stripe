@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>EnoHub - Professionisti del Vino</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <script src="../../scripts/api.js"></script>
+</head>
+<body>
+    <div class="main-grid container">
+        <aside class="filter-sidebar">
+            <h3>Filtra Professionisti</h3>
+            <div class="filter-group">
+                <label>Località:</label>
+                <input type="text" id="filterLoc" placeholder="Es. Milano, Roma...">
+            </div>
+            <div class="filter-group">
+                <label>Specializzazioni:</label>
+                <select id="filterSpec">
+                    <option value="">Tutte</option>
+                    <option value="Borgogna">Borgogna</option>
+                    <option value="Vini Naturali">Vini Naturali</option>
+                </select>
+            </div>
+            <button class="btn-red" onclick="renderUsers()">CERCA</button>
+        </aside>
+
+        <section>
+            <h2 id="listTitle">Professionisti del Vino</h2>
+            <div class="card-container" id="userGrid">
+                </div>
+        </section>
+    </div>
+
+    <script>
+        async function renderUsers() {
+            const users = await EnoHubApi.getUsers('sommelier');
+            const grid = document.getElementById('userGrid');
+            grid.innerHTML = users.map(u => `
+                <div class="card">
+                    <img src="../../${u.foto || 'img/default-user.jpg'}" alt="Foto Profilo">
+                    <div class="card-body">
+                        <h4>${u.nome} ${u.cognome}</h4>
+                        <p>${u.qualifica}</p>
+                        <small>${u.citta}</small>
+                        <a href="sommelier-profile.html?id=${u.id}" class="btn-red" style="display:block; margin-top:10px;">VEDI PROFILO</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+        renderUsers();
+    </script>
+</body>
+</html>

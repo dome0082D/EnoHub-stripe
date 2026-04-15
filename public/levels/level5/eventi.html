@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>EnoHub - Calendario Eventi</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <script src="../../scripts/api.js"></script>
+    <script src="../../scripts/eventi.js" defer></script>
+    <style>
+        /* Stili specifici per la Tabella Eventi */
+        .events-table-container { margin-top: 40px; background: white; padding: 20px; border-radius: 20px; box-shadow: var(--shadow); }
+        .events-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .events-table th, .events-table td { text-align: left; padding: 15px; border-bottom: 1px solid #eee; }
+        .events-table th { background-color: var(--wine-light); color: var(--wine-red); font-weight: bold; text-transform: uppercase; font-size: 0.9rem; }
+        .events-table tr:hover { background-color: #fcfcfc; }
+        .cantina-link { color: var(--wine-red); text-decoration: none; font-weight: bold; }
+        .btn-crea-evento { background: #27ae60; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; display: none; margin-bottom: 20px;}
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header__content">
+            <a href="../../index.html" class="header__logo">EnoHub</a>
+            <nav class="header__nav">
+                <ul>
+                    <li><a href="../level1/cantine-list.html">Cantine</a></li>
+                    <li><a href="../level1/sommelier-list.html">Sommelier</a></li>
+                    <li><a href="#" class="active">Eventi</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="events-table-container">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h1 style="color:var(--wine-red)">Eventi Enogastronomici Live 🍷</h1>
+                <button id="btnCreateEvent" class="btn-crea-evento" onclick="showCreateForm()">+ Crea Nuovo Evento</button>
+            </div>
+            
+            <p>Esplora gli eventi esclusivi del network EnoHub, organizzati dalle migliori cantine.</p>
+
+            <table class="events-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Cantina Ospitante</th>
+                        <th>Nome Evento</th>
+                        <th>Descrizione</th>
+                        <th>Località</th>
+                    </tr>
+                </thead>
+                <tbody id="eventsTableBody">
+                    <tr><td colspan="5" style="text-align:center;">Caricamento eventi mondiale in corso...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

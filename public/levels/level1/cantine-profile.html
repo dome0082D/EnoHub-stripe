@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Profilo Cantina - EnoHub</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <script src="../../scripts/api.js"></script>
+</head>
+<body class="profile-page-cantina">
+    <div id="c-header-img" class="cantina-header-bg" style="background-image: url('https://images.unsplash.com/photo-1504279577054-acfeccf8fc52?q=80&w=1200');">
+        <div class="container">
+            <div class="cantina-logo-box">
+                <img id="c-logo" src="../../img/default-cantina.jpg" alt="Logo Cantina">
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="cantina-main-info">
+            <h1 id="c-nome">Nome Cantina</h1>
+            <p id="c-sottotitolo" style="color: #666;">Regione, Classificazione DOCG</p>
+        </div>
+
+        <div class="cantina-grid">
+            <div class="cantina-content-left">
+                <section class="detail-box">
+                    <h2 class="section-title">La Nostra Storia</h2>
+                    <p id="c-storia">Caricamento della storia della cantina...</p>
+                </section>
+
+                <section class="detail-box">
+                    <h2 class="section-title">Galleria</h2>
+                    <div class="cantina-gallery" id="c-gallery">
+                        <img src="https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?q=80&w=400" alt="Barriccaia">
+                        <div class="gallery-placeholder">Foto dei vigneti e della produzione</div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="cantina-sidebar">
+                <div class="sidebar-card">
+                    <h3>In Breve</h3>
+                    <div class="info-item"><strong>Regione:</strong> <span id="s-regione">-</span></div>
+                    <div class="info-item"><strong>Filosofia:</strong> <span id="s-filosofia">-</span></div>
+                    <div class="info-item"><strong>Sito Web:</strong> <a href="#" id="s-web" target="_blank" style="color: var(--wine-red);">Visita Sito</a></div>
+                    
+                    <button onclick="startChat()" class="btn-red" style="margin-top: 20px;">CONTATTA LA CANTINA</button>
+                    <button id="btnSponsor" onclick="sponsorizza()" class="btn-outline" style="display:none; margin-top: 10px; width: 100%;">Sponsorizza Cantina</button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const cantinaId = urlParams.get('id');
+
+        async function loadCantina() {
+            const c = await fetch(`/api/utenti/${cantinaId}`).then(r => r.json());
+            document.getElementById('c-nome').innerText = c.nome;
+            document.getElementById('c-storia').innerText = c.bio || "Storia non disponibile.";
+            document.getElementById('s-regione').innerText = c.citta;
+            document.getElementById('s-filosofia').innerText = c.specializzazione || "Tradizionale";
+            if(c.foto) document.getElementById('c-logo').src = "../../" + c.foto;
+            
+            // Logica tasto Sponsorizza
+            const me = JSON.parse(localStorage.getItem('enoUser'));
+            if(me && me.tipo === 'sommelier') {
+                document.getElementById('btnSponsor').style.display = 'block';
+            }
+        }
+
+        async function sponsorizza() {
+            const me = JSON.parse(localStorage.getItem('enoUser'));
+            const res = await fetch('/api/sponsorizza', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('enoUserToken')}`
+                },
+                body: JSON.stringify({ sommelierId: me.id, cantinaId: cantinaId })
+            });
+            if(res.ok) alert("Cantina aggiunta alle tue sponsorizzazioni!");
+        }
+
+        function startChat() { window.location.href = `../level2/chat-privata.html?to=${cantinaId}`; }
+        loadCantina();
+    </script>
+</body>
+</html>

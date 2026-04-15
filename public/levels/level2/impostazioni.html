@@ -1,0 +1,28 @@
+<div class="settings-container">
+    <h2>Impostazioni Account</h2>
+    
+    <section class="settings-section">
+        <h3>Modifica i tuoi dati</h3>
+        <form id="editProfileForm">
+            <input type="text" id="editNome" class="auth__input" placeholder="Nuovo Nome">
+            <input type="tel" id="editTel" class="auth__input" placeholder="Nuovo Telefono">
+            <textarea id="editBio" class="auth__input" placeholder="Aggiorna la tua Bio"></textarea>
+            <button type="submit" class="btn-red">Salva Modifiche</button>
+        </form>
+    </section>
+
+    <section class="settings-section" style="margin-top: 50px; border-top: 1px solid red;">
+        <h3 style="color: red;">Zona Pericolo</h3>
+        <button onclick="EnoHubApi.logout()" class="btn-logout">Sloggati</button>
+        <button onclick="deleteAccount()" class="btn-delete">ELIMINA PROFILO E DATI (GDPR)</button>
+    </section>
+</div>
+
+<script>
+    async function deleteAccount() {
+        if(confirm("Sei sicuro? Questa azione cancellerà tutti i tuoi file e messaggi per sempre.")) {
+            const res = await fetch(`/api/profile/${user.id}`, { method: 'DELETE' });
+            if(res.ok) EnoHubApi.logout();
+        }
+    }
+</script>

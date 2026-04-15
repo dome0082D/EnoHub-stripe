@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8"><title>Registrati - EnoHub</title>
+    <style>body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f4; margin: 0; } .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; text-align: center; } input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; } .btn { width: 100%; padding: 12px; background: #8a1c1c; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; margin-top:10px;}</style>
+</head>
+<body>
+    <div class="card">
+        <div style="text-align:left; margin-bottom:20px;"><a href="../index.html" style="color:#8a1c1c; text-decoration:none; font-weight:bold;">← EnoHub Home</a></div>
+        <h2>Iscriviti</h2>
+        <input type="text" id="nome" placeholder="Nome Sommelier o Cantina">
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <select id="tipo"><option value="Sommelier">Sommelier</option><option value="Cantina">Cantina</option></select>
+        <button class="btn" onclick="register()">CREA ACCOUNT</button>
+    </div>
+    <script>
+        async function register() {
+            const data = { nome: nome.value, email: email.value, password: password.value, tipo: tipo.value };
+            if(!data.nome || !data.email || !data.password) return alert("Compila tutto!");
+            try {
+                const r = await fetch('/api/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+                const j = await r.json();
+                if(j.success) { alert("Registrato! Ora Accedi."); window.location.href="login.html"; } else alert("Errore o Email in uso.");
+            } catch(e) { alert("Errore di connessione al server."); }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+/* ================= GRAFICA ENOHUB ================= */
+:root {
+    --wine-red: #8b0000;
+    --wine-light: #fdf2f2;
+    --dark: #2c3e50;
+    --shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; margin: 0; color: #333; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+/* HEADER */
+header.header { background: white; padding: 15px 0; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; }
+.header__content { display: flex; justify-content: space-between; align-items: center; }
+.header__logo { font-size: 1.8rem; font-weight: bold; color: var(--wine-red); text-decoration: none; }
+
+/* BOTTONI */
+.btn-red { background: var(--wine-red); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; text-align: center; }
+.btn-red:hover { background: #660000; }
+.btn-outline { background: transparent; color: var(--wine-red); border: 2px solid var(--wine-red); padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; }
+
+/* GALLERIA HOME */
+.wine-visual-experience { padding: 40px 0 20px 0; }
+.visual-grid { display: flex; gap: 15px; height: 350px; }
+.visual-item { 
+    flex: 1; border-radius: 20px; background-size: cover; background-position: center;
+    display: flex; align-items: flex-end; padding: 20px; transition: 0.5s;
+    box-shadow: var(--shadow); cursor: pointer; text-decoration: none;
+}
+.visual-item:hover { flex: 2; }
+.visual-item span { color: white; font-weight: bold; background: rgba(139,0,0,0.8); padding: 10px; border-radius: 8px; font-size: 1.2rem; }
+
+/* CARDS CENTRALI */
+.home__content { display: flex; gap: 30px; padding: 20px 0; }
+.home__card { 
+    flex: 1; background: white; border-radius: 20px; height: 200px; 
+    box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-decoration: none; border: 3px solid transparent; transition: 0.3s; text-align: center; padding: 20px;
+}
+.home__card:hover { border-color: var(--wine-red); transform: translateY(-5px); }
+
+/* RESPONSIVE ANDROID */
+@media (max-width: 768px) {
+    .visual-grid, .home__content { flex-direction: column; height: auto; }
+    .visual-item { height: 200px; flex: none; }
+    .home__card { height: auto; padding: 40px 20px; }
+}

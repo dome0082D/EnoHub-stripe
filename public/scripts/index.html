@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnoHub - Connettiamo l'Industria del Vino</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script src="scripts/api.js" defer></script>
+    <script src="scripts/ui.js" defer></script>
+</head>
+<body class="home-page">
+    <header class="header">
+        <div class="container">
+            <div class="header__content">
+                <a href="index.html" class="header__logo">EnoHub</a>
+                <nav class="header__nav">
+                    <ul>
+                        <li><a href="levels/level1/cantine-list.html">Cantine</a></li>
+                        <li><a href="levels/level1/sommelier-list.html">Sommelier</a></li>
+                        <li><a href="levels/level1/events-list.html">Eventi</a></li>
+                        <li><a href="legal/privacy-policy.html">Privacy</a></li>
+                    </ul>
+                </nav>
+                <div class="auth-menu logged-out" id="authMenu">
+                    <a href="auth/login.html" class="btn-login">Login</a>
+                    <a href="auth/register.html" class="btn-register">Iscriviti</a>
+                </div>
+                <div class="user-menu logged-in" id="userMenu">
+                    <a href="dashboard.html" class="user-menu__avatar">
+                        <img id="userAvatar" src="" alt="Profilo">
+                    </a>
+                    <a href="dashboard.html" class="user-menu__name" id="userName"></a>
+                    <a href="auth/logout.html" class="btn-logout" onclick="event.preventDefault(); EnoHubApi.logout();">Esci</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="home__content">
+            <a href="levels/level1/cantine-list.html" class="home__card">
+                <div class="home__card-inner">
+                    <h2>Cantine</h2>
+                    <p>Esplora le aziende vitivinicole iscritte.</p>
+                </div>
+            </a>
+            <a href="levels/level1/sommelier-list.html" class="home__card">
+                <div class="home__card-inner">
+                    <h2>Sommelier</h2>
+                    <p>Trova professionisti del vino e consulenti.</p>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userMenu = document.getElementById('userMenu');
+            const authMenu = document.getElementById('authMenu');
+            const userAvatar = document.getElementById('userAvatar');
+            const userName = document.getElementById('userName');
+
+            if (EnoHubApi.isLoggedIn()) {
+                authMenu.style.display = 'none';
+                userMenu.style.display = 'flex';
+                userName.textContent = EnoHubApi.getUserName();
+                userAvatar.src = EnoHubApi.getUserAvatar() || 'uploads/profiles/default-avatar.png';
+            } else {
+                authMenu.style.display = 'flex';
+                userMenu.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

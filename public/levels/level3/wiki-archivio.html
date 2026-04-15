@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Wine Wiki - EnoHub</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+</head>
+<body>
+    <div class="container" style="padding: 40px 0;">
+        <h1 style="color:var(--primary-red)">Archivio Mondiale Vini</h1>
+        <p>Aggiornato automaticamente da Wikipedia</p>
+        
+        <div style="margin: 30px 0; display:flex; gap:10px;">
+            <input type="text" id="wikiSearch" class="auth__input" placeholder="Cerca un vino (es: Amarone, Merlot)...">
+            <button onclick="searchWiki()" class="btn-richiedi-contatto">CERCA</button>
+        </div>
+
+        <div id="wikiResult" class="sommelier-profile__main" style="display:none;">
+            <div id="w-content"></div>
+        </div>
+    </div>
+
+    <script>
+        async function searchWiki() {
+            const wine = document.getElementById('wikiSearch').value;
+            const res = await fetch(`/api/wine-wiki/${wine}`);
+            const div = document.getElementById('wikiResult');
+            const content = document.getElementById('w-content');
+            
+            if(res.ok) {
+                const data = await res.json();
+                div.style.display = 'block';
+                content.innerHTML = `
+                    <div style="display:flex; gap:20px; align-items:center;">
+                        ${data.immagine ? `<img src="${data.immagine}" style="width:200px; border-radius:10px;">` : ''}
+                        <div>
+                            <h2>${data.nome}</h2>
+                            <p>${data.descrizione}</p>
+                            <a href="${data.link}" target="_blank" style="color:var(--primary-red)">Leggi di più su Wikipedia →</a>
+                        </div>
+                    </div>
+                `;
+            } else { alert("Vino non trovato."); }
+        }
+    </script>
+</body>
+</html>

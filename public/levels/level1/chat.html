@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - EnoHub</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <script src="../../scripts/api.js" defer></script>
+    <script src="../../scripts/ui.js" defer></script>
+</head>
+<body class="chat-page">
+    <header class="header">
+        <div class="container">
+            <div class="header__content">
+                <a href="../../index.html" class="header__logo">EnoHub</a>
+                <div class="chat__info" id="chatInfo">
+                    <img id="chatAvatar" src="" alt="Avatar">
+                    <span id="chatName">Conversazione</span>
+                </div>
+                <a href="../../auth/logout.html" class="btn-logout" onclick="event.preventDefault(); EnoHubApi.logout();">Esci</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="chat__content">
+            <div class="chat__body" id="chatBody">
+                </div>
+
+            <footer class="chat__footer">
+                <form id="chatForm">
+                    <label for="fileInput" class="chat__btn-file">📎</label>
+                    <input type="file" id="fileInput" name="allegato" hidden>
+                    <input type="text" id="messageInput" class="chat__input" placeholder="Scrivi un messaggio..." required>
+                    <button type="submit" class="chat__btn-send">➤</button>
+                </form>
+            </footer>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // EnoHubUI.initChat() handle dynamic chat info based on URL parameters
+            const conversationId = EnoHubUI.getQueryParam('cid');
+            if (conversationId) {
+                EnoHubApi.getPrivateChatMessages(conversationId);
+                EnoHubUI.initChatForm(conversationId);
+            } else {
+                // EnoHubApi.getGeneralChat();
+            }
+        });
+    </script>
+</body>
+</html>

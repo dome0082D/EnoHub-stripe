@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Archivio Mondiale Vini - EnoHub</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <script src="../../scripts/wiki.js" defer></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>🍷 Archivio Enciclopedico</h1>
+            <p>Dati aggiornati in tempo reale da Wikipedia</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="search-box">
+            <input type="text" id="wineInput" placeholder="Cerca un vino (es: Sassicaia, Champagne, Barolo)...">
+            <button onclick="searchWine()" class="btn-red">Interroga Wikipedia</button>
+        </div>
+
+        <div id="wikiResult" class="wiki-container"></div>
+    </main>
+</body>
+</html>
