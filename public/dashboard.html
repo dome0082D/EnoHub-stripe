@@ -6,25 +6,26 @@
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root { --main: #8a1c1c; --gold: #d4af37; --side: #121212; --bg: #f5f7f9; --border: #e2e8f0; --blue: #3498db; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: #333; display: flex; flex-direction: column; height: 100vh; }
         
-        /* NAVBAR & NOTIFICHE */
+        /* FIX SCROLL: Rimosso height: 100vh e overflow hidden dal body! Ora scorre perfetto. */
+        body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: #333; }
+        
         .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; position: sticky; top:0; z-index:100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .noti-panel { position: absolute; top: 60px; right: 5%; width: 320px; background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); display: none; z-index: 1000; overflow: hidden; }
+        .noti-header { background: #fafafa; padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border); color: var(--main); display: flex; justify-content: space-between; }
         .noti-badge { background: #e74c3c; color: white; border-radius: 50%; padding: 3px 7px; font-size: 11px; font-weight: bold; position: absolute; top: -6px; right: -10px; display: none; }
 
-        /* MENU A SCOMPARSA UNICO */
         .sidebar-slide { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--side); color: white; transition: 0.4s; z-index: 2000; padding-top: 80px; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
         .sidebar-slide.active { left: 0; }
         .sidebar-slide a { display: block; padding: 18px 25px; color: #ccc; text-decoration: none; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s; }
         .sidebar-slide a:hover { background: #333; color: white; padding-left: 30px; }
         .menu-toggle-btn { position: fixed; top: 12px; left: 15px; z-index: 2001; background: var(--main); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
 
-        /* LAYOUT & CARDS */
-        .main { flex: 1; overflow: hidden; display: flex; }
-        .content { flex: 1; padding: 30px; overflow-y: auto; max-width: 1200px; margin: auto; width: 100%; }
+        /* FIX SCROLL: Eliminato overflow hidden. La content si allarga al naturale. */
+        .main { display: block; padding-bottom: 50px; }
+        .content { padding: 30px 5%; max-width: 1200px; margin: auto; }
         .card { background: white; padding: 30px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #fff; position: relative; overflow: hidden; }
         
-        /* VISUALS PROFILI */
         .hero-banner { height: 250px; width: 100%; position: absolute; top: 0; left: 0; background-size: cover; background-position: center; }
         .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 250px; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,1) 100%); }
         .profile-header { position: relative; margin-top: 140px; display: flex; align-items: flex-end; gap: 20px; }
@@ -36,7 +37,6 @@
         .cert-cb { display: none; }
         .cert-up-btn { position: absolute; top: -8px; right: -8px; background: white; border: 1px solid #ddd; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--main); z-index: 11; }
 
-        /* STAFF PANEL */
         #staff-panel { position: fixed; bottom: 20px; right: 20px; width: 340px; height: 450px; background: white; border: 2px solid var(--gold); border-radius: 16px; display: none; flex-direction: column; z-index: 9999; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
         .staff-header { background: var(--gold); color: black; padding: 15px; font-weight: 900; display: flex; justify-content: space-between; border-radius: 14px 14px 0 0; }
         
@@ -88,7 +88,7 @@
             </section>
 
             <section id="sec-chat" style="display:none">
-                <h2 style="color:var(--main);">EnoHub Network</h2>
+                <h2 style="color:var(--main);">EnoHub Community Network</h2>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;">
                     <div class="card"><h3>🤵 Sommelier</h3><div id="list-sommelier"></div></div>
                     <div class="card"><h3>🍷 Cantine</h3><div id="list-cantine"></div></div>
@@ -97,14 +97,19 @@
 
             <section id="sec-subs" style="display:none">
                 <h2>Upgrade Piano Professionale</h2>
-                <div id="pricing-list" style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;"></div>
+                <div id="pricing-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:25px;"></div>
             </section>
 
             <section id="sec-settings" class="card" style="display:none; max-width:750px; margin:auto;">
                 <h2>Modifica Profilo</h2>
                 <div id="settings-fields"></div>
                 <button onclick="saveSet()" class="btn-main" style="margin-top:20px;">💾 SALVA MODIFICHE</button>
-                <button onclick="takeOut()" style="background:#c0392b; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:20px; width:100%;">❌ ELIMINA ACCOUNT DEFINITIVAMENTE</button>
+                <hr style="margin:40px 0;">
+                <div style="background:#fff1f1; padding:25px; border-radius:12px; border: 1px solid #ffcccc;">
+                    <h4 style="color:#c0392b; margin:0;">🔐 Take Out - Privacy & Dati</h4>
+                    <p style="font-size:14px; color:#666;">Questa azione è irreversibile: cancelleremo il tuo account, i messaggi e tutti i media caricati.</p>
+                    <button onclick="takeOut()" style="background:#c0392b; color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:10px; width:100%;">❌ ELIMINA ACCOUNT DEFINITIVAMENTE</button>
+                </div>
             </section>
         </div>
     </div>
@@ -150,7 +155,7 @@
         function renderProfile(target) {
             const c = document.getElementById('sec-profile');
             const initial = target.nome.charAt(0).toUpperCase();
-            const spunta = target.isVerified ? '<span class="verified-badge">✅ 🍷</span>' : '';
+            const spunta = target.isVerified ? '<span class="verified-badge" title="Verificato">✅ 🍷</span>' : '';
             const banner = target.tipo === 'Cantina' ? 'https://images.unsplash.com/photo-1560493676-04071c5f467b?q=80&w=1500' : 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=1500';
 
             if(target.tipo === 'Cantina') {
@@ -193,15 +198,15 @@
             users.filter(u => u._id !== user._id).forEach(u => {
                 const s = u.isVerified ? '<span style="color:green;">✅ 🍷</span>' : '';
                 let btn = '';
-                if(IS_STAFF) btn = `<button onclick="toggleVerify('${u._id}', ${u.isVerified})" style="background:${u.isVerified?'red':'green'}; color:white; padding:5px 10px; border:none; border-radius:5px; margin-right:5px;">${u.isVerified?'DE-VER':'VERIFICA'}</button> <button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:5px 10px;">Chat</button>`;
+                if(IS_STAFF) btn = `<button onclick="toggleVerify('${u._id}', ${u.isVerified})" style="background:${u.isVerified?'#e74c3c':'#27ae60'}; color:white; border:none; padding:5px 10px; border-radius:5px; margin-right:5px; cursor:pointer; font-weight:bold;">${u.isVerified?'Rimuovi':'Verifica'}</button> <button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:5px 10px;">Chat</button>`;
                 else if (user.tipo === 'Cantina' && u.tipo === 'Sommelier') {
                     if (user.unlockedContacts?.includes(u._id)) btn = `<button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto;">Chat</button>`;
-                    else if (user.piano === 'Business' && user.unlocksRemaining > 0) btn = `<button onclick="useCredit('${u._id}')" style="background:var(--gold); border:none; padding:8px; border-radius:5px;">Usa Credito (${user.unlocksRemaining})</button>`;
-                    else btn = `<button onclick="payUnlock('${u._id}')" style="background:black; color:white; border:none; padding:8px; border-radius:5px;">Sblocca (€15)</button>`;
+                    else if (user.piano === 'Business' && user.unlocksRemaining > 0) btn = `<button onclick="useCredit('${u._id}')" style="background:var(--gold); border:none; padding:8px; border-radius:5px; cursor:pointer;">Usa Credito (${user.unlocksRemaining})</button>`;
+                    else btn = `<button onclick="payUnlock('${u._id}')" style="background:black; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Sblocca (€15)</button>`;
                 } else btn = `<button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:6px 15px;">Chat</button>`;
                 
                 const link = IS_STAFF ? `<b onclick="viewUser('${u._id}')" style="cursor:pointer; color:var(--blue); text-decoration:underline;">${u.nome} ${s}</b>` : `<b>${u.nome} ${s}</b>`;
-                const html = `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee; background:#fafafa; border-radius:10px; margin-bottom:8px;"><div>${link}<br><small>${u.location} • ${u.ruolo}</small></div>${btn}</div>`;
+                const html = `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee; background:#fafafa; border-radius:10px; margin-bottom:8px;"><div>${link}<br><small>${u.location} • ${u.ruolo||u.tipo}</small></div>${btn}</div>`;
                 if(u.tipo === 'Sommelier') ls.innerHTML += html; else lc.innerHTML += html;
             });
         }
@@ -210,28 +215,46 @@
             document.getElementById('staff-panel').style.display = 'flex';
             const r = await fetch('/api/users'); const users = await r.json();
             const list = document.getElementById('staff-user-list'); list.innerHTML = '';
-            users.forEach(u => { if(u.email === 'dome0082@gmail.com') return; list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><div><b>${u.nome}</b> (${u.email})</div><button onclick="adminDelete('${u._id}')" style="color:white; background:red; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Elimina</button></div>`; });
+            users.forEach(u => {
+                if(u.email === 'dome0082@gmail.com') return;
+                list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><div><b>${u.nome}</b><br><small>${u.email}</small></div><button onclick="adminDelete('${u._id}')" style="color:white; background:red; border:none; font-weight:bold; cursor:pointer; padding:5px; border-radius:5px;">ELIMINA</button></div>`;
+            });
         }
         async function adminDelete(id) { if(confirm("Cancellare definitivamente?")) { await fetch('/api/admin/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail:user.email, targetId:id})}); loadAdminPanel(); loadU(); } }
         async function toggleVerify(tid, s) { await fetch('/api/admin/verify', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail: user.email, targetId: tid, verifyStatus: !s})}); loadU(); }
         async function useCredit(tid) { const r = await fetch('/api/use-credit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId: user._id, targetId: tid})}); const d = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(d.user)); user = d.user; loadU(); }
 
         function up() { const f = document.getElementById('f-in').files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); const xhr = new XMLHttpRequest(); document.getElementById('p-cont').style.display='block'; xhr.upload.onprogress = (e) => document.getElementById('p-run').style.width = Math.round((e.loaded/e.total)*100)+'%'; xhr.onload = () => { alert("Caricato!"); loadM(); document.getElementById('p-cont').style.display='none'; }; xhr.open('POST', '/api/upload'); xhr.send(fd); }
-        async function loadM() { const r = await fetch('/api/media'); const items = await r.json(); const list = document.getElementById('m-list'); list.innerHTML = ''; items.filter(m => m.ownerId === user._id).forEach(m => { const isV = m.type.includes('video'); list.innerHTML += `<div class="card" style="padding:10px;"><b>${m.name}</b><br>${isV ? `<video src="${m.url}" controls style="width:100%; border-radius:5px;"></video>` : `<img src="${m.url}" style="width:100%; border-radius:5px;">`}<button onclick="delM('${m._id}')" style="width:100%; color:red; border:none; background:none; margin-top:5px; cursor:pointer;">Elimina</button></div>`; }); }
+        async function loadM() { const r = await fetch('/api/media'); const items = await r.json(); const list = document.getElementById('m-list'); list.innerHTML = ''; items.filter(m => m.ownerId === user._id).forEach(m => { const isV = m.type.includes('video'); list.innerHTML += `<div class="card" style="padding:10px;"><b>${m.name}</b><br>${isV ? `<video src="${m.url}" controls style="width:100%; border-radius:5px;"></video>` : `<img src="${m.url}" style="width:100%; border-radius:5px;">`}<button onclick="delM('${m._id}')" style="width:100%; color:red; border:none; background:none; margin-top:5px; cursor:pointer; font-weight:bold;">Elimina</button></div>`; }); }
         function delM(id) { fetch('/api/media/'+id, {method:'DELETE'}).then(() => loadM()); }
 
         function triggerCertUpload(sigla) { document.getElementById('up-' + sigla).click(); }
         async function uploadCertFile(input, sigla) { const f = input.files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); const res = await fetch('/api/upload', { method:'POST', body:fd }); const media = await res.json(); if(!user.certFiles) user.certFiles = {}; user.certFiles[sigla] = media.url; let cArr = user.certificazioni ? user.certificazioni.split(',') : []; if(!cArr.includes(sigla)) cArr.push(sigla); user.certificazioni = cArr.join(','); const upRes = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ certFiles: user.certFiles, certificazioni: user.certificazioni }) }); const updated = await upRes.json(); localStorage.setItem('enohub_user', JSON.stringify(updated.user)); location.reload(); }
-        async function uploadTasting(input) { const fd = new FormData(); fd.append('file', input.files[0]); fd.append('ownerId', user._id); const r = await fetch('/api/upload', { method:'POST', body:fd }); const m = await r.json(); user.tastingLabelUrl = m.url; alert("Etichetta caricata! Ricorda di salvare."); }
+        async function uploadTasting(input) { const fd = new FormData(); fd.append('file', input.files[0]); fd.append('ownerId', user._id); const r = await fetch('/api/upload', { method:'POST', body:fd }); const m = await r.json(); user.tastingLabelUrl = m.url; alert("Etichetta caricata! Ricorda di salvare il profilo."); }
         async function loadGallery(oid) { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === oid && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">`); }
 
+        // FIX STRIPE ALERTS
         function renderPricing() {
             const l = document.getElementById('pricing-list'); l.innerHTML = '';
-            const plans = user.tipo === 'Sommelier' ? [{n:'Freemium',v:0,f:['Profilo base']},{n:'Pro',v:19,f:['Badge Staff','ID Ufficiale','Oltre 20 Cantine'],feat:true}] : [{n:'Starter',v:0,f:['Sblocchi a 15€']},{n:'Business',v:39,f:['5 Sblocchi inclusi al mese'],feat:true}];
+            const plans = user.tipo === 'Sommelier' ? [{n:'Freemium',v:0,f:['Profilo base']},{n:'Pro',v:19,f:['Badge Staff','ID Ufficiale','Oltre 20 Contatti'],feat:true}] : [{n:'Starter',v:0,f:['Sblocchi a 15€']},{n:'Business',v:39,f:['5 Sblocchi inclusi al mese'],feat:true}];
             plans.forEach(p => { l.innerHTML += `<div class="card" style="text-align:center; ${p.feat?'border:3px solid var(--gold)':''}"><h3>Piano ${p.n}</h3><div style="font-size:36px; font-weight:900;">€${p.v}</div><ul style="padding:0; list-style:none; text-align:left;">${p.f.map(f=>`<li>✔️ ${f}</li>`).join('')}</ul><button onclick="${p.v===0?'':`payUpgrade('${p.n}',${p.v})`}" class="btn-main">${user.piano===p.n?'Attivo':'Attiva Ora'}</button></div>`; });
         }
-        async function payUpgrade(p, v) { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:p, prezzo:v, userId:user._id, type:'upgrade'})}); const d = await r.json(); if(d.url) window.location.href = d.url; }
-        async function payUnlock(tid) { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:'Sblocca Contatto', prezzo:15, type:'unlock', targetId:tid, userId:user._id})}); const d = await r.json(); if(d.url) window.location.href = d.url; }
+
+        async function payUpgrade(p, v) { 
+            try {
+                const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:p, prezzo:v, userId:user._id, type:'upgrade'})}); 
+                const d = await r.json(); 
+                if(d.url) { window.location.href = d.url; } else { alert("Errore Stripe: " + (d.error || "Controlla le chiavi su Render")); }
+            } catch(e) { alert("Errore di rete: Impossibile contattare Stripe."); }
+        }
+        
+        async function payUnlock(tid) { 
+            try {
+                const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:'Sblocca Contatto', prezzo:15, type:'unlock', targetId:tid, userId:user._id})}); 
+                const d = await r.json(); 
+                if(d.url) { window.location.href = d.url; } else { alert("Errore Stripe: " + (d.error || "Controlla le chiavi su Render")); }
+            } catch(e) { alert("Errore di rete: Impossibile contattare Stripe."); }
+        }
 
         let curChat = null;
         function openChat(id, n) { curChat = id; document.getElementById('chat-win').style.display='flex'; document.getElementById('chat-title').innerText = n; socket.emit('get_history', {me:user._id, to:id}); }
@@ -248,13 +271,13 @@
             if(user.tipo === 'Sommelier') {
                 let certs = '<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:15px;">';
                 sigle.forEach(sig => { const isCk = user.certificazioni && user.certificazioni.includes(sig); const hasF = user.certFiles && user.certFiles[sig]; certs += `<div class="cert-container"><label class="cert-label"><input type="checkbox" value="${sig}" class="cert-cb" ${isCk?'checked':''}><div class="cert-box">${sig} ${hasF?'📄':''}</div></label><button class="cert-up-btn" onclick="triggerCertUpload('${sig}')">📎</button><input type="file" id="up-${sig}" style="display:none" onchange="uploadCertFile(this, '${sig}')"></div>`; });
-                s.innerHTML = common + `<label>Ruolo:</label><input id="s-ruolo" value="${user.ruolo}" style="${style}"><label>Specializzazioni:</label><input id="s-spec" value="${user.specializzazioni}" style="${style}"><label>Bio:</label><textarea id="s-bio" style="${style}">${user.bio}</textarea>${certs}</div><h3>🍷 Degustazione</h3><textarea id="s-note" style="${style}">${user.noteDegustazione}</textarea><label>Etichetta:</label><input type="file" onchange="uploadTasting(this)">`;
+                s.innerHTML = common + `<label>Ruolo:</label><input id="s-ruolo" value="${user.ruolo||''}" style="${style}"><label>Specializzazioni:</label><input id="s-spec" value="${user.specializzazioni||''}" style="${style}"><label>Bio:</label><textarea id="s-bio" style="${style}">${user.bio||''}</textarea>${certs}</div><h3>🍷 Degustazione</h3><textarea id="s-note" style="${style}">${user.noteDegustazione||''}</textarea><label>Etichetta:</label><input type="file" onchange="uploadTasting(this)">`;
             } else {
-                s.innerHTML = common + `<label>Regione:</label><input id="s-reg" value="${user.regione}" style="${style}"><label>Sito:</label><input id="s-sito" value="${user.sito}" style="${style}"><label>Storia:</label><textarea id="s-storia" style="${style}">${user.storia}</textarea>`;
+                s.innerHTML = common + `<label>Regione:</label><input id="s-reg" value="${user.regione||''}" style="${style}"><label>Sito:</label><input id="s-sito" value="${user.sito||''}" style="${style}"><label>Filosofia:</label><input id="s-filo" value="${user.filosofia||''}" style="${style}"><label>Storia:</label><textarea id="s-storia" style="${style} height:100px;">${user.storia||''}</textarea>`;
             }
         }
-        async function saveSet() { let d = { nome: document.getElementById('s-nome').value, location: document.getElementById('s-loc').value }; if(user.tipo === 'Sommelier') { d.ruolo = document.getElementById('s-ruolo').value; d.specializzazioni = document.getElementById('s-spec').value; d.bio = document.getElementById('s-bio').value; d.noteDegustazione = document.getElementById('s-note').value; let c = []; document.querySelectorAll('.cert-cb:checked').forEach(cb => c.push(cb.value)); d.certificazioni = c.join(','); } else { d.regione = document.getElementById('s-reg').value; d.sito = document.getElementById('s-sito').value; d.storia = document.getElementById('s-storia').value; } const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }); const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); location.reload(); }
-        async function takeOut() { if(confirm("Cancellare tutto?")) { await fetch('/api/user/'+user._id, { method:'DELETE' }); localStorage.clear(); window.location.href="/index.html"; } }
+        async function saveSet() { let d = { nome: document.getElementById('s-nome').value, location: document.getElementById('s-loc').value }; if(user.tipo === 'Sommelier') { d.ruolo = document.getElementById('s-ruolo').value; d.specializzazioni = document.getElementById('s-spec').value; d.bio = document.getElementById('s-bio').value; d.noteDegustazione = document.getElementById('s-note').value; let c = []; document.querySelectorAll('.cert-cb:checked').forEach(cb => c.push(cb.value)); d.certificazioni = c.join(','); } else { d.regione = document.getElementById('s-reg').value; d.sito = document.getElementById('s-sito').value; d.storia = document.getElementById('s-storia').value; d.filosofia = document.getElementById('s-filo').value; } const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }); const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); location.reload(); }
+        async function takeOut() { if(confirm("Cancellare tutto? Questa azione è irreversibile.")) { await fetch('/api/user/'+user._id, { method:'DELETE' }); localStorage.clear(); window.location.href="/index.html"; } }
         function toggleNoti() { const p = document.getElementById('noti-panel'); p.style.display = p.style.display==='block'?'none':'block'; document.getElementById('noti-count').style.display='none'; }
         socket.on('notification', (n) => { document.getElementById('noti-count').innerText = "!"; document.getElementById('noti-count').style.display='block'; document.getElementById('noti-list').innerHTML = `<div style="padding:15px; border-bottom:1px solid #eee;"><b>${n.title}</b><br>${n.body}</div>` + document.getElementById('noti-list').innerHTML; });
         function logout() { localStorage.clear(); window.location.href="/index.html"; }
