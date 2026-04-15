@@ -2,20 +2,17 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - EnoHub Gold</title>
+    <title>EnoHub Infinity - Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root { --main: #8a1c1c; --side: #121212; --bg: #f5f7f9; --border: #e2e8f0; --green: #107c41; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: var(--bg); color: #333; }
         
         /* NAVBAR & NOTIFICHE */
-        .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; position: sticky; top:0; z-index:100; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .noti-panel { position: absolute; top: 60px; right: 5%; width: 320px; background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); display: none; z-index: 1000; overflow: hidden; transition: 0.3s; }
+        .nav { background: white; padding: 12px 5%; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; position: sticky; top:0; z-index:100; }
+        .noti-panel { position: absolute; top: 60px; right: 5%; width: 320px; background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); display: none; z-index: 1000; overflow: hidden; }
         .noti-header { background: #fafafa; padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; color: var(--main); }
-        .noti-list { max-height: 350px; overflow-y: auto; }
-        .noti-item { padding: 15px; border-bottom: 1px solid #f0f0f0; font-size: 13px; line-height: 1.4; transition: 0.2s; }
-        .noti-item:hover { background: #fdfdfd; }
-        .noti-badge { background: #e74c3c; color: white; border-radius: 50%; padding: 3px 7px; font-size: 11px; font-weight: bold; position: absolute; top: -6px; right: -10px; display: none; box-shadow: 0 2px 5px rgba(231,76,60,0.4); }
+        .noti-badge { background: #e74c3c; color: white; border-radius: 50%; padding: 3px 7px; font-size: 11px; font-weight: bold; position: absolute; top: -6px; right: -10px; display: none; }
 
         /* LAYOUT PRINCIPALE */
         .main { display: flex; flex: 1; overflow: hidden; }
@@ -26,26 +23,25 @@
         /* DESIGN: SOMMELIER & CANTINA */
         .avatar { width: 120px; height: 120px; border-radius: 50%; background: var(--main); color: white; display: flex; align-items: center; justify-content: center; font-size: 45px; border: 4px solid #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .pill { background: #f8f9fa; padding: 6px 15px; border-radius: 20px; font-size: 13px; margin: 0 8px 8px 0; display: inline-block; border: 1px solid #ddd; color: #555; font-weight: 500; }
-        .banner-c { height: 220px; background: #eee url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=80&w=1000') center/cover; border-radius: 16px; position: relative; margin-bottom: 60px; box-shadow: inset 0 -50px 50px rgba(0,0,0,0.2); }
+        .banner-c { height: 220px; background: #eee url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=80&w=1000') center/cover; border-radius: 16px; position: relative; margin-bottom: 60px; }
         .logo-c { width: 130px; height: 130px; background: white; border: 5px solid white; position: absolute; bottom: -45px; left: 40px; border-radius: 16px; display:flex; align-items:center; justify-content:center; font-weight:bold; color:var(--main); font-size: 28px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         
-        /* 8 RIQUADRI CERTIFICAZIONI (Stile App Nativa) */
+        /* GRIGLIA CERTIFICAZIONI INTERATTIVA */
+        .cert-container { position: relative; }
         .cert-label { display: block; cursor: pointer; }
         .cert-cb { display: none; }
-        .cert-box { border: 2px solid #e2e8f0; background: white; color: #888; padding: 15px 5px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .cert-label:hover .cert-box { border-color: #cbd5e1; transform: translateY(-2px); }
-        .cert-cb:checked + .cert-box { border-color: var(--main); background: var(--main); color: white; box-shadow: 0 5px 15px rgba(138,28,28,0.2); transform: translateY(-2px); }
+        .cert-box { border: 2px solid #e2e8f0; background: white; color: #888; padding: 15px 5px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 13px; transition: 0.3s; position: relative; }
+        .cert-cb:checked + .cert-box { border-color: var(--main); background: var(--main); color: white; box-shadow: 0 5px 15px rgba(138,28,28,0.2); }
+        .cert-up-btn { position: absolute; top: -8px; right: -8px; background: white; border: 1px solid #ddd; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); color: var(--main); z-index: 5; }
 
-        /* CHAT UI & VIDEO */
+        /* CHAT & TOOLS */
         .chat-ui { position: fixed; bottom: 20px; right: 20px; width: 350px; height: 520px; background: white; border-radius: 16px; box-shadow: 0 15px 50px rgba(0,0,0,0.2); display:none; flex-direction: column; z-index: 9999; border: 1px solid var(--border); overflow: hidden; }
-        .menu-btn { width: 100%; text-align: left; background: none; border: none; color: #a0aec0; padding: 16px 15px; cursor: pointer; font-size: 15px; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; font-weight: 500; }
+        .menu-btn { width: 100%; text-align: left; background: none; border: none; color: #a0aec0; padding: 16px 15px; cursor: pointer; font-size: 15px; border-radius: 8px; margin-bottom: 5px; font-weight: 500; }
         .menu-btn:hover { color: white; background: rgba(255,255,255,0.1); }
         .progress-bar { height: 8px; background: var(--main); width: 0%; border-radius: 4px; transition: width 0.3s ease; }
-        .btn-main { background: var(--main); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
-        .btn-main:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(138,28,28,0.2); }
-        video { width: 100%; border-radius: 10px; background: black; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        video { width: 100%; border-radius: 10px; background: black; }
 
-        @media (max-width: 768px) { .sidebar { display: none; } .content { padding: 15px; } }
+        @media (max-width: 768px) { .sidebar { display: none; } }
     </style>
 </head>
 <body>
@@ -58,36 +54,31 @@
             <span id="nav-user" style="font-weight:600; color:#444;"></span>
         </div>
         <div class="noti-panel" id="noti-panel">
-            <div class="noti-header"><span>Ultime Notifiche</span><button onclick="toggleNoti()" style="border:none; background:none; cursor:pointer; font-size:16px; color:#888;">✕</button></div>
-            <div id="noti-list" class="noti-list"></div>
+            <div class="noti-header"><span>Notifiche</span><button onclick="toggleNoti()" style="border:none; background:none; cursor:pointer;">✕</button></div>
+            <div id="noti-list" style="max-height: 350px; overflow-y: auto;"></div>
         </div>
     </div>
 
     <div class="main">
         <div class="sidebar">
-            <div style="font-size:11px; color:#666; font-weight:bold; letter-spacing:1px; margin: 10px 0 15px 15px; text-transform:uppercase;">MENU PRINCIPALE</div>
             <button class="menu-btn" onclick="show('profile')">👤 Mio Profilo</button>
             <button class="menu-btn" onclick="show('media')">🎞️ Media & Libreria</button>
             <button class="menu-btn" onclick="show('chat')">💬 Esplora Community</button>
             <button class="menu-btn" onclick="show('subs')">💎 Upgrade Piano</button>
             <button class="menu-btn" onclick="show('settings')">⚙️ Impostazioni</button>
-            <button class="menu-btn" onclick="logout()" style="color:#e74c3c; margin-top:30px;">📤 Disconnetti</button>
+            <button class="menu-btn" onclick="logout()" style="color:#e74c3c; margin-top:30px;">📤 Esci</button>
         </div>
 
         <div class="content">
             <div id="sec-profile"></div>
 
             <section id="sec-media" class="card" style="display:none">
-                <h2 style="color:var(--main); margin-top:0;">Libreria Professionale</h2>
-                <p style="color:#666; font-size:14px; margin-bottom:20px;">I file inviati nelle chat vengono salvati automaticamente qui.</p>
-                
+                <h2 style="color:var(--main); margin-top:0;">Libreria Multimediale</h2>
+                <p style="color:#666; font-size:14px;">I file delle chat e delle certificazioni sono sincronizzati qui.</p>
                 <input type="file" id="f-in" style="margin-bottom:15px;">
-                <div style="width:100%; height:8px; background:#e2e8f0; margin:10px 0; display:none; border-radius:4px; overflow:hidden;" id="p-cont">
-                    <div id="p-run" class="progress-bar"></div>
-                </div>
-                <button onclick="up()" class="btn-main">CARICA NUOVO FILE</button>
-                
-                <div id="m-list" style="margin-top:40px; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:25px;"></div>
+                <div style="width:100%; height:8px; background:#e2e8f0; margin:10px 0; display:none; border-radius:4px; overflow:hidden;" id="p-cont"><div id="p-run" class="progress-bar"></div></div>
+                <button onclick="up()" style="background:var(--main); color:white; border:none; padding:12px 25px; border-radius:8px; font-weight:bold; cursor:pointer;">CARICA FILE (%)</button>
+                <div id="m-list" style="margin-top:35px; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px;"></div>
             </section>
 
             <section id="sec-chat" class="card" style="display:none">
@@ -96,35 +87,34 @@
             </section>
 
             <section id="sec-subs" class="card" style="display:none">
-                <h2 style="color:var(--main); margin-top:0;">Piani Business</h2>
-                <p style="color:#666; margin-bottom:30px;">Gestisci il tuo livello di visibilità e strumenti sulla piattaforma.</p>
-                <div id="pricing-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:25px;"></div>
+                <h2 style="color:var(--main); margin-top:0;">Piani Business EnoHub</h2>
+                <div id="pricing-list" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:20px; margin-top:20px;"></div>
             </section>
 
             <section id="sec-settings" class="card" style="display:none">
-                <h2 style="color:var(--main); margin-top:0;">Modifica Dati Profilo</h2>
+                <h2 style="color:var(--main); margin-top:0;">Modifica Profilo</h2>
                 <div id="settings-fields"></div>
-                <button onclick="saveSet()" class="btn-main" style="margin-top:30px; padding:15px 35px; font-size:16px;">Salva Tutte le Modifiche</button>
+                <button onclick="saveSet()" style="background:var(--main); color:white; border:none; padding:15px 40px; border-radius:8px; margin-top:30px; font-weight:bold; cursor:pointer;">SALVA TUTTO</button>
             </section>
         </div>
     </div>
 
     <div id="chat-win" class="chat-ui">
         <div style="background:var(--main); color:white; padding:18px; display:flex; justify-content:space-between; align-items:center;">
-            <span id="chat-title" style="font-weight:bold; font-size:16px;">Chat Privata</span>
+            <span id="chat-title" style="font-weight:bold;">Chat Privata</span>
             <button onclick="document.getElementById('chat-win').style.display='none'" style="color:white; border:none; background:none; font-size:20px; cursor:pointer;">✕</button>
         </div>
         <div id="c-msgs" style="flex:1; overflow-y:auto; padding:20px; font-size:14px; background:#f0f2f5; display:flex; flex-direction:column; gap:12px;"></div>
         <div style="display:flex; padding:15px; border-top:1px solid #eee; background:white; align-items:center;">
-            <button onclick="document.getElementById('chat-file').click()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#888; transition:0.2s;" onmouseover="this.style.color='var(--main)'" onmouseout="this.style.color='#888'">📎</button>
+            <button onclick="document.getElementById('chat-file').click()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#888;">📎</button>
             <input type="file" id="chat-file" style="display:none" onchange="upChatFile()">
-            <input type="text" id="c-in" style="flex:1; margin:0 12px; border:1px solid #ddd; border-radius:25px; padding:12px 15px; outline:none; font-size:14px;" placeholder="Scrivi un messaggio...">
-            <button onclick="send()" class="btn-main" style="padding:10px 18px; border-radius:25px;">➤</button>
+            <input type="text" id="c-in" style="flex:1; margin:0 12px; border:1px solid #ddd; border-radius:25px; padding:12px; outline:none;" placeholder="Messaggio...">
+            <button onclick="send()" style="background:var(--main); color:white; border:none; padding:10px 18px; border-radius:25px; cursor:pointer;">➤</button>
         </div>
     </div>
 
     <script>
-        // --- 1. ANTI-CRASH & SETUP ---
+        // --- 1. SETUP & ANTI-CRASH ---
         let user = null;
         try {
             const raw = localStorage.getItem('enohub_user');
@@ -133,16 +123,7 @@
 
         if(!user) window.location.href = "auth/login.html";
 
-        // Costante: Le 8 Sigle richieste
         const sigle = ['AIS', 'FISAR', 'ONAV', 'WSET', 'CMS', 'FIS', 'ASPI', 'AIES'];
-
-        // Ritorno da Stripe Check
-        const urlP = new URLSearchParams(window.location.search);
-        if(urlP.get('payment') === 'success') {
-            fetch('/api/confirm-payment', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId:user._id, type:urlP.get('type'), targetId:urlP.get('target'), piano:urlP.get('piano') })})
-            .then(r => r.json()).then(d => { localStorage.setItem('enohub_user', JSON.stringify(d.user)); window.location.href="dashboard.html"; });
-        }
-
         const socket = io(); socket.emit('join', user._id);
 
         function show(id) {
@@ -153,7 +134,7 @@
             if(id === 'subs') renderPricing();
         }
 
-        // --- 2. RENDER PROFILI (Duale, Elegante, con Griglia 8 Riquadri) ---
+        // --- 2. RENDER PROFILO (Design Marco Bianchi / Tenuta) ---
         function renderProfile() {
             const c = document.getElementById('sec-profile');
             const initial = user.nome.charAt(0).toUpperCase();
@@ -162,28 +143,197 @@
                 c.innerHTML = `
                     <div class="banner-c"><div class="logo-c">${initial}</div></div>
                     <div style="display:grid; grid-template-columns: 2fr 1fr; gap:25px;">
-                        <div class="card" style="margin-bottom:0;">
-                            <h1 style="margin:0 0 5px 0; color:#222; font-size:32px;">${user.nome}</h1>
-                            <p style="color:#888; font-size:15px; margin-top:0;">📍 ${user.regione||'Italia'}</p>
-                            <hr style="border:0; border-top:1px solid #eee; margin:25px 0;">
-                            <h3 style="color:var(--main); margin-bottom:15px;">La Nostra Storia</h3>
-                            <p style="line-height:1.7; color:#555;">${user.storia||'La storia della cantina non è stata ancora inserita.'}</p>
-                            <h3 style="color:var(--main); margin-top:35px; margin-bottom:15px;">Galleria Fotografica</h3>
-                            <div id="g-cantina" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:15px;"></div>
+                        <div class="card">
+                            <h1 style="margin:0;">${user.nome}</h1><p style="color:#888;">📍 ${user.regione||'Italia'}</p><hr>
+                            <h3>La Nostra Storia</h3><p style="line-height:1.7; color:#555;">${user.storia||'...'}</p>
+                            <h3>Galleria Cantina</h3><div id="g-cantina" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
                         </div>
-                        <div class="card" style="background:#fafafa; border:1px solid #eee; margin-bottom:0; height:fit-content;">
-                            <h3 style="color:var(--main); margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">In Breve</h3>
-                            <p style="font-size:14px; margin-bottom:5px;"><b>Filosofia:</b></p>
-                            <p style="font-size:14px; color:#666; margin-top:0;">${user.filosofia || 'Non specificata'}</p>
-                            <p style="font-size:14px; margin-bottom:5px;"><b>Sito Ufficiale:</b></p>
-                            <p style="font-size:14px; margin-top:0;"><a href="${user.sito||'#'}" target="_blank" style="color:var(--main); font-weight:600; text-decoration:none;">${user.sito || 'Link mancante'}</a></p>
-                            <button class="btn-main" style="width:100%; margin-top:25px;" onclick="show('chat')">Contatta la Cantina</button>
+                        <div class="card" style="background:#fafafa; height:fit-content;">
+                            <h4 style="color:var(--main); margin-top:0;">In Breve</h4>
+                            <p><b>Filosofia:</b><br>${user.filosofia || 'Tradizionale'}</p>
+                            <p><b>Sito:</b><br><a href="${user.sito||'#'}" target="_blank" style="color:var(--main);">${user.sito || '-'}</a></p>
+                            <button class="btn-main" style="width:100%; margin-top:20px;" onclick="show('chat')">Contatta Cantina</button>
                         </div>
                     </div>`;
                 loadGallery();
             } else {
-                // Costruzione Griglia 8 Riquadri Visiva per il Profilo
+                // Griglia Certificazioni con Allegati Cliccabili
                 let certGrid = '<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; margin-top:15px;">';
                 sigle.forEach(s => {
                     const hasCert = user.certificazioni && user.certificazioni.includes(s);
-                    certGrid += `<div style="border: 2px solid ${hasCert ? 'var(--main)' : '#e2e8f0'}; background: ${hasCert ? 'var(--main)' : '#f8f9fa'}; color: ${hasCert ? 'white' : '#a0aec0'}; border-radius: 10px; padding: 15px 5px; text-align: center; font-weight: bold; font-size: 14px; opacity: ${hasCert ?
+                    const fileUrl = user.certFiles && user.certFiles[s];
+                    certGrid += `
+                    <div onclick="${fileUrl ? `window.open('${fileUrl}', '_blank')` : ''}" 
+                         style="border: 2px solid ${hasCert ? 'var(--main)' : '#e2e8f0'}; 
+                                background: ${hasCert ? 'var(--main)' : '#f8f9fa'}; 
+                                color: ${hasCert ? 'white' : '#a0aec0'}; 
+                                border-radius: 10px; padding: 15px 5px; text-align: center; font-weight: bold; font-size: 13px; 
+                                opacity: ${hasCert ? '1' : '0.4'}; transition:0.3s; cursor: ${fileUrl ? 'pointer' : 'default'}; position:relative;">
+                        ${s} ${fileUrl ? '<span style="position:absolute; bottom:2px; right:4px; font-size:10px;">📄</span>' : ''}
+                    </div>`;
+                });
+                certGrid += '</div>';
+
+                c.innerHTML = `
+                    <div class="card">
+                        <div style="display:flex; gap:35px; align-items:center;">
+                            <div class="avatar">${initial}</div>
+                            <div>
+                                <h1 style="margin:0;">${user.nome}</h1>
+                                <p style="color:#666; font-weight:bold;">${user.ruolo || 'Wine Professional'} - ${user.piano}</p>
+                                <p style="color:#888; font-size:14px;">📍 ${user.location}</p>
+                                <p style="color:var(--green); font-weight:bold; font-size:14px;">✓ Disponibile per consulenze</p>
+                                <button class="btn-main" onclick="show('chat')">Richiedi Contatto</button>
+                            </div>
+                        </div>
+                        <div style="border-top:1px solid #eee; margin-top:35px; padding-top:25px;">
+                            <p><b>Bio:</b> <br>${user.bio || '...'}</p>
+                            <p><b>Specializzazioni:</b> <br><span id="spec-list"></span></p>
+                            <p><b>Certificazioni e Diplomi (Clicca per vedere):</b></p>
+                            ${certGrid}
+                        </div>
+                        <div style="background:#f9f9f9; padding:20px; border-radius:12px; border:1px solid #eee; margin-top:25px;">
+                            <h3 style="margin-top:0; color:var(--main);">Note di Degustazione</h3>
+                            <p style="margin:0; font-style:italic;">${user.noteDegustazione || 'Nessuna nota pubblicata.'}</p>
+                        </div>
+                    </div>`;
+                if(user.specializzazioni) user.specializzazioni.split(',').forEach(s => document.getElementById('spec-list').innerHTML += `<span class="pill">${s.trim()}</span>`);
+            }
+        }
+
+        // --- 3. IMPOSTAZIONI (8 Riquadri con Upload File) ---
+        function renderSettings() {
+            const s = document.getElementById('settings-fields');
+            const style = "width:100%; padding:14px; margin:8px 0 20px 0; border:1px solid #ddd; border-radius:8px; font-family:inherit;";
+            
+            if(user.tipo === 'Cantina') {
+                s.innerHTML = `<label>Regione:</label><input id="s-reg" value="${user.regione||''}" style="${style}">
+                <label>Sito Web:</label><input id="s-sito" value="${user.sito||''}" style="${style}">
+                <label>Storia:</label><textarea id="s-storia" style="${style} height:100px;">${user.storia||''}</textarea>`;
+            } else {
+                let certHtml = '<label style="font-weight:bold; display:block; margin-bottom:10px;">Le Tue Certificazioni (Seleziona e allega Diploma):</label><div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px; margin-bottom:30px;">';
+                sigle.forEach(sigla => {
+                    const isChecked = user.certificazioni && user.certificazioni.includes(sigla);
+                    const hasFile = user.certFiles && user.certFiles[sigla];
+                    certHtml += `
+                    <div class="cert-container">
+                        <label class="cert-label">
+                            <input type="checkbox" value="${sigla}" class="cert-cb" ${isChecked ? 'checked' : ''}>
+                            <div class="cert-box">${sigla} ${hasFile ? '✅' : ''}</div>
+                        </label>
+                        <button class="cert-up-btn" onclick="triggerCertUpload('${sigla}')" title="Carica Diploma">📎</button>
+                        <input type="file" id="up-${sigla}" style="display:none" onchange="uploadCertFile(this, '${sigla}')">
+                    </div>`;
+                });
+                certHtml += '</div>';
+
+                s.innerHTML = `<label>Città:</label><input id="s-loc" value="${user.location||''}" style="${style}">
+                <label>Ruolo:</label><input id="s-ruolo" value="${user.ruolo||''}" style="${style}">
+                <label>Bio:</label><textarea id="s-bio" style="${style} height:100px;">${user.bio||''}</textarea>
+                <label>Note Degustazione:</label><textarea id="s-note" style="${style} height:100px;">${user.noteDegustazione||''}</textarea>
+                <label>Specializzazioni (virgola):</label><input id="s-spec" value="${user.specializzazioni||''}" style="${style}">
+                ${certHtml}`;
+            }
+        }
+
+        function triggerCertUpload(sigla) { document.getElementById('up-' + sigla).click(); }
+        async function uploadCertFile(input, sigla) {
+            const f = input.files[0]; if(!f) return;
+            const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
+            const res = await fetch('/api/upload', { method:'POST', body:fd });
+            const media = await res.json();
+            if(!user.certFiles) user.certFiles = {};
+            user.certFiles[sigla] = media.url;
+            await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ certFiles: user.certFiles }) });
+            alert("Diploma "+sigla+" caricato!"); loadM(); location.reload();
+        }
+
+        async function saveSet() {
+            let d = {};
+            if(user.tipo === 'Cantina') d = { regione: document.getElementById('s-reg').value, sito: document.getElementById('s-sito').value, storia: document.getElementById('s-storia').value };
+            else {
+                let certs = []; document.querySelectorAll('.cert-cb:checked').forEach(cb => certs.push(cb.value));
+                d = { location: document.getElementById('s-loc').value, ruolo: document.getElementById('s-ruolo').value, bio: document.getElementById('s-bio').value, noteDegustazione: document.getElementById('s-note').value, specializzazioni: document.getElementById('s-spec').value, certificazioni: certs.join(',') };
+            }
+            const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) });
+            const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); location.reload();
+        }
+
+        // --- 4. MEDIA, VIDEO ±10S & STRIPE ---
+        function up() {
+            const f = document.getElementById('f-in').files[0]; if(!f) return;
+            const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
+            const xhr = new XMLHttpRequest();
+            document.getElementById('p-cont').style.display = 'block';
+            xhr.upload.onprogress = (e) => document.getElementById('p-run').style.width = Math.round((e.loaded/e.total)*100)+'%';
+            xhr.onload = () => { alert("Caricato!"); loadM(); document.getElementById('p-cont').style.display = 'none'; };
+            xhr.open('POST', '/api/upload'); xhr.send(fd);
+        }
+
+        async function loadM() {
+            const r = await fetch('/api/media'); const items = await r.json();
+            const list = document.getElementById('m-list'); list.innerHTML = '';
+            items.filter(m => m.ownerId === user._id).forEach(m => {
+                const isV = m.type.includes('video'); const isI = m.type.includes('image');
+                list.innerHTML += `<div class="card" style="padding:15px;">
+                    <b style="font-size:14px;">${m.name}</b><br><br>
+                    ${isV ? `<video id="v-${m._id}" src="${m.url}" controls></video><div style="display:flex; gap:10px; margin-top:10px;"><button style="flex:1; background:#eee; border:none; padding:8px; cursor:pointer;" onclick="document.getElementById('v-${m._id}').currentTime-=10">⏪ -10s</button><button style="flex:1; background:#eee; border:none; padding:8px; cursor:pointer;" onclick="document.getElementById('v-${m._id}').currentTime+=10">⏩ +10s</button></div>` : (isI ? `<img src="${m.url}" style="width:100%; height:160px; object-fit:cover; border-radius:8px;">` : `<a href="${m.url}" target="_blank" style="color:var(--main); font-weight:bold;">📄 Vedi Documento</a>`)}
+                    <button onclick="delM('${m._id}')" style="width:100%; color:#e74c3c; background:none; border:1px solid #e74c3c; padding:8px; border-radius:4px; cursor:pointer; margin-top:15px; font-weight:bold;">Elimina</button>
+                </div>`;
+            });
+        }
+        function delM(id) { fetch('/api/media/'+id, {method:'DELETE'}).then(() => loadM()); }
+
+        function renderPricing() {
+            const l = document.getElementById('pricing-list'); l.innerHTML = '';
+            const p = user.tipo === 'Sommelier' ? [{n:'Pro',v:9}] : [{n:'Business',v:39},{n:'Premium',v:89}];
+            p.forEach(x => l.innerHTML += `<div class="card" style="text-align:center;"><h3>Piano ${x.n}</h3><h1>€${x.v}</h1><button onclick="payUpgrade('${x.n}',${x.v})" class="btn-main">Attiva</button></div>`);
+        }
+        async function payUpgrade(p, v) { const r = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:p,prezzo:v,type:'upgrade',userId:user._id})}); const d = await r.json(); window.location.href = d.url; }
+
+        async function loadU() {
+            const r = await fetch('/api/users'); const users = await r.json();
+            const list = document.getElementById('u-list'); list.innerHTML = '';
+            users.filter(u => u._id !== user._id).forEach(u => {
+                const isUnl = user.unlockedContacts && user.unlockedContacts.includes(u._id);
+                const can = (user.piano === 'Business' || user.piano === 'Premium' || isUnl || user.tipo === 'Sommelier');
+                list.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px;">
+                    <div><b>${u.nome}</b><br><span style="color:#888; font-size:13px;">${u.tipo}</span></div>
+                    ${can ? `<button onclick="openChat('${u._id}','${u.nome}')" class="btn-main">Invia Messaggio</button>` : `<button onclick="payUnlock('${u._id}')" class="btn-main" style="background:black;">Sblocca (€15)</button>`}
+                </div>`;
+            });
+        }
+        async function payUnlock(tid) { const r = await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({piano:'Sblocca Contatto',prezzo:15,type:'unlock',targetId:tid,userId:user._id})}); const d = await r.json(); window.location.href = d.url; }
+
+        // --- 5. CHAT & NOTIFICHE ---
+        function upChatFile() {
+            const f = document.getElementById('chat-file').files[0]; if(!f) return;
+            const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id);
+            fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(media => {
+                const m = { from: user._id, to: curChat, text: "📎 Allegato (In Libreria)", fileUrl: media.url, fromName: user.nome };
+                socket.emit('send_msg', m); appendM(m, true); loadM();
+            });
+        }
+        function send() { const t = document.getElementById('c-in').value; if(!t) return; const m = {from:user._id, to:curChat, text:t, fromName:user.nome}; socket.emit('send_msg', m); appendM(m, true); document.getElementById('c-in').value=''; }
+        let curChat = null;
+        function openChat(id, n) { curChat = id; document.getElementById('chat-win').style.display='flex'; document.getElementById('chat-title').innerText = n; socket.emit('get_history', {me:user._id, to:id}); }
+        socket.on('chat_history', (ms) => { const b = document.getElementById('c-msgs'); b.innerHTML=''; ms.forEach(m => appendM(m, m.from===user._id)); });
+        socket.on('new_msg', (m) => { if(m.from===curChat) appendM(m,false); });
+        function appendM(m, me) { 
+            const b = document.getElementById('c-msgs'); 
+            let content = m.text; if(m.fileUrl) content += `<br><a href="${m.fileUrl}" target="_blank" style="color:${me?'white':'#8a1c1c'}; font-weight:bold;">Apri File</a>`;
+            b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; max-width:80%; background:${me? 'var(--main)':'white'}; color:${me?'white':'black'}; padding:12px; border-radius:15px; border-bottom-${me?'right':'left'}-radius:4px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">${content}</div>`;
+            b.scrollTop = b.scrollHeight;
+        }
+
+        function toggleNoti() { const p = document.getElementById('noti-panel'); p.style.display = p.style.display==='block'?'none':'block'; document.getElementById('noti-count').style.display='none'; }
+        socket.on('notification', (n) => { document.getElementById('noti-count').innerText = "!"; document.getElementById('noti-count').style.display='block'; document.getElementById('noti-list').innerHTML = `<div style="padding:10px; border-bottom:1px solid #eee;"><b>${n.title}</b><br>${n.body}</div>` + document.getElementById('noti-list').innerHTML; });
+
+        async function loadGallery() { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === user._id && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">`); }
+        function logout() { localStorage.removeItem('enohub_user'); window.location.href="index.html"; }
+
+        document.getElementById('nav-user').innerText = "Area Personale";
+        renderProfile(); renderSettings();
+    </script>
+</body>
+</html>
