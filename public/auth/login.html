@@ -1,8 +1,188 @@
 <!DOCTYPE html>
-<html lang="it"><head><meta charset="UTF-8"><title>Accedi - EnoHub</title><script src="https://accounts.google.com/gsi/client" async defer></script>
-<style>body { font-family: sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f4f4f4; margin:0; } .card { background:white; padding:40px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); width:320px; text-align:center; } input { width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:5px; box-sizing:border-box; } .btn { width:100%; padding:12px; background:#8a1c1c; color:white; border:none; cursor:pointer; border-radius:5px; font-weight:bold; margin-top:10px;}</style></head>
-<body><div class="card"><a href="../index.html" style="color:#8a1c1c; text-decoration:none; font-weight:bold;">← EnoHub Home</a><h2>Accedi</h2><input type="email" id="email" placeholder="Email"><input type="password" id="password" placeholder="Password"><button class="btn" onclick="login()">ENTRA</button><hr style="margin:20px 0;">
-<div id="g_id_onload" data-client_id="IL_TUO_GOOGLE_CLIENT_ID" data-callback="handleGoogle"></div><div class="g_id_signin" data-type="standard"></div></div>
-<script>
-    async function login() { const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email.value,password:password.value})}); const d = await r.json(); if(d.success) { localStorage.setItem('enohub_user',JSON.stringify(d.user)); location.href="../dashboard.html"; } else alert("Dati errati"); }
-</script></body></html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accedi - EnoHub Gold</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        :root { --main: #8a1c1c; --dark: #1a1a1a; --bg: #f4f4f4; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+        }
+        .login-card { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 380px; 
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .logo-link {
+            color: var(--main);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 28px;
+            display: block;
+            margin-bottom: 30px;
+        }
+        h2 { margin-top: 0; color: var(--dark); font-size: 22px; }
+        p { color: #666; font-size: 14px; margin-bottom: 25px; }
+        
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+        }
+        input:focus { border-color: var(--main); box-shadow: 0 0 0 3px rgba(138, 28, 28, 0.1); }
+        
+        .btn-login { 
+            width: 100%; 
+            padding: 14px; 
+            background: var(--main); 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 16px;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+        .btn-login:hover { opacity: 0.9; transform: translateY(-1px); }
+        
+        .divider { 
+            margin: 25px 0; 
+            display: flex; 
+            align-items: center; 
+            color: #aaa; 
+            font-size: 12px; 
+        }
+        .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #eee; margin: 0 10px; }
+        
+        .footer-links { margin-top: 25px; font-size: 14px; color: #666; }
+        .footer-links a { color: var(--main); text-decoration: none; font-weight: 600; }
+        
+        #error-msg { 
+            color: #e74c3c; 
+            background: #fdf2f2; 
+            padding: 10px; 
+            border-radius: 6px; 
+            font-size: 13px; 
+            margin-bottom: 15px; 
+            display: none; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <a href="../index.html" class="logo-link">EnoHub</a>
+        <h2>Bentornato</h2>
+        <p>Accedi alla rete dei professionisti del vino.</p>
+
+        <div id="error-msg">Email o password non validi.</div>
+
+        <input type="email" id="email" placeholder="Indirizzo Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button class="btn-login" onclick="handleLogin()">ACCEDI ORA</button>
+
+        <div class="divider">OPPURE CONTINUA CON</div>
+
+        <div id="g_id_onload"
+             data-client_id="IL_TUO_GOOGLE_CLIENT_ID_DA_RENDER"
+             data-callback="handleGoogleLogin"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-shape="rectangular"
+             data-theme="outline"
+             data-text="signin_with"
+             data-size="large"
+             data-logo_alignment="left"
+             data-width="300">
+        </div>
+
+        <div class="footer-links">
+            Non hai un account? <a href="register.html">Registrati</a>
+        </div>
+    </div>
+
+    <script>
+        // 1. LOGIN STANDARD (Email/Password)
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-msg');
+
+            if(!email || !password) return;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('enohub_user', JSON.stringify(data.user));
+                    window.location.href = "../dashboard.html";
+                } else {
+                    errorDiv.style.display = 'block';
+                    errorDiv.innerText = "Email o Password errati. Riprova.";
+                }
+            } catch (e) {
+                errorDiv.style.display = 'block';
+                errorDiv.innerText = "Errore di connessione al server.";
+            }
+        }
+
+        // 2. LOGIN CON GOOGLE
+        async function handleGoogleLogin(response) {
+            const errorDiv = document.getElementById('error-msg');
+            
+            try {
+                // Inviamo il credential token di Google al nostro backend
+                const res = await fetch('/api/google-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: response.credential })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    // Salviamo l'utente e andiamo in Dashboard
+                    localStorage.setItem('enohub_user', JSON.stringify(data.user));
+                    window.location.href = "../dashboard.html";
+                } else {
+                    errorDiv.style.display = 'block';
+                    errorDiv.innerText = "Accesso con Google fallito.";
+                }
+            } catch (e) {
+                console.error("Errore Google Auth:", e);
+                errorDiv.style.display = 'block';
+                errorDiv.innerText = "Impossibile collegarsi a Google.";
+            }
+        }
+    </script>
+</body>
+</html>
