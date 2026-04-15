@@ -13,7 +13,6 @@
         .noti-header { background: #fafafa; padding: 15px; font-weight: bold; border-bottom: 1px solid var(--border); color: var(--main); display: flex; justify-content: space-between; }
         .noti-badge { background: #e74c3c; color: white; border-radius: 50%; padding: 3px 7px; font-size: 11px; font-weight: bold; position: absolute; top: -6px; right: -10px; display: none; }
 
-        /* MENU FIX: overflow-y: auto permette lo scorrimento del menu */
         .sidebar-slide { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--side); color: white; transition: 0.4s; z-index: 2000; padding-top: 80px; padding-bottom:20px; box-shadow: 4px 0 15px rgba(0,0,0,0.5); overflow-y: auto; }
         .sidebar-slide.active { left: 0; }
         .sidebar-slide a { display: block; padding: 18px 25px; color: #ccc; text-decoration: none; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s; }
@@ -31,9 +30,6 @@
         
         .pill { background: #f8f9fa; padding: 6px 15px; border-radius: 20px; font-size: 13px; margin: 0 8px 8px 0; display: inline-block; border: 1px solid #ddd; color: #555; font-weight: 500; }
         .cert-box { border: 1px solid #ddd; padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; cursor: pointer; background: #fafafa; transition: 0.2s; position: relative; }
-        .cert-cb:checked + .cert-box { border-color: var(--main); background: var(--main); color: white; }
-        .cert-cb { display: none; }
-        .cert-up-btn { position: absolute; top: -8px; right: -8px; background: white; border: 1px solid #ddd; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--main); z-index: 11; }
 
         #staff-panel { position: fixed; bottom: 20px; right: 20px; width: 340px; height: 450px; background: white; border: 2px solid var(--gold); border-radius: 16px; display: none; flex-direction: column; z-index: 9999; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
         .staff-header { background: var(--gold); color: black; padding: 15px; font-weight: 900; display: flex; justify-content: space-between; border-radius: 14px 14px 0 0; }
@@ -47,6 +43,17 @@
     </style>
 </head>
 <body>
+    <div id="media-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; flex-direction:column;">
+        <div style="width:90%; max-width:900px; background:white; border-radius:12px; overflow:hidden; display:flex; flex-direction:column; max-height:90vh;">
+            <div style="background:var(--main); padding:15px; display:flex; justify-content:space-between; color:white;">
+                <b id="media-modal-title">Lettore Multimediale</b>
+                <button onclick="document.getElementById('media-modal').style.display='none'" style="background:none; border:none; color:white; font-size:22px; cursor:pointer;">✕</button>
+            </div>
+            <div id="media-modal-content" style="flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#f5f5f5;">
+                </div>
+        </div>
+    </div>
+
     <button class="menu-toggle-btn" onclick="toggleMenu()">☰</button>
     <nav class="sidebar-slide" id="side-menu">
         <h3 style="padding: 0 25px; color: white;">EnoHub Diamond</h3>
@@ -93,12 +100,12 @@
                         <textarea id="t-note" style="width:100%; height:100px; padding:15px; margin-top:5px; border-radius:8px; border:1px solid #ccc; font-family:inherit; box-sizing:border-box;" placeholder="Es: Colore rosso rubino impenetrabile. Al naso sentori di mora..."></textarea>
                         
                         <div style="margin-top:20px;">
-                            <label style="font-weight:bold; display:block; margin-bottom:10px;">📸 Allega Foto o File Etichetta:</label>
+                            <label style="font-weight:bold; display:block; margin-bottom:10px;">📸 Allega Foto Etichetta o PDF:</label>
                             <input type="file" id="t-file" onchange="uploadTastingFile(this)">
                             <div id="t-preview" style="margin-top:15px;"></div>
                         </div>
                         
-                        <button onclick="saveTasting()" class="btn-main" style="width:auto; margin-top:25px; background:var(--green);">➕ AGGIUNGI AL DIARIO</button>
+                        <button id="btn-save-tasting" onclick="saveTasting()" class="btn-main" style="width:auto; margin-top:25px; background:var(--green);">➕ AGGIUNGI AL DIARIO</button>
                     </div>
 
                     <h3 style="margin-top:40px; color:var(--main);">Archivio Degustazioni</h3>
@@ -130,7 +137,7 @@
             <section id="sec-settings" class="card" style="display:none; max-width:750px; margin:auto;">
                 <h2>Modifica Profilo</h2>
                 <div id="settings-fields"></div>
-                <button onclick="saveSet()" class="btn-main" style="margin-top:20px;">💾 SALVA MODIFICHE</button>
+                <button onclick="saveSet()" class="btn-main" style="margin-top:25px; font-size:16px;">💾 SALVA MODIFICHE PROFILO</button>
                 <hr style="margin:40px 0;">
                 <div style="background:#fff1f1; padding:25px; border-radius:12px; border: 1px solid #ffcccc;">
                     <h4 style="color:#c0392b; margin:0;">🔐 Take Out - Privacy & Dati</h4>
@@ -169,8 +176,24 @@
             .then(r => r.json()).then(d => { localStorage.setItem('enohub_user', JSON.stringify(d.user)); window.location.href="dashboard.html"; });
         }
 
+        // MOTORE LETTORE MULTIMEDIALE
+        function openMedia(url, name = 'File Visualizzatore') {
+            document.getElementById('media-modal-title').innerText = name;
+            const content = document.getElementById('media-modal-content');
+            const lUrl = url.toLowerCase();
+            
+            if (lUrl.includes('.pdf')) {
+                content.innerHTML = `<iframe src="${url}" style="width:100%; height:70vh; border:none; border-radius:8px;"></iframe><br><a href="${url}" target="_blank" style="display:block; text-align:center; margin-top:15px; color:var(--blue); font-weight:bold;">↗️ Apri in una nuova finestra</a>`;
+            } else if (lUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
+                content.innerHTML = `<video src="${url}" controls autoplay style="max-width:100%; max-height:70vh; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.2);"></video>`;
+            } else {
+                content.innerHTML = `<img src="${url}" style="max-width:100%; max-height:70vh; border-radius:8px; box-shadow:0 5px 15px rgba(0,0,0,0.2); object-fit:contain;">`;
+            }
+            document.getElementById('media-modal').style.display = 'flex';
+        }
+
         function show(id) {
-            document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.main .content > section').forEach(s => s.style.display = 'none');
             document.getElementById('sec-' + id).style.display = 'block';
             document.getElementById('side-menu').classList.remove('active');
             if(id === 'profile') renderProfile(user);
@@ -178,10 +201,10 @@
             if(id === 'chat') loadU();
             if(id === 'subs') renderPricing();
             if(id === 'settings') renderSettings();
-            if(id === 'tastings') renderTastingsList(); // Aggiorna la lista del diario
+            if(id === 'tastings') renderTastingsList();
         }
 
-        // PROFILO PUBBLICO (Mostra le degustazioni multiple)
+        // PROFILO PUBBLICO
         function renderProfile(target) {
             const c = document.getElementById('sec-profile');
             const initial = target.nome.charAt(0).toUpperCase();
@@ -202,34 +225,35 @@
                 sigle.forEach(s => {
                     const hasCert = target.certificazioni && target.certificazioni.includes(s);
                     const fileUrl = target.certFiles && target.certFiles[s];
-                    certGrid += `<div onclick="${fileUrl ? `window.open('${fileUrl}', '_blank')` : ''}" class="cert-box" style="opacity:${hasCert?'1':'0.4'}; background:${hasCert?'var(--main)':'#f8f9fa'}; color:${hasCert?'white':'#888'}; cursor:${fileUrl?'pointer':'default'};">${s} ${fileUrl ? '📄' : ''}</div>`;
+                    // Ora cliccando si apre il nostro visualizzatore elegante
+                    certGrid += `<div onclick="${fileUrl ? `openMedia('${fileUrl}', 'Certificato ${s}')` : ''}" class="cert-box" style="opacity:${hasCert?'1':'0.4'}; background:${hasCert?'var(--main)':'#f8f9fa'}; color:${hasCert?'white':'#888'}; cursor:${fileUrl?'pointer':'default'}; font-size:12px; padding:12px;">${s} ${fileUrl ? '📄 Vedi' : ''}</div>`;
                 });
                 certGrid += '</div>';
 
                 const idBadge = (target.piano === 'Pro' && target.identificativoCertificato) ? `<p style="color:var(--gold); font-weight:bold; margin: 5px 0;">ID Ufficiale: ${target.identificativoCertificato}</p>` : '';
                 
-                // Genera la lista delle degustazioni nel profilo
                 let tastingsHtml = '';
                 if(target.degustazioni && target.degustazioni.length > 0) {
                     target.degustazioni.forEach(d => {
                         let mediaHtml = '';
                         if(d.imageUrl) {
-                            if(d.imageUrl.includes('pdf')) mediaHtml = `<iframe src="${d.imageUrl}" style="width:100%; height:150px; border:none; border-radius:8px;"></iframe>`;
-                            else mediaHtml = `<img src="${d.imageUrl}" style="max-width:150px; border-radius:8px; margin-bottom:10px; display:block;">`;
+                            // Immagine/PDF Cliccabile
+                            mediaHtml = `<div onclick="openMedia('${d.imageUrl}', '${d.vino}')" style="cursor:pointer; display:inline-block; border-radius:8px; overflow:hidden; border:1px solid #ccc; margin-bottom:10px;">`;
+                            if(d.imageUrl.toLowerCase().includes('.pdf')) mediaHtml += `<div style="background:#eee; padding:15px; color:var(--main); font-weight:bold;">📄 Apri PDF Appunti</div>`;
+                            else mediaHtml += `<img src="${d.imageUrl}" style="max-height:120px; display:block;">`;
+                            mediaHtml += `</div>`;
                         }
-                        tastingsHtml += `<div style="background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #eee; margin-bottom:15px;"><h4 style="margin-top:0; color:var(--main);">${d.vino}</h4>${mediaHtml}<p style="white-space:pre-line; line-height:1.6; margin-bottom:0; font-size:14px;">${d.nota}</p></div>`;
+                        tastingsHtml += `<div style="background:#f9f9f9; padding:20px; border-radius:10px; border:1px solid #eee; margin-bottom:15px;"><h4 style="margin-top:0; color:var(--main); font-size:18px;">${d.vino}</h4>${mediaHtml}<p style="white-space:pre-line; line-height:1.6; margin-bottom:0;">${d.nota}</p></div>`;
                     });
-                } else {
-                    tastingsHtml = `<p style="color:#666;">Nessuna degustazione archiviata.</p>`;
-                }
+                } else { tastingsHtml = `<p style="color:#666;">Nessuna degustazione archiviata.</p>`; }
 
                 c.innerHTML = `
                 <div class="card" style="padding-top:0;">
                     <div class="hero-banner" style="background-image: url('${banner}')"></div><div class="hero-overlay"></div>
                     <div class="profile-header"><div class="avatar">${initial}</div><div><h1 style="margin:0;">${target.nome}${spunta}</h1><p>${target.ruolo} • ${target.piano}</p>${idBadge}<p>📍 ${target.location}</p></div></div>
-                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-top:30px;">
+                    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:30px; margin-top:30px;">
                         <div><h3>🍷 Diario Degustazioni</h3>${tastingsHtml}</div>
-                        <div><h4>Bio</h4><p>${target.bio || '-'}</p><h4>Specializzazioni</h4><div id="spec-list"></div><h4>Certificazioni</h4>${certGrid}</div>
+                        <div><h4>Bio</h4><p>${target.bio || '-'}</p><h4>Specializzazioni</h4><div id="spec-list" style="margin-bottom:25px;"></div><h4>Certificazioni</h4>${certGrid}</div>
                     </div>
                 </div>`;
                 if(target.specializzazioni) target.specializzazioni.split(',').forEach(s => document.getElementById('spec-list').innerHTML += `<span class="pill">${s.trim()}</span>`);
@@ -238,47 +262,81 @@
 
         async function viewUser(id) { const r = await fetch('/api/user/' + id); const t = await r.json(); show('profile'); renderProfile(t); }
 
-        // --- GESTIONE DEGUSTAZIONI MULTIPLE ---
+        // LOGICA LA MIA PAGINA DEGUSTAZIONI (Aggiunta e Modifica)
         let tempTastingUrl = '';
+        let currentEditTastingId = null;
 
         function renderTastingPreview() {
             const p = document.getElementById('t-preview');
             if(!tempTastingUrl) { p.innerHTML = ''; return; }
-            if(tempTastingUrl.includes('pdf')) p.innerHTML = `<iframe src="${tempTastingUrl}" style="width:100%; height:200px; border:none;"></iframe>`;
-            else p.innerHTML = `<img src="${tempTastingUrl}" style="max-height:150px; border-radius:8px;">`;
+            if(tempTastingUrl.toLowerCase().includes('.pdf')) p.innerHTML = `<iframe src="${tempTastingUrl}" style="width:100%; height:200px; border:none; border-radius:8px;"></iframe>`;
+            else p.innerHTML = `<img src="${tempTastingUrl}" style="max-height:150px; border-radius:8px; border:1px solid #ccc;">`;
         }
 
         async function uploadTastingFile(input) {
             const fd = new FormData(); fd.append('file', input.files[0]); fd.append('ownerId', user._id);
             const r = await fetch('/api/upload', { method:'POST', body:fd }); const m = await r.json(); 
-            tempTastingUrl = m.url; renderTastingPreview(); alert("File pronto! Compila i testi e clicca AGGIUNGI.");
+            tempTastingUrl = m.url; renderTastingPreview(); alert("File pronto! Compila i testi e clicca AGGIUNGI/AGGIORNA.");
         }
 
         async function saveTasting() {
             const vino = document.getElementById('t-vino').value;
             const nota = document.getElementById('t-note').value;
             if(!vino || !nota) return alert("Inserisci il nome del vino e le tue note.");
-            
             if(!user.degustazioni) user.degustazioni = [];
-            user.degustazioni.push({ id: Date.now().toString(), vino: vino, nota: nota, imageUrl: tempTastingUrl });
+
+            if(currentEditTastingId) {
+                // Modalità Modifica
+                const idx = user.degustazioni.findIndex(d => d.id === currentEditTastingId);
+                if(idx !== -1) { user.degustazioni[idx].vino = vino; user.degustazioni[idx].nota = nota; user.degustazioni[idx].imageUrl = tempTastingUrl; }
+                currentEditTastingId = null;
+            } else {
+                // Nuova Degustazione
+                user.degustazioni.push({ id: Date.now().toString(), vino: vino, nota: nota, imageUrl: tempTastingUrl });
+            }
             
             const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni: user.degustazioni})});
             const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); user = j.user; 
             
             document.getElementById('t-vino').value = ''; document.getElementById('t-note').value = '';
-            tempTastingUrl = ''; renderTastingPreview(); renderTastingsList(); alert("Degustazione aggiunta al diario!");
+            tempTastingUrl = ''; renderTastingPreview(); renderTastingsList();
+            document.getElementById('btn-save-tasting').innerText = "➕ AGGIUNGI AL DIARIO";
+            alert("Degustazione salvata!");
+        }
+
+        function editTasting(id) {
+            const t = user.degustazioni.find(d => d.id === id);
+            if(!t) return;
+            currentEditTastingId = id;
+            document.getElementById('t-vino').value = t.vino;
+            document.getElementById('t-note').value = t.nota;
+            tempTastingUrl = t.imageUrl || '';
+            renderTastingPreview();
+            document.getElementById('btn-save-tasting').innerText = "💾 AGGIORNA DEGUSTAZIONE";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderTastingsList() {
             const l = document.getElementById('tastings-list');
-            if(!user.degustazioni || user.degustazioni.length === 0) { l.innerHTML = "<p>Archivio vuoto.</p>"; return; }
+            if(!user.degustazioni || user.degustazioni.length === 0) { l.innerHTML = "<p>Archivio vuoto. Aggiungi il tuo primo vino sopra!</p>"; return; }
             
             let html = '';
             user.degustazioni.forEach(d => {
-                let imgHtml = d.imageUrl ? (d.imageUrl.includes('pdf') ? '📄 PDF Allegato' : `<img src="${d.imageUrl}" style="max-height:50px; border-radius:5px;">`) : '';
-                html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:1px solid #eee; border-radius:10px; margin-bottom:10px; background:#fafafa;">
-                    <div><b style="font-size:16px;">${d.vino}</b><br>${imgHtml}<br><small>${d.nota.substring(0, 60)}...</small></div>
-                    <button onclick="deleteTasting('${d.id}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer; font-weight:bold;">🗑️ Elimina</button>
+                let imgHtml = '';
+                if(d.imageUrl) {
+                    imgHtml = d.imageUrl.toLowerCase().includes('.pdf') ? '📄 PDF Allegato' : `<img src="${d.imageUrl}" style="max-height:60px; border-radius:5px; border:1px solid #ccc; cursor:pointer;" onclick="openMedia('${d.imageUrl}', '${d.vino}')">`;
+                }
+                html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:20px; border:1px solid #ddd; border-radius:12px; margin-bottom:15px; background:#fff;">
+                    <div style="flex:1;">
+                        <b style="font-size:18px; color:var(--main);">${d.vino}</b><br>
+                        <div style="margin:10px 0;">${imgHtml}</div>
+                        <small style="color:#555;">${d.nota.substring(0, 100)}...</small>
+                    </div>
+                    <div style="display:flex; gap:10px; flex-direction:column;">
+                        <button onclick="editTasting('${d.id}')" style="background:var(--blue); color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">👁️ Espandi / Modifica</button>
+                        <button onclick="deleteTasting('${d.id}')" style="background:#e74c3c; color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">🗑️ Elimina</button>
+                    </div>
                 </div>`;
             });
             l.innerHTML = html;
@@ -292,20 +350,21 @@
             renderTastingsList();
         }
 
-        // CARICAMENTO MEDIA UNIVERSALE E DIPLOMI
+        // CARICAMENTO MEDIA UNIVERSALE (Foto, Video, PDF)
         function up() { const f = document.getElementById('f-in').files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); const xhr = new XMLHttpRequest(); document.getElementById('p-cont').style.display='block'; xhr.upload.onprogress = (e) => document.getElementById('p-run').style.width = Math.round((e.loaded/e.total)*100)+'%'; xhr.onload = () => { alert("Caricato!"); loadM(); document.getElementById('p-cont').style.display='none'; }; xhr.open('POST', '/api/upload'); xhr.send(fd); }
         async function loadM() { 
             const r = await fetch('/api/media'); const items = await r.json(); const list = document.getElementById('m-list'); list.innerHTML = ''; 
             items.filter(m => m.ownerId === user._id).forEach(m => { 
                 const isV = m.type.includes('video'); const isP = m.type.includes('pdf'); let html = '';
                 if(isV) html = `<video src="${m.url}" controls style="width:100%; border-radius:8px; height:150px; object-fit:cover;"></video>`;
-                else if(isP) html = `<iframe src="${m.url}" style="width:100%; height:150px; border:none; border-radius:8px;"></iframe><a href="${m.url}" target="_blank" style="font-size:12px; color:var(--blue);">Apri PDF</a>`;
-                else html = `<img src="${m.url}" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">`;
-                list.innerHTML += `<div class="card" style="padding:15px; text-align:center;"><b>${m.name}</b><br>${html}<button onclick="delM('${m._id}')" style="width:100%; color:white; background:#e74c3c; border:none; font-weight:bold; padding:8px; margin-top:10px; border-radius:5px; cursor:pointer;">🗑️ Elimina</button></div>`; 
+                else if(isP) html = `<div style="width:100%; height:150px; background:#eee; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:40px; cursor:pointer;" onclick="openMedia('${m.url}', '${m.name}')">📄</div>`;
+                else html = `<img src="${m.url}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="openMedia('${m.url}', '${m.name}')">`;
+                list.innerHTML += `<div class="card" style="padding:15px; text-align:center; border:1px solid #ddd;"><b>${m.name}</b><br><div style="margin:10px 0;">${html}</div><button onclick="delM('${m._id}')" style="width:100%; color:white; background:#e74c3c; border:none; font-weight:bold; padding:10px; border-radius:5px; cursor:pointer;">🗑️ Elimina File</button></div>`; 
             }); 
         }
         function delM(id) { fetch('/api/media/'+id, {method:'DELETE'}).then(() => loadM()); }
 
+        // IMPOSTAZIONI: CERTIFICAZIONI RISOLTE! (Non più click sovrapposti)
         function triggerCertUpload(sigla) { document.getElementById('up-' + sigla).click(); }
         async function uploadCertFile(input, sigla) { 
             const f = input.files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); 
@@ -318,24 +377,50 @@
 
         function renderSettings() {
             const s = document.getElementById('settings-fields');
-            const style = "width:100%; padding:12px; margin:8px 0 15px 0; border:1px solid #ddd; border-radius:10px; box-sizing:border-box;";
-            let common = `<label>Nome:</label><input id="s-nome" value="${user.nome}" style="${style}"><label>Città:</label><input id="s-loc" value="${user.location}" style="${style}">`;
+            const style = "width:100%; padding:14px; margin:8px 0 20px 0; border:1px solid #ddd; border-radius:10px; box-sizing:border-box; font-size:16px;";
+            let common = `<label style="font-weight:bold;">Nome Display:</label><input id="s-nome" value="${user.nome}" style="${style}"><label style="font-weight:bold;">Città di Riferimento:</label><input id="s-loc" value="${user.location}" style="${style}">`;
+            
             if(user.tipo === 'Sommelier') {
-                let certs = '<label>Certificazioni (📎 Allega Diploma / PDF):</label><div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:15px;">';
-                sigle.forEach(sig => { const isCk = user.certificazioni && user.certificazioni.includes(sig); const hasF = user.certFiles && user.certFiles[sig]; certs += `<div class="cert-container"><label class="cert-label"><input type="checkbox" value="${sig}" class="cert-cb" ${isCk?'checked':''}><div class="cert-box">${sig} ${hasF?'📄':''}</div></label><button class="cert-up-btn" onclick="triggerCertUpload('${sig}')">📎</button><input type="file" id="up-${sig}" style="display:none" onchange="uploadCertFile(this, '${sig}')"></div>`; });
+                // Layout certificazioni rifatto per essere 100% interattivo senza conflitti
+                let certs = '<label style="font-weight:bold;">Certificazioni Possedute:</label><div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:20px; margin-top:5px;">';
+                sigle.forEach(sig => { 
+                    const isCk = user.certificazioni && user.certificazioni.includes(sig); 
+                    const hasF = user.certFiles && user.certFiles[sig]; 
+                    certs += `
+                    <div style="display:flex; align-items:center; justify-content:space-between; background:#fafafa; border:1px solid #ddd; padding:10px 15px; border-radius:8px;">
+                        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
+                            <input type="checkbox" value="${sig}" class="cert-cb" ${isCk?'checked':''} style="width:20px; height:20px;">
+                            <b style="color:${isCk?'var(--main)':'#444'}; font-size:16px;">${sig}</b>
+                        </label>
+                        <div style="display:flex; gap:10px;">
+                            ${hasF ? `<button onclick="openMedia('${user.certFiles[sig]}', 'Diploma ${sig}')" title="Visualizza File" style="background:var(--blue); color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer;">👁️ Vedi</button>` : ''}
+                            <button onclick="triggerCertUpload('${sig}')" title="Allega File" style="background:var(--main); color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer;">📎 Allega</button>
+                            <input type="file" id="up-${sig}" style="display:none" onchange="uploadCertFile(this, '${sig}')">
+                        </div>
+                    </div>`; 
+                });
                 certs += '</div>';
-                s.innerHTML = common + `<label>Ruolo:</label><input id="s-ruolo" value="${user.ruolo||''}" style="${style}"><label>Specializzazioni (Virgola):</label><input id="s-spec" value="${user.specializzazioni||''}" style="${style}"><label>Bio:</label><textarea id="s-bio" style="${style} height:80px;">${user.bio||''}</textarea>${certs}</div>`;
+
+                s.innerHTML = common + `
+                <label style="font-weight:bold;">Ruolo (Es. Sommelier AIS):</label><input id="s-ruolo" value="${user.ruolo||''}" style="${style}">
+                <label style="font-weight:bold;">Specializzazioni (Separate da virgola):</label><input id="s-spec" value="${user.specializzazioni||''}" style="${style}">
+                <label style="font-weight:bold;">Biografia Breve:</label><textarea id="s-bio" style="${style} height:100px;">${user.bio||''}</textarea>
+                ${certs}`;
             } else {
-                s.innerHTML = common + `<label>Regione:</label><input id="s-reg" value="${user.regione||''}" style="${style}"><label>Sito:</label><input id="s-sito" value="${user.sito||''}" style="${style}"><label>Filosofia:</label><input id="s-filo" value="${user.filosofia||''}" style="${style}"><label>Storia:</label><textarea id="s-storia" style="${style} height:100px;">${user.storia||''}</textarea>`;
+                s.innerHTML = common + `<label style="font-weight:bold;">Regione:</label><input id="s-reg" value="${user.regione||''}" style="${style}"><label style="font-weight:bold;">Sito Internet:</label><input id="s-sito" value="${user.sito||''}" style="${style}"><label style="font-weight:bold;">Filosofia Aziendale:</label><input id="s-filo" value="${user.filosofia||''}" style="${style}"><label style="font-weight:bold;">La Nostra Storia:</label><textarea id="s-storia" style="${style} height:150px;">${user.storia||''}</textarea>`;
             }
         }
 
         async function saveSet() { 
             let d = { nome: document.getElementById('s-nome').value, location: document.getElementById('s-loc').value }; 
-            if(user.tipo === 'Sommelier') { d.ruolo = document.getElementById('s-ruolo').value; d.specializzazioni = document.getElementById('s-spec').value; d.bio = document.getElementById('s-bio').value; let c = []; document.querySelectorAll('.cert-cb:checked').forEach(cb => c.push(cb.value)); d.certificazioni = c.join(','); } 
-            else { d.regione = document.getElementById('s-reg').value; d.sito = document.getElementById('s-sito').value; d.storia = document.getElementById('s-storia').value; d.filosofia = document.getElementById('s-filo').value; } 
+            if(user.tipo === 'Sommelier') { 
+                d.ruolo = document.getElementById('s-ruolo').value; d.specializzazioni = document.getElementById('s-spec').value; d.bio = document.getElementById('s-bio').value; 
+                let c = []; document.querySelectorAll('.cert-cb:checked').forEach(cb => c.push(cb.value)); d.certificazioni = c.join(','); 
+            } else { 
+                d.regione = document.getElementById('s-reg').value; d.sito = document.getElementById('s-sito').value; d.storia = document.getElementById('s-storia').value; d.filosofia = document.getElementById('s-filo').value; 
+            } 
             const r = await fetch('/api/user/'+user._id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }); 
-            const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); alert("Impostazioni Salvate!"); location.reload(); 
+            const j = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(j.user)); alert("Impostazioni Salvate Correttamente!"); location.reload(); 
         }
 
         function renderPricing() {
@@ -343,8 +428,8 @@
             const plans = user.tipo === 'Sommelier' ? [{n:'Freemium',v:0,f:['Profilo base']},{n:'Pro',v:19,f:['Badge Staff','ID Ufficiale','Oltre 20 Contatti'],feat:true}] : [{n:'Starter',v:0,f:['Sblocchi a 15€']},{n:'Business',v:39,f:['5 Sblocchi inclusi al mese'],feat:true}];
             plans.forEach(p => { l.innerHTML += `<div class="card" style="text-align:center; ${p.feat?'border:3px solid var(--gold)':''}"><h3>Piano ${p.n}</h3><div style="font-size:36px; font-weight:900;">€${p.v}</div><ul style="padding:0; list-style:none; text-align:left;">${p.f.map(f=>`<li>✔️ ${f}</li>`).join('')}</ul><button onclick="${p.v===0?'':`payUpgrade('${p.n}',${p.v})`}" class="btn-main">${user.piano===p.n?'Attivo':'Attiva Ora'}</button></div>`; });
         }
-        async function payUpgrade(p, v) { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:p, prezzo:v, userId:user._id, type:'upgrade'})}); const d = await r.json(); if(d.url) window.location.href = d.url; }
-        async function payUnlock(tid) { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:'Sblocca Contatto', prezzo:15, type:'unlock', targetId:tid, userId:user._id})}); const d = await r.json(); if(d.url) window.location.href = d.url; }
+        async function payUpgrade(p, v) { try { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:p, prezzo:v, userId:user._id, type:'upgrade'})}); const d = await r.json(); if(d.url) { window.location.href = d.url; } else { alert("Errore Stripe."); } } catch(e) { alert("Errore connessione."); } }
+        async function payUnlock(tid) { try { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:'Sblocca Contatto', prezzo:15, type:'unlock', targetId:tid, userId:user._id})}); const d = await r.json(); if(d.url) { window.location.href = d.url; } else { alert("Errore Stripe."); } } catch(e) { alert("Errore connessione."); } }
 
         async function loadU() {
             const r = await fetch('/api/users'); const users = await r.json();
@@ -353,15 +438,15 @@
             users.filter(u => u._id !== user._id).forEach(u => {
                 const s = u.isVerified ? '<span style="color:green;">✅ 🍷</span>' : '';
                 let btn = '';
-                if(IS_STAFF) btn = `<button onclick="toggleVerify('${u._id}', ${u.isVerified})" style="background:${u.isVerified?'red':'green'}; color:white; border:none; padding:5px 10px; border-radius:5px; margin-right:5px; cursor:pointer;">${u.isVerified?'DE-VERIFICA':'VERIFICA'}</button> <button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:5px 10px;">Chat</button>`;
+                if(IS_STAFF) btn = `<button onclick="toggleVerify('${u._id}', ${u.isVerified})" style="background:${u.isVerified?'red':'green'}; color:white; border:none; padding:8px 12px; border-radius:5px; margin-right:5px; cursor:pointer; font-weight:bold;">${u.isVerified?'DE-VERIFICA':'VERIFICA'}</button> <button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:8px 15px;">Chat</button>`;
                 else if (user.tipo === 'Cantina' && u.tipo === 'Sommelier') {
                     if (user.unlockedContacts?.includes(u._id)) btn = `<button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto;">Chat</button>`;
-                    else if (user.piano === 'Business' && user.unlocksRemaining > 0) btn = `<button onclick="useCredit('${u._id}')" style="background:var(--gold); border:none; padding:8px; border-radius:5px; cursor:pointer;">Usa Credito (${user.unlocksRemaining})</button>`;
-                    else btn = `<button onclick="payUnlock('${u._id}')" style="background:black; color:white; border:none; padding:8px; border-radius:5px; cursor:pointer;">Sblocca (€15)</button>`;
-                } else btn = `<button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:6px 15px;">Chat</button>`;
+                    else if (user.piano === 'Business' && user.unlocksRemaining > 0) btn = `<button onclick="useCredit('${u._id}')" style="background:var(--gold); border:none; padding:8px; border-radius:5px; cursor:pointer; font-weight:bold;">Usa Credito (${user.unlocksRemaining})</button>`;
+                    else btn = `<button onclick="payUnlock('${u._id}')" style="background:black; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold;">Sblocca (€15)</button>`;
+                } else btn = `<button onclick="openChat('${u._id}','${u.nome}')" class="btn-main" style="width:auto; padding:8px 15px;">Chat</button>`;
                 
                 const link = IS_STAFF ? `<b onclick="viewUser('${u._id}')" style="cursor:pointer; color:var(--blue); text-decoration:underline;">${u.nome} ${s}</b>` : `<b>${u.nome} ${s}</b>`;
-                const html = `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid #eee; background:#fafafa; border-radius:10px; margin-bottom:8px;"><div>${link}<br><small>${u.location} • ${u.ruolo||u.tipo}</small></div>${btn}</div>`;
+                const html = `<div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border:1px solid #ddd; background:#fff; border-radius:12px; margin-bottom:10px; box-shadow:0 2px 5px rgba(0,0,0,0.02);"><div>${link}<br><small style="color:#666;">${u.location} • ${u.ruolo||u.tipo}</small></div>${btn}</div>`;
                 if(u.tipo === 'Sommelier') ls.innerHTML += html; else lc.innerHTML += html;
             });
         }
@@ -372,7 +457,7 @@
             const list = document.getElementById('staff-user-list'); list.innerHTML = '';
             users.forEach(u => {
                 if(u.email === 'dome0082@gmail.com') return;
-                list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><div><b>${u.nome}</b><br><small>${u.email}</small></div><button onclick="adminDelete('${u._id}')" style="color:white; background:red; border:none; font-weight:bold; cursor:pointer; padding:5px; border-radius:5px;">ELIMINA</button></div>`;
+                list.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><div><b>${u.nome}</b><br><small>${u.email}</small></div><button onclick="adminDelete('${u._id}')" style="color:white; background:red; border:none; font-weight:bold; cursor:pointer; padding:8px; border-radius:5px;">ELIMINA</button></div>`;
             });
         }
         async function adminDelete(id) { if(confirm("Cancellare definitivamente?")) { await fetch('/api/admin/delete-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail:user.email, targetId:id})}); loadAdminPanel(); loadU(); } }
@@ -385,12 +470,12 @@
         function upChatFile() { const f = document.getElementById('chat-file').files[0]; if(!f) return; const fd = new FormData(); fd.append('file', f); fd.append('ownerId', user._id); fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(m => { socket.emit('send_msg', { from: user._id, to: curChat, text: "📎 Allegato", fileUrl: m.url, fromName: user.nome }); appendM({text:"📎 Allegato", fileUrl: m.url}, true); }); }
         socket.on('chat_history', (ms) => { const b = document.getElementById('c-msgs'); b.innerHTML=''; ms.forEach(m => appendM(m, m.from===user._id)); });
         socket.on('new_msg', (m) => { if(m.from===curChat) appendM(m,false); });
-        function appendM(m, me) { const b = document.getElementById('c-msgs'); let c = m.text; if(m.fileUrl) c += `<br><a href="${m.fileUrl}" target="_blank" style="color:${me?'white':'var(--main)'}"><b>Apri File</b></a>`; b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; background:${me?'var(--main)':'white'}; color:${me?'white':'black'}; padding:10px; border-radius:10px; max-width:80%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">${c}</div>`; b.scrollTop = b.scrollHeight; }
+        function appendM(m, me) { const b = document.getElementById('c-msgs'); let c = m.text; if(m.fileUrl) c += `<br><b onclick="openMedia('${m.fileUrl}')" style="color:${me?'white':'var(--main)'}; cursor:pointer; text-decoration:underline;">Apri File</b>`; b.innerHTML += `<div style="align-self:${me?'flex-end':'flex-start'}; background:${me?'var(--main)':'white'}; color:${me?'white':'black'}; padding:10px 15px; border-radius:10px; max-width:80%; box-shadow:0 2px 5px rgba(0,0,0,0.05);">${c}</div>`; b.scrollTop = b.scrollHeight; }
 
         async function takeOut() { if(confirm("Cancellare tutto? Questa azione è irreversibile.")) { await fetch('/api/user/'+user._id, { method:'DELETE' }); localStorage.clear(); window.location.href="/index.html"; } }
         function toggleNoti() { const p = document.getElementById('noti-panel'); p.style.display = p.style.display==='block'?'none':'block'; document.getElementById('noti-count').style.display='none'; }
         socket.on('notification', (n) => { document.getElementById('noti-count').innerText = "!"; document.getElementById('noti-count').style.display='block'; document.getElementById('noti-list').innerHTML = `<div style="padding:15px; border-bottom:1px solid #eee;"><b>${n.title}</b><br>${n.body}</div>` + document.getElementById('noti-list').innerHTML; });
-        async function loadGallery(oid) { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === oid && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">`); }
+        async function loadGallery(oid) { const r = await fetch('/api/media'); const items = await r.json(); const g = document.getElementById('g-cantina'); if(!g) return; items.filter(m => m.ownerId === oid && m.type.includes('image')).forEach(m => g.innerHTML += `<img src="${m.url}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="openMedia('${m.url}')">`); }
         function logout() { localStorage.clear(); window.location.href="/index.html"; }
         
         document.getElementById('nav-user').innerText = (IS_STAFF ? "Staff: " : "") + user.nome;
@@ -398,4 +483,3 @@
     </script>
 </body>
 </html>
-
