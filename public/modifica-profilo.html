@@ -5,31 +5,193 @@
     <title>EnoHub - Modifica Profilo</title>
     <style>
         :root { --main: #8a1c1c; --grey: #f8f9fa; }
-        body { font-family: sans-serif; background: var(--grey); padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; }
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
-        .btn-save { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--grey); padding: 20px; margin: 0; }
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: var(--main); border-bottom: 2px solid var(--main); padding-bottom: 10px; margin-top: 20px; }
+        label { display: block; margin-top: 20px; font-weight: bold; color: #333; }
+        input[type="text"], textarea { width: 100%; padding: 12px; margin-top: 8px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-family: inherit; }
+        .btn-save { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 30px; font-size: 16px; transition: 0.3s; }
+        .btn-save:hover { background: #219653; }
+        .btn-add { background: var(--main); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        .row-vino { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
+        .btn-del { background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .preview-img { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; margin-top: 10px; display: block; border: 2px solid #eee; }
+        .back-link { text-decoration: none; color: #666; font-weight: bold; display: inline-block; margin-bottom: 20px; }
+        .back-link:hover { color: var(--main); }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="dashboard.html" style="text-decoration:none; color:var(--main);">← Indietro</a>
-        <h2>Modifica Profilo</h2>
-        <label>Nome / Ragione Sociale:</label><input type="text" id="m-nome">
-        <label>Città / Regione:</label><input type="text" id="m-loc">
-        <label>Biografia / Certificati:</label><textarea id="m-bio" rows="5"></textarea>
-        <button class="btn-save" onclick="save()">💾 SALVA TUTTO</button>
+        <a href="dashboard.html" class="back-link">← Torna alla Dashboard</a>
+        
+        <h2 id="titolo-modifica">Modifica Profilo</h2>
+
+        <label>Nome / Ragione Sociale:</label>
+        <input type="text" id="m-nome" placeholder="Inserisci il tuo nome o quello dell'azienda">
+        
+        <label>Città / Regione:</label>
+        <input type="text" id="m-loc" placeholder="Es: Firenze, Toscana">
+
+        <label>Foto Profilo / Logo Aziendale:</label>
+        <input type="file" onchange="uploadPic(this)" style="margin-top:10px;">
+        <div id="pic-area"></div>
+
+        <div id="area-cantina" style="display:none;">
+            <h2>Gestione Cantina</h2>
+            
+            <label>I Nostri Vini (Tabella):</label>
+            <div id="vini-list"></div>
+            <button class="btn-add" onclick="addVinoRow()">+ Aggiungi Vino</button>
+
+            <label style="margin-top:30px;">Galleria Immagini Cantina (Carica una foto alla volta):</label>
+            <input type="file" onchange="uploadGallery(this)" style="margin-top:10px;">
+            <div id="gallery-list" style="display:flex; gap:15px; flex-wrap:wrap; margin-top:15px;"></div>
+        </div>
+
+        <div id="area-sommelier" style="display:none;">
+            <h2>Informazioni Sommelier</h2>
+            
+            <label>Biografia / Esperienza:</label>
+            <textarea id="m-bio" rows="6" placeholder="Racconta la tua esperienza nel mondo del vino..."></textarea>
+        </div>
+
+        <button class="btn-save" onclick="saveAll()">💾 SALVA TUTTE LE MODIFICHE</button>
     </div>
+
     <script>
+        // Recupero l'utente loggato dal localStorage
         let user = JSON.parse(localStorage.getItem('enohub_user'));
-        document.getElementById('m-nome').value = user.nome;
-        document.getElementById('m-loc').value = user.location || '';
-        document.getElementById('m-bio').value = user.bio || '';
-        async function save() {
-            const d = { nome: document.getElementById('m-nome').value, location: document.getElementById('m-loc').value, bio: document.getElementById('m-bio').value, adminEmail: user.email };
-            const r = await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d)});
-            const res = await r.json(); if(res.success) { localStorage.setItem('enohub_user', JSON.stringify(res.user)); window.location.href="dashboard.html"; }
+        if(!user) window.location.href = "index.html";
+
+        let viniTable = [];
+        let galleryArr = [];
+
+        // Inizializzazione dati
+        function init() {
+            document.getElementById('m-nome').value = user.nome || '';
+            document.getElementById('m-loc').value = user.location || '';
+            
+            viniTable = user.vini || [];
+            galleryArr = user.gallery || [];
+            
+            // Mostra sezioni diverse in base al tipo di utente
+            if(user.tipo === 'Cantina') {
+                document.getElementById('area-cantina').style.display = 'block';
+                renderViniTable();
+                renderGallery();
+            } else {
+                document.getElementById('area-sommelier').style.display = 'block';
+                document.getElementById('m-bio').value = user.bio || '';
+            }
+            
+            renderPic();
         }
+
+        // --- GESTIONE FOTO PROFILO/LOGO ---
+        function renderPic() {
+            const area = document.getElementById('pic-area');
+            if(user.profilePic) {
+                area.innerHTML = `
+                    <div style="margin-top:10px;">
+                        <img src="${user.profilePic}" class="preview-img">
+                        <button onclick="delPic()" style="color:red; cursor:pointer; background:none; border:none; margin-top:5px; font-weight:bold;">🗑️ Elimina Foto</button>
+                    </div>`;
+            } else {
+                area.innerHTML = "";
+            }
+        }
+
+        async function uploadPic(input) {
+            if(!input.files[0]) return;
+            const fd = new FormData(); fd.append('file', input.files[0]);
+            const r = await fetch('/api/upload', {method:'POST', body:fd});
+            const d = await r.json();
+            user.profilePic = d.url;
+            renderPic();
+        }
+
+        function delPic() { 
+            user.profilePic = ""; 
+            renderPic(); 
+        }
+
+        // --- GESTIONE VINI (SOLO CANTINA) ---
+        function addVinoRow() {
+            viniTable.push({nome: '', tipologia: ''});
+            renderViniTable();
+        }
+
+        function renderViniTable() {
+            const container = document.getElementById('vini-list');
+            container.innerHTML = viniTable.map((v, i) => `
+                <div class="row-vino">
+                    <input type="text" placeholder="Nome Vino (es. Barolo)" value="${v.nome}" onchange="updateVino(${i}, 'nome', this.value)" style="margin-top:0;">
+                    <input type="text" placeholder="Tipologia (es. Rosso DOCG)" value="${v.tipologia}" onchange="updateVino(${i}, 'tipologia', this.value)" style="margin-top:0;">
+                    <button class="btn-del" onclick="removeVino(${i})" title="Elimina vino">✕</button>
+                </div>
+            `).join('');
+        }
+        
+        function updateVino(i, field, val) { viniTable[i][field] = val; }
+        function removeVino(i) { viniTable.splice(i,1); renderViniTable(); }
+
+        // --- GESTIONE GALLERIA (SOLO CANTINA) ---
+        async function uploadGallery(input) {
+            if(!input.files[0]) return;
+            const fd = new FormData(); fd.append('file', input.files[0]);
+            const r = await fetch('/api/upload', {method:'POST', body:fd});
+            const d = await r.json();
+            galleryArr.push(d.url);
+            renderGallery();
+            input.value = ''; // Resetta l'input file dopo il caricamento
+        }
+        
+        function renderGallery() {
+            document.getElementById('gallery-list').innerHTML = galleryArr.map((img, i) => `
+                <div style="position:relative; display:inline-block;">
+                    <img src="${img}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ccc;">
+                    <button onclick="removeGal(${i})" style="position:absolute; top:-5px; right:-5px; background:#e74c3c; color:white; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.3);">×</button>
+                </div>
+            `).join('');
+        }
+        
+        function removeGal(i) { galleryArr.splice(i,1); renderGallery(); }
+
+        // --- SALVATAGGIO FINALE SUL SERVER ---
+        async function saveAll() {
+            // Raccogliamo tutti i dati inseriti
+            const updatedData = {
+                nome: document.getElementById('m-nome').value,
+                location: document.getElementById('m-loc').value,
+                profilePic: user.profilePic,
+                vini: viniTable,
+                gallery: galleryArr,
+                bio: document.getElementById('m-bio') ? document.getElementById('m-bio').value : ''
+            };
+
+            try {
+                const r = await fetch('/api/user/' + user._id, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(updatedData)
+                });
+                const res = await r.json();
+                
+                if(res.success) {
+                    // Aggiorna il localStorage con i nuovi dati salvati
+                    localStorage.setItem('enohub_user', JSON.stringify(res.user));
+                    alert("✅ Profilo aggiornato con successo!");
+                    window.location.href = "dashboard.html"; // Riporta l'utente alla dashboard
+                } else {
+                    alert("Errore durante il salvataggio: " + res.error);
+                }
+            } catch(e) {
+                alert("Errore di connessione col server.");
+            }
+        }
+
+        // Avvia la funzione all'apertura della pagina
+        init();
     </script>
 </body>
 </html>
