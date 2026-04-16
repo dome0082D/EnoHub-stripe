@@ -67,7 +67,8 @@
         <section id="sec-subs" style="display:none;">
             <div class="card" style="text-align:center;">
                 <h2>Il tuo Piano: <span id="current-plan-display" style="color:var(--main);"></span></h2>
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-top:30px;">
+                
+                <div id="subs-sommelier" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-top:30px;">
                     <div class="tier-card" id="tier-Freemium">
                         <h3>Free</h3><div class="price">€0</div>
                         <ul class="benefits"><li>✅ Dati profilo</li><li>❌ 0 Note degustazione</li><li>❌ 0 Chat cantine</li></ul>
@@ -84,6 +85,25 @@
                         <button onclick="pay('Premium', 29)" class="btn-main" style="background:var(--gold);">Scegli Premium</button>
                     </div>
                 </div>
+
+                <div id="subs-cantina" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-top:30px;">
+                    <div class="tier-card" id="tier-Freemium-Cantina">
+                        <h3>Free</h3><div class="price">€0</div>
+                        <ul class="benefits"><li>✅ Inserisci dati Cantina</li><li>✅ Sblocca profilo di 1 Sommelier (15€/mese)</li></ul>
+                        <button class="btn-main" style="background:#ccc; cursor:default;">Attivo</button>
+                    </div>
+                    <div class="tier-card" id="tier-Pro-Cantina">
+                        <h3>Pro</h3><div class="price">€25<small>/mese</small></div>
+                        <ul class="benefits"><li>✅ Dati profilo completi</li><li>✅ 2 gettoni per sbloccare Sommelier al mese</li><li>✅ Chat attiva</li></ul>
+                        <button onclick="pay('Pro', 25)" class="btn-main">Scegli Pro</button>
+                    </div>
+                    <div class="tier-card" id="tier-Premium-Cantina">
+                        <h3>Premium</h3><div class="price">€50<small>/mese</small></div>
+                        <ul class="benefits"><li>✅ Dati profilo completi</li><li>✅ 5 gettoni per sbloccare contatti Sommelier</li><li>✅ Chat attiva</li><li>✅ Contatto diretto staff tramite chat apposita</li></ul>
+                        <button onclick="pay('Premium', 50)" class="btn-main" style="background:var(--gold);">Scegli Premium</button>
+                    </div>
+                </div>
+
             </div>
         </section>
 
@@ -115,8 +135,20 @@
             if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
             document.getElementById('nav-tastings').style.display = 'block';
             document.getElementById('current-plan-display').innerText = user.piano;
+            
+            // Logica per mostrare i box corretti in base al tipo di utente
+            if(user.tipo === 'Cantina') {
+                document.getElementById('subs-cantina').style.display = 'grid';
+                document.getElementById('subs-sommelier').style.display = 'none';
+            } else {
+                document.getElementById('subs-cantina').style.display = 'none';
+                document.getElementById('subs-sommelier').style.display = 'grid';
+            }
+
             document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('active'));
-            if(document.getElementById('tier-'+user.piano)) document.getElementById('tier-'+user.piano).classList.add('active');
+            // Attiva il bordo colorato sul piano corretto in base all'id dinamico
+            const tierId = user.tipo === 'Cantina' ? 'tier-' + user.piano + '-Cantina' : 'tier-' + user.piano;
+            if(document.getElementById(tierId)) document.getElementById(tierId).classList.add('active');
 
             show(sessionStorage.getItem('last_v') || 'profile');
         }
