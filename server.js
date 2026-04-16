@@ -30,6 +30,7 @@ const User = mongoose.model('User', new mongoose.Schema({
     isVerified: { type: Boolean, default: false },
     degustazioni: { type: Array, default: [] },
     unlockedContacts: { type: Array, default: [] },
+    blockedUsers: { type: Array, default: [] }, // NUOVO: Array per gli utenti bloccati dalla regola chat
     profilePic: { type: String, default: "" },
     vini: { type: Array, default: [] },
     gallery: { type: Array, default: [] }
@@ -91,7 +92,6 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 app.get('/api/users', async (req, res) => res.json(await User.find({}, '-password')));
 app.get('/api/user/:id', async (req, res) => res.json(await User.findById(req.params.id, '-password')));
 
-// NUOVA ROTTA: STORICO ARCHIVIO CHAT PER UTENTE
 app.get('/api/chats/:id', async (req, res) => {
     try {
         const msgs = await Message.find({ $or: [{ from: req.params.id }, { to: req.params.id }] }).sort({ time: -1 });
@@ -130,7 +130,7 @@ app.put('/api/user/:id', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
-// --- CHAT CON LIMITI SOCKET.IO ---
+// --- CHAT CON LIMITI E FILTRO REGOLA FONDAMENTALE (SOCKET.IO) ---
 io.on('connection', (socket) => {
     socket.on('join', (id) => socket.join(id));
     
@@ -138,6 +138,39 @@ io.on('connection', (socket) => {
         const sender = await User.findById(d.from);
         const target = await User.findById(d.to);
 
+        // Controllo se sono bloccati tra di loro
+        if ((sender.blockedUsers && sender.blockedUsers.includes(d.to)) || 
+            (target.blockedUsers && target.blockedUsers.includes(d.from))) {
+            return socket.emit('chat_error', { error: '🚨 Non puoi più scrivere a questo utente. La chat è stata disabilitata per violazione delle regole.' });
+        }
+
+        // REGOLA FONDAMENTALE: Filtro Link e Numeri di telefono (8+ numeri anche con spazi)
+        const ruleRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|([+0-9][\s\-]*){8,})/i;
+        
+        // L'admin è immune al filtro
+        if (ruleRegex.test(d.text) && sender.email !== 'dome0082@gmail.com') {
+            
+            // 1. Cancella tutto lo storico tra i due
+            await Message.deleteMany({ $or: [{from: sender._id, to: target._id}, {from: target._id, to: sender._id}] });
+            
+            // 2. Blocca gli utenti a vicenda
+            if (!sender.blockedUsers) sender.blockedUsers = [];
+            if (!target.blockedUsers) target.blockedUsers = [];
+            sender.blockedUsers.push(target._id.toString());
+            target.blockedUsers.push(sender._id.toString());
+            await sender.save();
+            await target.save();
+
+            // 3. Avvisa il mittente e chiudi la chat
+            socket.emit('chat_error', { error: '🚨 REGOLA VIOLATA: Hai inviato un link o un numero di telefono. La chat è stata eliminata definitivamente.' });
+            socket.emit('force_close_chat');
+            
+            // 4. Avvisa il destinatario (se online)
+            io.to(d.to).emit('chat_error', { error: `🚨 Il sistema ha bloccato ed eliminato la chat con ${sender.nome} per violazione delle policy sui contatti.` });
+            return;
+        }
+
+        // Controllo limite cantine contattate per i piani inferiori
         if(sender.email !== 'dome0082@gmail.com' && target.tipo === 'Cantina') {
             const history = await Message.find({ from: sender._id });
             const cantineContattate = [...new Set(history.map(m => m.to.toString()))];
@@ -160,4 +193,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🚀 EnoHub V4 Online sulla porta ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 EnoHub V4 Onlin
