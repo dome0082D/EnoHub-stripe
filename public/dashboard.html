@@ -153,7 +153,6 @@
             localStorage.setItem('enohub_user', JSON.stringify(user));
             if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
             
-            // Note degustazione visibili per tutti i piani tranne Free (o come preferisci)
             document.getElementById('nav-tastings').style.display = 'block';
             
             document.getElementById('current-plan-display').innerText = user.piano;
@@ -174,9 +173,52 @@
             document.getElementById('sidebar').classList.remove('active');
         }
 
+        // --- RENDERIZZAZIONE DINAMICA DEL PROFILO ---
         function renderP() {
             const badge = user.isVerified ? `<div class="eh-badge"><span>EH</span> ✅ Verificato</div>` : '';
-            document.getElementById('sec-profile').innerHTML = `<div class="card"><h1>${user.nome} ${badge}</h1><p>Status: <b>${user.piano}</b></p></div>`;
+            
+            let html = `
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <h1 style="margin-top:0;">${user.nome} ${badge}</h1>
+                            <p>📍 ${user.location || 'Località non specificata'} | Piano: <b>${user.piano}</b></p>
+                        </div>
+                        <div style="text-align:center;">
+                            ${user.profilePic ? `<img src="${user.profilePic}" style="width:100px; height:100px; border-radius:10px; object-fit:cover; border:2px solid var(--main);">` : `<div style="width:100px; height:100px; background:#eee; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; font-size:12px; color:#666;">Nessuna Foto</div>`}
+                            <br><a href="modifica-profilo.html" class="btn-main" style="display:inline-block; margin-top:10px; text-decoration:none; padding:8px 15px; font-size:12px;">✎ Modifica Profilo</a>
+                        </div>
+                    </div>
+                    <hr>`;
+
+            if (user.tipo === 'Cantina') {
+                // VISTA CANTINA
+                html += `
+                    <h3>🍷 I Nostri Vini</h3>
+                    <table style="width:100%; text-align:left; border-collapse:collapse; margin-bottom:20px;">
+                        <tr style="background:#f8f9fa;">
+                            <th style="padding:10px; border-bottom:2px solid #ddd;">Nome</th>
+                            <th style="padding:10px; border-bottom:2px solid #ddd;">Tipologia</th>
+                        </tr>
+                        ${(user.vini && user.vini.length > 0) ? user.vini.map(v => `<tr><td style="padding:10px; border-bottom:1px solid #eee;">${v.nome}</td><td style="padding:10px; border-bottom:1px solid #eee;">${v.tipologia}</td></tr>`).join('') : '<tr><td colspan="2" style="padding:10px; text-align:center;">Nessun vino inserito.</td></tr>'}
+                    </table>
+                    
+                    <h3>📸 Galleria Cantina</h3>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:10px;">
+                        ${(user.gallery && user.gallery.length > 0) ? user.gallery.map(img => `<img src="${img}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="window.open('${img}', '_blank')">`).join('') : '<p style="color:#666; font-size:14px;">Nessuna immagine in galleria.</p>'}
+                    </div>`;
+            } else {
+                // VISTA SOMMELIER
+                html += `
+                    <h3>👤 Biografia</h3>
+                    <p style="white-space: pre-wrap;">${user.bio || "Nessuna biografia inserita. Usa il tasto 'Modifica Profilo' per aggiungerla."}</p>
+                    
+                    <h3 style="margin-top:20px;">🍷 Ultime Degustazioni (${user.degustazioni ? user.degustazioni.length : 0})</h3>
+                    <p style="font-size:14px; color:#666;">Vai alla sezione "Note di Degustazione" dal menù per gestire i tuoi vini salvati.</p>`;
+            }
+
+            html += `</div>`;
+            document.getElementById('sec-profile').innerHTML = html;
         }
 
         // --- DEGUSTAZIONI CON LIMITI ---
@@ -298,4 +340,3 @@
     </script>
 </body>
 </html>
-
