@@ -214,9 +214,16 @@
             document.getElementById('sidebar').classList.remove('active');
         }
 
+        // --- RENDER PROFILO AGGIORNATO ---
         function renderP() {
             const badge = user.isVerified ? `<div class="eh-badge"><span>EH</span> ✅ Verificato</div>` : '';
-            let html = `<div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            
+            // --- NUOVO: Sfondo personalizzato se presente ---
+            let customBg = user.coverPic 
+                ? `background: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.95)), url('${user.coverPic}') center/cover;` 
+                : '';
+
+            let html = `<div class="card" style="${customBg}"><div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div><h1 style="margin-top:0;">${user.nome} ${badge}</h1><p>📍 ${user.location || 'Località non specificata'} | Piano: <b>${user.piano}</b></p></div>
                         <div style="text-align:center;">
                             ${user.profilePic ? `<img src="${user.profilePic}" style="width:100px; height:100px; border-radius:10px; object-fit:cover; border:2px solid var(--main);">` : `<div style="width:100px; height:100px; background:#eee; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; font-size:12px; color:#666;">Nessuna Foto</div>`}
