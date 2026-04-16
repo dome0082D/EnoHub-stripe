@@ -35,16 +35,16 @@
         <h3 style="padding:0 25px; color:var(--main);">EnoHub</h3>
         <a onclick="show('profile')">👤 Il mio Profilo</a>
        
-        <a id="nav-chats" onclick="show('chats')" style="font-weight:bold; color:var(--main);">💬 Archivio Chat</a>
+        <a id="nav-chats" onclick="show('chats')">💬 Archivio Chat</a>
         
-        <a id="nav-wines" onclick="show('wines')" style="font-weight:bold;">🍷 Archivio Vini</a>
+        <a id="nav-wines" onclick="show('wines')">🍷 Archivio Vini</a>
        
-        <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none; font-weight:bold;">👥 Sommelier</a>
-        <a id="nav-tastings" onclick="show('tastings')" style="display:none; font-weight:bold;">🍷 Note di Degustazione</a>
+        <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none;">👥 Sommelier</a>
+        <a id="nav-tastings" onclick="show('tastings')" style="display:none;">🍷 Note di Degustazione</a>
        
         <a onclick="show('subs')">💎 Upgrade Piano</a>
-        <a id="nav-admin" onclick="show('admin')" style="display:none; color:orange;">🛡️ Staff Panel</a>
-        <hr><a onclick="logout()" style="color:red;">🚪 Esci</a>
+        <a id="nav-admin" onclick="show('admin')" style="display:none;">🛡️ Staff Panel</a>
+        <hr><a onclick="logout()">🚪 Esci</a>
     </nav>
 
     <div class="content">
@@ -236,9 +236,11 @@
             if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
             document.getElementById('current-plan-display').innerText = user.piano;
            
-            // Sblocca Modulo Inserimento Vini SOLO per la Cantina (o admin)
-            if(user.tipo === 'Cantina' || user.email === 'dome0082@gmail.com') {
+            // Sblocca Modulo Inserimento Vini SOLO per la Cantina (L'Admin ora può solo gestirli/eliminarli)
+            if(user.tipo === 'Cantina') {
                 document.getElementById('wine-form-container').style.display = 'block';
+            } else {
+                if(document.getElementById('wine-form-container')) document.getElementById('wine-form-container').style.display = 'none';
             }
 
             if(user.tipo === 'Cantina') {
@@ -274,7 +276,7 @@
             document.getElementById('sidebar').classList.remove('active');
         }
 
-        // --- GESTIONE ARCHIVIO VINI CON PROMOZIONI E DATE ---
+        // --- GESTIONE ARCHIVIO VINI CON PROMOZIONI, DATE E POTERI STAFF ---
         let globalWines = [];
         let editingWineId = null;
 
@@ -295,14 +297,16 @@
             list1.innerHTML = '';
             list2.innerHTML = '';
 
-            const canSeeNames = user.piano !== 'Freemium' || user.email === 'dome0082@gmail.com';
+            const isAdmin = user.email === 'dome0082@gmail.com';
+            const canSeeNames = user.piano !== 'Freemium' || isAdmin;
 
             const normalWines = wines.filter(w => !w.isPromo).sort((a, b) => a.nome.localeCompare(b.nome));
             const promoWines = wines.filter(w => w.isPromo).sort((a, b) => a.nome.localeCompare(b.nome));
 
             const drawItem = (w) => {
                 const cantinaName = (canSeeNames || w.cantinaId === user._id) ? w.cantinaNome : 'Cantina (Oscurata - Upgrade richiesto)';
-                const isOwner = w.cantinaId === user._id || user.email === 'dome0082@gmail.com';
+                const isOwner = w.cantinaId === user._id;
+                const canModifyOrDelete = isOwner || isAdmin;
                 
                 let promoHtml = '';
                 if(w.isPromo) {
@@ -316,16 +320,24 @@
                     </div>`;
                 }
 
+                // Tasti visibili: la Cantina vede Modifica ed Elimina. Lo staff vede solo "Elimina (Staff)" per i vini non suoi.
+                let actionButtons = '';
+                if (canModifyOrDelete) {
+                    actionButtons = `<div style="margin-top:10px;">`;
+                    if (isOwner) {
+                        actionButtons += `<button class="btn-main" style="padding:5px 10px; font-size:12px; background:orange; margin-right:5px;" onclick="editWine('${w._id}')">Modifica</button>`;
+                    }
+                    actionButtons += `<button class="btn-main" style="padding:5px 10px; font-size:12px; background:#ff5252;" onclick="deleteWine('${w._id}')">${isAdmin && !isOwner ? '🗑️ Elimina (Staff)' : 'Elimina'}</button>
+                    </div>`;
+                }
+
                 return `
                     <div style="padding:15px; border:1px solid #ddd; border-radius:8px; margin-bottom:10px; background:white; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                         <b style="color:var(--main); font-size:16px;">${w.nome}</b><br>
                         <small style="color:#666;">📍 ${w.location} | 🏢 <b>${cantinaName}</b></small>
                         <p style="font-size:14px; margin:8px 0; color:#333;">${w.nota}</p>
                         ${promoHtml}
-                        ${isOwner ? `<div style="margin-top:10px;">
-                            <button class="btn-main" style="padding:5px 10px; font-size:12px; background:orange;" onclick="editWine('${w._id}')">Modifica</button>
-                            <button class="btn-main" style="padding:5px 10px; font-size:12px; background:#ff5252;" onclick="deleteWine('${w._id}')">Elimina</button>
-                        </div>` : ''}
+                        ${actionButtons}
                     </div>
                 `;
             };
@@ -421,7 +433,7 @@
         function renderP() {
             const badge = user.isVerified ? `<div class="eh-badge"><span>EH</span> ✅ Verificato</div>` : '';
             let customBg = user.coverPic 
-                ? `background: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.95)), url('${user.coverPic}') center/cover;` 
+                ? `background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.95)), url('${user.coverPic}') center/cover; padding-top: 150px; min-height: 200px;` 
                 : '';
 
             let html = `<div class="card" style="${customBg}"><div style="display:flex; justify-content:space-between; align-items:flex-start;">
