@@ -1,4 +1,3 @@
-
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -19,7 +18,7 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ DATABASE: EnoHub Diamond V4 Online'))
     .catch(e => console.log('❌ DB ERROR:', e.message));
 
-// --- SCHEMA UTENTE (VERSIONE INTEGRALE) ---
+// --- SCHEMA UTENTE ---
 const User = mongoose.model('User', new mongoose.Schema({
     nome: String, 
     email: { type: String, unique: true }, 
@@ -33,18 +32,13 @@ const User = mongoose.model('User', new mongoose.Schema({
     unlockedContacts: { type: Array, default: [] },
     
     // Campi per Profili Differenziati
-    profilePic: { type: String, default: "" }, // Foto profilo (Sommelier) o Logo (Cantina)
-    vini: { type: Array, default: [] }, // Tabella vini (solo Cantina)
-    gallery: { type: Array, default: [] } // Archivio immagini (solo Cantina)
+    profilePic: { type: String, default: "" },
+    vini: { type: Array, default: [] },
+    gallery: { type: Array, default: [] }
 }));
 
 const Message = mongoose.model('Message', new mongoose.Schema({ 
-    from: String, 
-    to: String, 
-    fromName: String, 
-    text: String, 
-    fileUrl: String, 
-    time: { type: Date, default: Date.now } 
+    from: String, to: String, fromName: String, text: String, fileUrl: String, time: { type: Date, default: Date.now } 
 }));
 
 // --- CONFIGURAZIONE MIDDLEWARE ---
@@ -53,7 +47,6 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
-// Configurazione Cartelle Upload
 fs.ensureDirSync('public/uploads/media');
 const upload = multer({ storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'public/uploads/media'),
@@ -70,19 +63,12 @@ app.post('/api/login', async (req, res) => {
     else res.status(401).json({ success: false });
 });
 
-// Pagamenti Stripe (Upgrade Piano)
+// Pagamenti Stripe
 app.post('/api/create-checkout', async (req, res) => {
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            line_items: [{ 
-                price_data: { 
-                    currency: 'eur', 
-                    product_data: { name: `EnoHub Upgrade: ${req.body.piano}` }, 
-                    unit_amount: req.body.prezzo * 100 
-                }, 
-                quantity: 1 
-            }],
+            line_items: [{ price_data: { currency: 'eur', product_data: { name: `EnoHub Upgrade: ${req.body.piano}` }, unit_amount: req.body.prezzo * 100 }, quantity: 1 }],
             mode: 'payment',
             success_url: `${req.headers.origin}/dashboard.html?payment=success&piano=${req.body.piano}&uid=${req.body.userId}`,
             cancel_url: `${req.headers.origin}/dashboard.html`,
@@ -91,7 +77,7 @@ app.post('/api/create-checkout', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Attivazione Automatica Piano e Spunta EH ✅ (Per Premium)
+// Attivazione Automatica Piano
 app.post('/api/activate-plan', async (req, res) => {
     try {
         const { userId, piano } = req.body;
@@ -99,7 +85,6 @@ app.post('/api/activate-plan', async (req, res) => {
         if(!u) return res.status(404).json({ success: false });
 
         u.piano = piano;
-        // Se il piano è Premium, attiva la verifica automatica dello staff
         if(piano === "Premium") u.isVerified = true;
         
         await u.save();
@@ -107,51 +92,53 @@ app.post('/api/activate-plan', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
-// Upload File (Foto, Loghi, Galleria)
+// Upload File
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     res.json({ url: '/uploads/media/' + req.file.filename });
 });
 
-// Get Dati Utenti
+// Dati Utenti
 app.get('/api/users', async (req, res) => res.json(await User.find({}, '-password')));
 app.get('/api/user/:id', async (req, res) => res.json(await User.findById(req.params.id, '-password')));
 
-// Salvataggio Profilo con Controllo Limiti Degustazioni
+// --- POTERI SUPER ADMIN E MODIFICA PROFILO ---
+
+// ELIMINAZIONE PROFILO (Solo Admin)
+app.delete('/api/admin/user/:id', async (req, res) => {
+    if (req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false, error: "Accesso negato" });
+    try {
+        await User.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
+});
+
+// GESTIONE SPUNTA VERDE (Solo Admin)
+app.post('/api/admin/verify', async (req, res) => {
+    if (req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false });
+    await User.findByIdAndUpdate(req.body.targetId, { isVerified: req.body.verifyStatus });
+    res.json({ success: true });
+});
+
+// MODIFICA PROFILO (con bypass per Super Admin)
 app.put('/api/user/:id', async (req, res) => {
     try {
         const u = await User.findById(req.params.id);
-        
-        // Logica Limiti Note di Degustazione
-        if(req.body.degustazioni) {
-            let limite = 0; // Freemium
+        const isAdmin = req.body.adminEmail === 'dome0082@gmail.com';
+
+        if (!isAdmin && req.body.degustazioni) {
+            let limite = 0;
             if(u.piano === "Pro") limite = 3;
             if(u.piano === "Premium") limite = 10;
-            
-            // Bypass per l'admin staff
-            if(u.email !== 'dome0082@gmail.com' && req.body.degustazioni.length > limite) {
-                return res.status(403).json({ 
-                    success: false, 
-                    error: `Il tuo piano ${u.piano} permette massimo ${limite} note di degustazione.` 
-                });
-            }
+            if (req.body.degustazioni.length > limite) return res.status(403).json({ success: false, error: "Limite raggiunto." });
         }
 
         Object.assign(u, req.body);
         await u.save(); 
         res.json({ success: true, user: u });
-    } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
-    }
+    } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
-// Admin: Verifica Manuale Staff
-app.post('/api/admin/verify', async (req, res) => {
-    if(req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false });
-    await User.findByIdAndUpdate(req.body.targetId, { isVerified: req.body.verifyStatus });
-    res.json({ success: true });
-});
-
-// --- CHAT CON CONTROLLO LIMITI PIANI (SOCKET.IO) ---
+// --- CHAT CON LIMITI SOCKET.IO ---
 io.on('connection', (socket) => {
     socket.on('join', (id) => socket.join(id));
     
@@ -159,26 +146,19 @@ io.on('connection', (socket) => {
         const sender = await User.findById(d.from);
         const target = await User.findById(d.to);
 
-        // Controllo limiti se il mittente NON è admin staff
         if(sender.email !== 'dome0082@gmail.com' && target.tipo === 'Cantina') {
-            // Conta quante cantine DIVERSE ha contattato l'utente
             const history = await Message.find({ from: sender._id });
             const cantineContattate = [...new Set(history.map(m => m.to.toString()))];
-
-            let maxCantine = 0; // Freemium
+            let maxCantine = 0;
             if(sender.piano === "Pro") maxCantine = 1;
             if(sender.piano === "Premium") maxCantine = 3;
 
-            // Se l'utente prova a scrivere a una cantina nuova e ha finito i bonus: blocca
             if(!cantineContattate.includes(d.to.toString()) && cantineContattate.length >= maxCantine) {
-                return socket.emit('chat_error', { 
-                    error: `Il tuo piano ${sender.piano} permette di contattare massimo ${maxCantine} cantine.` 
-                });
+                return socket.emit('chat_error', { error: `Limite chat superato per il piano ${sender.piano}.` });
             }
         }
 
-        const m = new Message(d); 
-        await m.save();
+        const m = new Message(d); await m.save();
         io.to(d.to).emit('new_msg', m);
     });
 
