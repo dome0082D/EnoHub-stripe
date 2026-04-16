@@ -5,188 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EnoHub - Connessione Vinicola</title>
     <style>
-        /* ============================================================
-           ENOHUB - DESIGN SYSTEM AGGIORNATO (FIX ANDROID + STRIPE)
-           ============================================================ */
-        :root { 
-            --wine-red: #6b0d0d; 
-            --wine-gold: #c5a059;
-            --dark-glass: rgba(0, 0, 0, 0.75);
-            --shadow: 0 8px 30px rgba(0,0,0,0.3);
-        }
-
+        :root { --main: #8a1c1c; --light-gray: #f0f0f0; }
+        
         body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            color: #fff; 
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)), 
-                        url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover;
-            overflow-x: hidden; 
+            font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; color: #333; 
+            /* SFONDO GLOBALE VIGNETI */
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=80&w=1920') center/cover fixed;
         }
 
-        /* HEADER & NAVIGATION FIX PER ANDROID */
-        .nav-top { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 20px 5%; 
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(5px);
-        }
+        /* HEADER & NAV */
+        .nav-top { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); }
+        .logo { color: white; font-size: 28px; font-weight: bold; text-decoration: none; }
 
-        .logo { color: white; font-size: 32px; font-weight: bold; text-decoration: none; }
-
-        .auth-btns { display: flex; gap: 15px; }
-
-        .auth-btns a { 
-            text-decoration: none; 
-            background: white; 
-            color: var(--wine-red); 
-            padding: 10px 22px; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            transition: 0.3s; 
-        }
-
-        /* MEDIA QUERY PER EVITARE ACCAVALLAMENTI SU MOBILE */
+        /* MENÙ A SCOMPARSA GRIGIO CHIARO */
+        .auth-btns { display: flex; gap: 10px; }
+        
         @media (max-width: 768px) {
-            .nav-top { flex-direction: column; gap: 20px; text-align: center; }
-            .auth-btns { flex-direction: column; width: 100%; }
-            .auth-btns a { width: 100%; text-align: center; box-sizing: border-box; }
+            .auth-btns { 
+                display: none; /* In un'app reale qui useresti un toggle JS */
+                flex-direction: column; 
+                position: absolute; top: 60px; right: 0; 
+                background-color: var(--light-gray); /* GRIGIO CHIARO */
+                width: 200px; padding: 20px; border-radius: 0 0 0 10px;
+                box-shadow: -5px 5px 15px rgba(0,0,0,0.2);
+            }
+            .auth-btns.active { display: flex; }
+            .auth-btns a { color: var(--main) !important; width: 100%; text-align: center; }
         }
 
-        /* SEZIONI CONTENUTO */
-        .section-title { text-align: center; font-size: 36px; margin: 50px 0; color: var(--wine-gold); }
+        .auth-btns a { text-decoration: none; background: white; color: var(--main); padding: 10px 20px; border-radius: 5px; font-weight: bold; transition: 0.3s; }
 
-        .container-box { 
-            display: flex; 
-            justify-content: center; 
-            gap: 30px; 
-            flex-wrap: wrap; 
-            padding: 0 5%; 
+        /* SEZIONI E CARD */
+        .section-box { padding: 60px 5%; text-align: center; color: white; }
+        .container-grid { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; }
+        
+        .card { 
+            background: rgba(255,255,255,0.95); padding: 30px; border-radius: 15px; width: 280px; color: #333;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); transition: 0.3s;
         }
+        .card:hover { transform: translateY(-10px); }
 
-        /* CARD PRICING / UPGRADE STRIPE */
-        .home__card {
-            background: var(--dark-glass);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 40px;
-            width: 300px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: 0.3s;
-            box-shadow: var(--shadow);
-        }
-
-        .home__card:hover { border-color: var(--wine-gold); transform: translateY(-10px); }
-
-        .btn-upgrade {
-            display: inline-block;
-            margin-top: 20px;
-            background: var(--wine-red);
-            color: white;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            border: 1px solid var(--wine-gold);
-            width: 100%;
-        }
-
-        /* GALLERIA FASCINO DEL VINO */
-        .fascino-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px 5%; }
+        /* IMMAGINI FASCINO DEL VINO */
         .fascino-item { 
-            position: relative; 
-            width: 300px; 
-            height: 400px; 
-            overflow: hidden; 
-            border-radius: 15px; 
-            box-shadow: var(--shadow);
+            position: relative; width: 300px; height: 400px; border-radius: 12px; overflow: hidden; 
+            background-size: cover; background-position: center;
         }
-        .fascino-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
-        .fascino-item:hover img { transform: scale(1.1); }
-        .fascino-item span { 
-            position: absolute; 
-            bottom: 20px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            background: var(--dark-glass); 
-            padding: 10px 20px; 
-            border-radius: 8px; 
-            font-size: 1.2rem;
-            width: 80%;
-            text-align: center;
-        }
+        .img-degustazione { background-image: url('https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=600'); }
+        .img-cantina { background-image: url('https://images.unsplash.com/photo-1568213816046-0ee1c42bd559?q=80&w=600'); }
+        .img-bottiglie { background-image: url('https://images.unsplash.com/photo-1511214041137-975993710720?q=80&w=600'); }
 
-        .red-banner { background-color: var(--wine-red); color: white; padding: 70px 5%; text-align: center; margin-top: 50px; }
+        .fascino-item span { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.6); color: white; padding: 15px 0; font-weight: bold; }
+
+        .btn-pay { background: var(--main); color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <nav class="nav-top">
         <a href="#" class="logo">EnoHub</a>
+        <div style="color: white; cursor: pointer; display: none;" id="menu-toggle" onclick="document.querySelector('.auth-btns').classList.toggle('active')">☰</div>
         <div class="auth-btns">
             <a href="/auth/login.html">Accedi</a>
             <a href="/auth/register.html">Registrati</a>
         </div>
     </nav>
 
-    <h2 class="section-title">Cosa puoi fare su EnoHub</h2>
-    <div class="container-box">
-        <div class="home__card">
-            <h1 style="font-size: 40px;">🍇</h1>
-            <h3>Scopri Cantine</h3>
-            <p>Esplora le migliori cantine italiane, filtra per regione e denominazione.</p>
+    <section class="section-box">
+        <h1>Piani Premium</h1>
+        <div class="container-grid">
+            <div class="card">
+                <h3>Sommelier Pro</h3>
+                <p>Metti in risalto il tuo talento</p>
+                <button onclick="EnoHubApi.payWithStripe('Sommelier Pro', 15)" class="btn-pay">Carta €15</button>
+                <button onclick="EnoHubApi.payWithBank('Sommelier Pro', 15)" class="btn-pay" style="background: #2c3e50;">Bonifico</button>
+            </div>
+            <div class="card">
+                <h3>Cantina Premium</h3>
+                <p>Espandi la tua visibilità</p>
+                <button onclick="EnoHubApi.payWithStripe('Cantina Premium', 29)" class="btn-pay">Carta €29</button>
+                <button onclick="EnoHubApi.payWithBank('Cantina Premium', 29)" class="btn-pay" style="background: #2c3e50;">Bonifico</button>
+            </div>
         </div>
-        <div class="home__card">
-            <h1 style="font-size: 40px;">👥</h1>
-            <h3>Trova Sommelier</h3>
-            <p>Cerca professionisti del vino per specializzazione e certificazione.</p>
-        </div>
-    </div>
+    </section>
 
-    <h2 class="section-title">Piani Premium</h2>
-    <div class="container-box">
-        <div class="home__card">
-            <h3>Sommelier Pro</h3>
-            <p>Metti in risalto il tuo profilo e ricevi offerte dirette.</p>
-            <h2 style="color: var(--wine-gold);">€15/mese</h2>
-            <button onclick="EnoHubApi.upgradeAccount('sommelier_pro')" class="btn-upgrade">Scegli Pro</button>
+    <section class="section-box" style="background: rgba(255,255,255,0.05);">
+        <h2>Il fascino del vino</h2>
+        <div class="container-grid">
+            <div class="fascino-item img-degustazione"><span>Degustazione</span></div>
+            <div class="fascino-item img-cantina"><span>Le Cantine</span></div>
+            <div class="fascino-item img-bottiglie"><span>Sommelier Expert</span></div>
         </div>
-        <div class="home__card">
-            <h3>Cantina Premium</h3>
-            <p>Vendi i tuoi vini e gestisci eventi esclusivi.</p>
-            <h2 style="color: var(--wine-gold);">€29/mese</h2>
-            <button onclick="EnoHubApi.upgradeAccount('cantina_premium')" class="btn-upgrade">Scegli Premium</button>
-        </div>
-    </div>
-
-    <h2 class="section-title">Il fascino del vino</h2>
-    <div class="fascino-grid">
-        <div class="fascino-item">
-            <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=500" alt="Degustazione">
-            <span>Degustazione</span>
-        </div>
-        <div class="fascino-item">
-            <img src="https://images.unsplash.com/photo-1568213816046-0ee1c42bd559?q=80&w=500" alt="Tradizione">
-            <span>Tradizione</span>
-        </div>
-        <div class="fascino-item">
-            <img src="https://images.unsplash.com/photo-1511214041137-975993710720?q=80&w=500" alt="Professionalità">
-            <span>Professionalità</span>
-        </div>
-    </div>
-
-    <div class="red-banner">
-        <h2>Unisciti alla Community</h2>
-        <p>Registrati come cantina o sommelier e inizia a connetterti</p>
-        <a href="/auth/register.html" class="btn-upgrade" style="width: auto; background: white; color: var(--wine-red);">Inizia Ora</a>
-    </div>
+    </section>
 
     <script src="Api.js"></script>
 </body>
 </html>
+
