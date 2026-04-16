@@ -38,6 +38,7 @@
         <a id="nav-chats" onclick="show('chats')">💬 Archivio Chat</a>
         
         <a id="nav-wines" onclick="show('wines')">🍷 Archivio Vini</a>
+        <a id="nav-topwines" onclick="show('topwines')">🏆 Top 5 Vini</a>
        
         <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none;">👥 Sommelier</a>
         <a id="nav-tastings" onclick="show('tastings')" style="display:none;">🍷 Note di Degustazione</a>
@@ -56,6 +57,15 @@
                 <p style="font-size:14px; color:#666;">Qui trovi lo storico di tutte le tue conversazioni.</p>
                 <hr>
                 <div id="chats-list"></div>
+            </div>
+        </section>
+
+        <section id="sec-topwines" style="display:none;">
+            <div class="card">
+                <h2 style="margin-top:0; color:var(--main);">🏆 Classifica: I 5 Vini Più Amati</h2>
+                <p style="font-size:14px; color:#666;">I vini che hanno ricevuto più "Mi Piace" dalla nostra community.</p>
+                <hr>
+                <div id="top-wines-list"></div>
             </div>
         </section>
 
@@ -236,19 +246,14 @@
             if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
             document.getElementById('current-plan-display').innerText = user.piano;
            
-            // Sblocca Modulo Inserimento Vini SOLO per la Cantina (L'Admin ora può solo gestirli/eliminarli)
             if(user.tipo === 'Cantina') {
                 document.getElementById('wine-form-container').style.display = 'block';
-            } else {
-                if(document.getElementById('wine-form-container')) document.getElementById('wine-form-container').style.display = 'none';
-            }
-
-            if(user.tipo === 'Cantina') {
                 document.getElementById('subs-cantina').style.display = 'grid';
                 document.getElementById('subs-sommelier').style.display = 'none';
                 document.getElementById('nav-sommeliers').style.display = 'block';
                 document.getElementById('nav-tastings').style.display = 'none'; 
             } else {
+                if(document.getElementById('wine-form-container')) document.getElementById('wine-form-container').style.display = 'none';
                 document.getElementById('subs-cantina').style.display = 'none';
                 document.getElementById('subs-sommelier').style.display = 'grid';
                 document.getElementById('nav-sommeliers').style.display = 'none';
@@ -269,6 +274,7 @@
             document.getElementById('sec-'+id).style.display = 'block';
             if(id === 'profile') renderP();
             if(id === 'wines') renderWines();
+            if(id === 'topwines') renderTopWines(); // NUOVO MENU TOP 5
             if(id === 'tastings') renderT();
             if(id === 'admin') loadA();
             if(id === 'sommeliers') renderS();
@@ -276,7 +282,7 @@
             document.getElementById('sidebar').classList.remove('active');
         }
 
-        // --- GESTIONE ARCHIVIO VINI CON PROMOZIONI, DATE E POTERI STAFF ---
+        // --- GESTIONE ARCHIVIO VINI, LIKES E PROMOZIONI ---
         let globalWines = [];
         let editingWineId = null;
 
@@ -289,6 +295,19 @@
             const r = await fetch('/api/wines');
             globalWines = await r.json();
             drawWines(globalWines);
+        }
+
+        async function toggleLikeWine(id) {
+            await fetch('/api/wines/' + id + '/like', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({userId: user._id})
+            });
+            renderWines();
+            // Aggiorna in tempo reale anche la classifica se è aperta
+            if(document.getElementById('sec-topwines').style.display === 'block') {
+                renderTopWines();
+            }
         }
 
         function drawWines(wines) {
@@ -320,16 +339,23 @@
                     </div>`;
                 }
 
-                // Tasti visibili: la Cantina vede Modifica ed Elimina. Lo staff vede solo "Elimina (Staff)" per i vini non suoi.
-                let actionButtons = '';
+                // Gestione Like Button
+                const hasLiked = w.likes && w.likes.includes(user._id);
+                const likeIcon = hasLiked ? '❤️' : '🤍';
+                const likeCount = w.likes ? w.likes.length : 0;
+
+                let actionButtons = `<div style="margin-top:10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">`;
+                
+                // Bottone Like (visibile a tutti)
+                actionButtons += `<button style="padding:6px 12px; font-size:13px; background:white; border:1px solid #ccc; border-radius:5px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:5px;" onclick="toggleLikeWine('${w._id}')">${likeIcon} ${likeCount}</button>`;
+
                 if (canModifyOrDelete) {
-                    actionButtons = `<div style="margin-top:10px;">`;
                     if (isOwner) {
-                        actionButtons += `<button class="btn-main" style="padding:5px 10px; font-size:12px; background:orange; margin-right:5px;" onclick="editWine('${w._id}')">Modifica</button>`;
+                        actionButtons += `<button class="btn-main" style="padding:6px 12px; font-size:12px; background:orange;" onclick="editWine('${w._id}')">Modifica</button>`;
                     }
-                    actionButtons += `<button class="btn-main" style="padding:5px 10px; font-size:12px; background:#ff5252;" onclick="deleteWine('${w._id}')">${isAdmin && !isOwner ? '🗑️ Elimina (Staff)' : 'Elimina'}</button>
-                    </div>`;
+                    actionButtons += `<button class="btn-main" style="padding:6px 12px; font-size:12px; background:#ff5252;" onclick="deleteWine('${w._id}')">${isAdmin && !isOwner ? '🗑️ Elimina (Staff)' : 'Elimina'}</button>`;
                 }
+                actionButtons += `</div>`;
 
                 return `
                     <div style="padding:15px; border:1px solid #ddd; border-radius:8px; margin-bottom:10px; background:white; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
@@ -348,6 +374,50 @@
             if(promoWines.length === 0) list2.innerHTML = '<p style="color:#666; font-size:14px;">Nessun vino selezionato al momento.</p>';
             else promoWines.forEach(w => list2.innerHTML += drawItem(w));
         }
+
+        // --- CLASSIFICA TOP 5 VINI ---
+        async function renderTopWines() {
+            const r = await fetch('/api/wines');
+            let wines = await r.json();
+            
+            // Ordina per numero di like (decrescente) e prendi solo i primi 5
+            wines = wines.sort((a, b) => (b.likes ? b.likes.length : 0) - (a.likes ? a.likes.length : 0)).slice(0, 5);
+            
+            const container = document.getElementById('top-wines-list');
+            container.innerHTML = '';
+            
+            if(wines.length === 0 || (wines[0].likes && wines[0].likes.length === 0)) {
+                container.innerHTML = '<p style="color:#666;">Nessun vino ha ancora ricevuto dei Mi Piace.</p>';
+                return;
+            }
+
+            wines.forEach((w, index) => {
+                if(!w.likes || w.likes.length === 0) return; // Nascondi se non ha like
+                
+                const likeCount = w.likes.length;
+                let rankMedal = '';
+                if(index === 0) rankMedal = '🥇';
+                else if(index === 1) rankMedal = '🥈';
+                else if(index === 2) rankMedal = '🥉';
+                else rankMedal = `<b style="color:#666;">#${index + 1}</b>`;
+
+                container.innerHTML += `
+                    <div style="padding:20px; border:1px solid var(--gold); border-radius:10px; margin-bottom:15px; background:linear-gradient(to right, #fff, #fffcf5); box-shadow:0 4px 10px rgba(0,0,0,0.05); display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+                        <div style="font-size:35px; min-width:50px; text-align:center;">${rankMedal}</div>
+                        <div style="flex:1;">
+                            <h3 style="margin:0; color:var(--main); font-size:20px;">${w.nome}</h3>
+                            <p style="font-size:14px; color:#666; margin:5px 0;">📍 ${w.location}</p>
+                            <p style="font-size:15px; color:#333; margin:10px 0; font-style:italic;">"${w.nota}"</p>
+                        </div>
+                        <div style="text-align:center; background:white; padding:15px; border-radius:10px; border:1px solid #eee; min-width:80px;">
+                            <div style="font-size:24px;">❤️</div>
+                            <div style="font-size:20px; font-weight:bold; margin-top:5px;">${likeCount}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
 
         function filterWines() {
             const term = document.getElementById('search-wine').value.toLowerCase();
@@ -397,7 +467,6 @@
             document.getElementById('w-is-promo').checked = w.isPromo || false;
             document.getElementById('w-promo-text').value = w.promoText || '';
             
-            // Imposta date nei riquadri
             if(w.promoStart) document.getElementById('w-promo-start').value = new Date(w.promoStart).toISOString().split('T')[0];
             if(w.promoEnd) document.getElementById('w-promo-end').value = new Date(w.promoEnd).toISOString().split('T')[0];
             
@@ -534,7 +603,7 @@
             if(res.success) {
                 user = res.user;
                 localStorage.setItem('enohub_user', JSON.stringify(user));
-                document.getElementById('search-somm').value = ''; // Resetta il filtro
+                document.getElementById('search-somm').value = ''; 
                 renderS();
             }
         }
