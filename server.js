@@ -41,7 +41,7 @@ const Message = mongoose.model('Message', new mongoose.Schema({
     from: String, to: String, fromName: String, text: String, fileUrl: String, time: { type: Date, default: Date.now }
 }));
 
-// --- SCHEMA: ARCHIVIO VINI (AGGIORNATO) ---
+// --- SCHEMA: ARCHIVIO VINI ---
 const Wine = mongoose.model('Wine', new mongoose.Schema({
     nome: String,
     location: String,
@@ -52,6 +52,7 @@ const Wine = mongoose.model('Wine', new mongoose.Schema({
     promoEnd: String,
     cantinaId: String,
     cantinaNome: String,
+    likes: { type: Array, default: [] }, // NUOVO: Array che contiene gli ID di chi ha messo like
     time: { type: Date, default: Date.now }
 }));
 
@@ -114,11 +115,29 @@ app.get('/api/chats/:id', async (req, res) => {
     } catch (e) { res.status(500).json([]); }
 });
 
-// --- API ARCHIVIO VINI ---
+// --- API ARCHIVIO VINI & LIKES ---
 app.get('/api/wines', async (req, res) => res.json(await Wine.find().sort({nome: 1})));
 app.post('/api/wines', async (req, res) => { const w = new Wine(req.body); await w.save(); res.json({success:true}); });
 app.put('/api/wines/:id', async (req, res) => { await Wine.findByIdAndUpdate(req.params.id, req.body); res.json({success:true}); });
 app.delete('/api/wines/:id', async (req, res) => { await Wine.findByIdAndDelete(req.params.id); res.json({success:true}); });
+
+// Toggle Like
+app.post('/api/wines/:id/like', async (req, res) => {
+    try {
+        const wine = await Wine.findById(req.params.id);
+        const userId = req.body.userId;
+        if (!wine || !userId) return res.status(400).json({success: false});
+        
+        const index = wine.likes.indexOf(userId);
+        if (index === -1) {
+            wine.likes.push(userId); // Aggiungi like
+        } else {
+            wine.likes.splice(index, 1); // Rimuovi like
+        }
+        await wine.save();
+        res.json({success: true, wine});
+    } catch (e) { res.status(500).json({success: false, error: e.message}); }
+});
 
 // --- POTERI SUPER ADMIN E MODIFICA PROFILO ---
 app.delete('/api/admin/user/:id', async (req, res) => {
