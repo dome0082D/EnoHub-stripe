@@ -32,7 +32,7 @@ body, html { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; height:
 /* CARD FASCINO */
 .fascino-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 50px; }
 .fascino-card { width: 300px; height: 400px; border-radius: 15px; position: relative; overflow: hidden; background-size: cover; background-position: center; }
-.bg-degustazione { background-image: url('https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=500'); }
-.bg-cantina-box { background-image: url('https://images.unsplash.com/photo-1568213816046-0ee1c42bd559?q=80&w=500'); }
-.bg-bottiglie-box { background-image: url('https://images.unsplash.com/photo-1511214041137-975993710720?q=80&w=500'); }
+.bg-degustazione { background-image: url('https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=1920'); }
+.bg-cantina-box { background-image: url('https://images.unsplash.com/photo-1568213816046-0ee1c42bd559?q=80&w=1920'); }
+.bg-bottiglie-box { background-image: url('https://images.unsplash.com/photo-1511214041137-975993710720?q=80&w=1920'); }
 .fascino-card span { position: absolute; bottom: 20px; width: 100%; text-align: center; color: white; font-weight: bold; font-size: 20px; background: rgba(0,0,0,0.5); padding: 10px 0; }
