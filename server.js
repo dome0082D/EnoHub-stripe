@@ -23,15 +23,13 @@ const User = mongoose.model('User', new mongoose.Schema({
     nome: String, 
     email: { type: String, unique: true }, 
     password: { type: String }, 
-    tipo: { type: String }, // 'Cantina' o 'Sommelier'
+    tipo: { type: String }, 
     piano: { type: String, default: "Freemium" },
     location: { type: String, default: "Italia" }, 
     bio: { type: String, default: "" },
     isVerified: { type: Boolean, default: false },
     degustazioni: { type: Array, default: [] },
     unlockedContacts: { type: Array, default: [] },
-    
-    // Campi per Profili Differenziati
     profilePic: { type: String, default: "" },
     vini: { type: Array, default: [] },
     gallery: { type: Array, default: [] }
@@ -54,8 +52,6 @@ const upload = multer({ storage: multer.diskStorage({
 })});
 
 // --- ROTTE API ---
-
-// Login
 app.post('/api/login', async (req, res) => {
     const email = req.body.email.toLowerCase().trim();
     const u = await User.findOne({ email });
@@ -63,7 +59,6 @@ app.post('/api/login', async (req, res) => {
     else res.status(401).json({ success: false });
 });
 
-// Pagamenti Stripe
 app.post('/api/create-checkout', async (req, res) => {
     try {
         const session = await stripe.checkout.sessions.create({
@@ -77,33 +72,34 @@ app.post('/api/create-checkout', async (req, res) => {
     } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
-// Attivazione Automatica Piano
 app.post('/api/activate-plan', async (req, res) => {
     try {
         const { userId, piano } = req.body;
         const u = await User.findById(userId);
         if(!u) return res.status(404).json({ success: false });
-
         u.piano = piano;
         if(piano === "Premium") u.isVerified = true;
-        
         await u.save();
         res.json({ success: true, user: u });
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
-// Upload File
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     res.json({ url: '/uploads/media/' + req.file.filename });
 });
 
-// Dati Utenti
 app.get('/api/users', async (req, res) => res.json(await User.find({}, '-password')));
 app.get('/api/user/:id', async (req, res) => res.json(await User.findById(req.params.id, '-password')));
 
-// --- POTERI SUPER ADMIN E MODIFICA PROFILO ---
+// NUOVA ROTTA: STORICO ARCHIVIO CHAT PER UTENTE
+app.get('/api/chats/:id', async (req, res) => {
+    try {
+        const msgs = await Message.find({ $or: [{ from: req.params.id }, { to: req.params.id }] }).sort({ time: -1 });
+        res.json(msgs);
+    } catch (e) { res.status(500).json([]); }
+});
 
-// ELIMINAZIONE PROFILO (Solo Admin)
+// --- POTERI SUPER ADMIN E MODIFICA PROFILO ---
 app.delete('/api/admin/user/:id', async (req, res) => {
     if (req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false, error: "Accesso negato" });
     try {
@@ -112,26 +108,22 @@ app.delete('/api/admin/user/:id', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
-// GESTIONE SPUNTA VERDE (Solo Admin)
 app.post('/api/admin/verify', async (req, res) => {
     if (req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false });
     await User.findByIdAndUpdate(req.body.targetId, { isVerified: req.body.verifyStatus });
     res.json({ success: true });
 });
 
-// MODIFICA PROFILO (con bypass per Super Admin)
 app.put('/api/user/:id', async (req, res) => {
     try {
         const u = await User.findById(req.params.id);
         const isAdmin = req.body.adminEmail === 'dome0082@gmail.com';
-
         if (!isAdmin && req.body.degustazioni) {
             let limite = 0;
             if(u.piano === "Pro") limite = 3;
             if(u.piano === "Premium") limite = 10;
             if (req.body.degustazioni.length > limite) return res.status(403).json({ success: false, error: "Limite raggiunto." });
         }
-
         Object.assign(u, req.body);
         await u.save(); 
         res.json({ success: true, user: u });
@@ -157,7 +149,6 @@ io.on('connection', (socket) => {
                 return socket.emit('chat_error', { error: `Limite chat superato per il piano ${sender.piano}.` });
             }
         }
-
         const m = new Message(d); await m.save();
         io.to(d.to).emit('new_msg', m);
     });
