@@ -4,7 +4,7 @@
 
 const EnoHubApi = (() => {
   // Usando '/api' il browser capisce di contattare lo stesso sito su cui si trova
-  const API_URL = '/api'; 
+  const API_URL = '/api';
   const USERS_PATH = '/utenti';
   const CHATS_PATH = '/chat';
   const EVENTS_PATH = '/eventi';
@@ -40,7 +40,7 @@ const EnoHubApi = (() => {
 
   return {
     register: async (formData) => fetchApi(REGISTER_PATH, 'POST', formData, true),
-    
+   
     login: async (email, password) => {
       const result = await fetchApi(LOGIN_PATH, 'POST', { email, password });
       if (result.success) {
@@ -50,7 +50,7 @@ const EnoHubApi = (() => {
       }
       return { success: false, error: result.error };
     },
-    
+   
     logout: () => {
       localStorage.removeItem('enoUser');
       localStorage.removeItem('enoUserToken');
