@@ -8,7 +8,7 @@
         :root { --main: #8a1c1c; --grey: #f8f9fa; --border: #e2e8f0; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fafafa; }
         
-        /* MENU A SCOMPARSA GRIGIO CHIARO (Invariato) */
+        /* MENU A SCOMPARSA GRIGIO CHIARO */
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: var(--grey); border-right: 1px solid var(--border); transition: 0.4s; z-index: 1000; padding-top: 60px; }
         .sidebar.active { left: 0; }
         .sidebar a { display: block; padding: 18px 25px; color: #444; text-decoration: none; border-bottom: 1px solid #eee; cursor: pointer; }
@@ -20,6 +20,7 @@
             background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=20&w=1200') center/cover fixed;
         }
 
+        /* SPUNTA EH VERIFICATA */
         .eh-badge { display: inline-flex; align-items: center; color: #28a745; font-weight: bold; background: #e6ffed; padding: 5px 12px; border-radius: 20px; font-size: 14px; border: 1px solid #28a745; }
         .eh-badge span { color: var(--main); border: 1px solid var(--main); padding: 1px 4px; border-radius: 4px; font-size: 10px; margin-right: 6px; }
 
@@ -50,13 +51,13 @@
 
         <section id="sec-tastings" style="display:none;">
             <div class="card">
-                <h2 id="tasting-title">Note di degustazione</h2>
+                <h2 id="tasting-form-title">Aggiungi Nota di degustazione</h2>
                 <div style="background:rgba(255,255,255,0.8); padding:20px; border-radius:10px;">
                     <input type="text" id="t-vino" placeholder="Nome del vino e annata..." style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
                     <textarea id="t-note" placeholder="Descrizione della degustazione..." style="width:100%; height:80px; padding:12px; border-radius:8px; border:1px solid #ddd;"></textarea>
                     
                     <div style="margin-top:15px;">
-                        <label><b>Carica Etichetta:</b></label><br>
+                        <label><b>Carica Foto Etichetta:</b></label><br>
                         <input type="file" id="t-file" onchange="handleTastingImage(this)" style="margin-top:5px;">
                         
                         <div id="preview-wrapper" class="preview-container">
@@ -65,23 +66,34 @@
                         </div>
                     </div>
 
-                    <button id="t-save-btn" onclick="saveTasting()" class="btn-main" style="margin-top:25px; width:100%; background:#27ae60;">💾 SALVA NEL DIARIO</button>
+                    <button id="t-save-btn" onclick="saveTasting()" class="btn-main" style="margin-top:25px; width:100%; background:#27ae60;">💾 SALVA NELL'ARCHIVIO</button>
                     <button id="t-cancel-edit" onclick="resetTastingForm()" class="btn-main" style="margin-top:10px; width:100%; background:#666; display:none;">ANNULLA MODIFICA</button>
                 </div>
-                <hr><div id="tastings-list"></div>
+                <hr>
+                <div id="tastings-list"></div>
             </div>
         </section>
 
         <section id="sec-subs" style="display:none;">
             <div class="card" style="text-align:center;">
-                <h2>Upgrade Account</h2>
-                <button onclick="pay('Sommelier Pro', 15, 'card')" class="btn-main">Paga con Carta €15</button>
-                <button onclick="pay('Sommelier Pro', 15, 'bank')" class="btn-main" style="background:#2c3e50; margin-top:10px;">Paga con Bonifico</button>
+                <h2>Scegli il tuo Upgrade</h2>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <div style="padding:20px; border:1px solid #ddd; border-radius:10px; background:white;">
+                        <h3>Sommelier Pro</h3><p>€15.00</p>
+                        <button onclick="pay('Sommelier Pro', 15, 'card')" class="btn-main" style="width:100%;">Paga con Carta</button>
+                        <button onclick="pay('Sommelier Pro', 15, 'bank')" class="btn-main" style="background:#2c3e50; margin-top:10px; width:100%;">Bonifico</button>
+                    </div>
+                    <div style="padding:20px; border:1px solid #ddd; border-radius:10px; background:white;">
+                        <h3>Cantina Premium</h3><p>€29.00</p>
+                        <button onclick="pay('Cantina Premium', 29, 'card')" class="btn-main" style="width:100%;">Paga con Carta</button>
+                        <button onclick="pay('Cantina Premium', 29, 'bank')" class="btn-main" style="background:#2c3e50; margin-top:10px; width:100%;">Bonifico</button>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section id="sec-admin" style="display:none;" class="card">
-            <h2>🛡️ Staff Panel</h2>
+            <h2>🛡️ Pannello Staff EnoHub</h2>
             <div id="admin-list"></div>
         </section>
     </div>
@@ -113,13 +125,14 @@
 
         function renderP() {
             const badge = user.isVerified ? `<div class="eh-badge"><span>EH</span> ✅ Verificato</div>` : '';
-            document.getElementById('sec-profile').innerHTML = `<div class="card"><h1>${user.nome} ${badge}</h1><p>${user.piano}</p></div>`;
+            document.getElementById('sec-profile').innerHTML = `<div class="card"><h1>${user.nome} ${badge}</h1><p>Status: <b>${user.piano}</b></p></div>`;
         }
 
-        // --- GESTIONE DEGUSTAZIONI AGGIORNATA ---
+        // --- GESTIONE NOTE DI DEGUSTAZIONE ---
         let tmpImageUrl = '';
         let editingId = null;
 
+        // Gestione Anteprima e Upload
         function handleTastingImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -129,7 +142,6 @@
                 }
                 reader.readAsDataURL(input.files[0]);
                 
-                // Caricamento immediato al server
                 const fd = new FormData(); fd.append('file', input.files[0]);
                 fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(data => {
                     tmpImageUrl = data.url;
@@ -152,8 +164,10 @@
             let list = user.degustazioni || [];
             
             if(editingId) {
+                // MODIFICA
                 list = list.map(d => d.id === editingId ? { ...d, vino, nota, img: tmpImageUrl } : d);
             } else {
+                // NUOVO
                 list.push({ id: Date.now().toString(), vino, nota, img: tmpImageUrl, date: new Date() });
             }
 
@@ -169,7 +183,7 @@
                     ${d.img ? `<img src="${d.img}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;">` : '<div style="width:80px;height:80px;background:#eee;border-radius:8px;"></div>'}
                     <div style="flex:1">
                         <b>${d.vino}</b><br><small>${new Date(d.date).toLocaleDateString()}</small>
-                        <p style="margin:5px 0 0 0;">${d.nota}</p>
+                        <p style="margin:5px 0 0 0; font-size:14px;">${d.nota}</p>
                     </div>
                     <div>
                         <button class="btn-action" style="background:orange;color:white;" onclick="editTasting('${d.id}')">Modifica</button>
@@ -184,7 +198,7 @@
             editingId = id;
             document.getElementById('t-vino').value = d.vino;
             document.getElementById('t-note').value = d.nota;
-            document.getElementById('tasting-title').innerText = "Modifica Nota di Degustazione";
+            document.getElementById('tasting-form-title').innerText = "Modifica Nota";
             document.getElementById('t-cancel-edit').style.display = 'block';
             
             if(d.img) {
@@ -198,7 +212,7 @@
         }
 
         async function deleteTasting(id) {
-            if(!confirm("Sei sicuro di voler eliminare questa nota?")) return;
+            if(!confirm("Eliminare questa nota?")) return;
             const list = user.degustazioni.filter(x => x.id !== id);
             await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list})});
             location.reload();
@@ -209,11 +223,11 @@
             document.getElementById('t-vino').value = '';
             document.getElementById('t-note').value = '';
             removeImageFromForm();
-            document.getElementById('tasting-title').innerText = "Note di degustazione";
+            document.getElementById('tasting-form-title').innerText = "Aggiungi Nota di degustazione";
             document.getElementById('t-cancel-edit').style.display = 'none';
         }
 
-        // --- LOGICA PAGAMENTI E ADMIN (Invariata) ---
+        // --- ALTRE LOGICHE (Invariate) ---
         async function pay(piano, prezzo, metodo) {
             if(metodo === 'card') {
                 const r = await fetch('/api/create-checkout', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano, prezzo})});
@@ -228,7 +242,7 @@
             const l = document.getElementById('admin-list'); l.innerHTML = '';
             utenti.forEach(u => {
                 if(u.email === user.email) return;
-                l.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px;">
+                l.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;">
                     <span>${u.nome}</span>
                     <button class="btn-main" style="padding:5px 10px;" onclick="verify('${u._id}')">${u.isVerified?'Verificato':'Applica EH ✅'}</button>
                 </div>`;
