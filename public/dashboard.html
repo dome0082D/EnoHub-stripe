@@ -35,8 +35,9 @@
         <h3 style="padding:0 25px; color:var(--main);">EnoHub Diamond</h3>
         <a onclick="show('profile')">👤 Il mio Profilo</a>
         
-        <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none; color:var(--main); font-weight:bold;">👥 Sommelier</a>
+        <a id="nav-chats" onclick="show('chats')" style="font-weight:bold; color:var(--main);">💬 Archivio Chat</a>
         
+        <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none; font-weight:bold;">👥 Sommelier</a>
         <a id="nav-tastings" onclick="show('tastings')" style="display:none; font-weight:bold;">🍷 Note di Degustazione</a>
         <a onclick="show('subs')">💎 Upgrade Piano</a>
         <a id="nav-admin" onclick="show('admin')" style="display:none; color:orange;">🛡️ Staff Panel</a>
@@ -45,6 +46,15 @@
 
     <div class="content">
         <section id="sec-profile"></section>
+
+        <section id="sec-chats" style="display:none;">
+            <div class="card">
+                <h2>💬 Archivio Chat</h2>
+                <p style="font-size:14px; color:#666;">Qui trovi lo storico di tutte le tue conversazioni.</p>
+                <hr>
+                <div id="chats-list"></div>
+            </div>
+        </section>
 
         <section id="sec-sommeliers" style="display:none;">
             <div class="card">
@@ -131,10 +141,9 @@
             <button onclick="closeChat()" style="background:none; border:none; color:white; cursor:pointer; font-size:16px;">✖</button>
         </div>
         <div id="chat-messages" style="height:250px; overflow-y:auto; padding:10px; background:#f4f4f4; font-size:14px; display:flex; flex-direction:column; gap:8px;"></div>
-        <div style="display:flex; border-top:1px solid #ddd;">
-            <input type="text" id="chat-input" style="flex:1; border:none; padding:12px; outline:none;" placeholder="Scrivi messaggio...">
-            <button onclick="sendMsg()" style="background:#27ae60; color:white; border:none; padding:0 15px; cursor:pointer; font-weight:bold;">Invia</button>
-        </div>
+        
+        <div id="chat-input-container" style="display:flex; border-top:1px solid #ddd; background:white;">
+            </div>
     </div>
 
     <script>
@@ -163,7 +172,7 @@
             if(user.tipo === 'Cantina') {
                 document.getElementById('subs-cantina').style.display = 'grid';
                 document.getElementById('subs-sommelier').style.display = 'none';
-                document.getElementById('nav-sommeliers').style.display = 'block'; // Mostra menu Sommelier
+                document.getElementById('nav-sommeliers').style.display = 'block'; 
             } else {
                 document.getElementById('subs-cantina').style.display = 'none';
                 document.getElementById('subs-sommelier').style.display = 'grid';
@@ -185,6 +194,7 @@
             if(id === 'tastings') renderT();
             if(id === 'admin') loadA();
             if(id === 'sommeliers') renderS();
+            if(id === 'chats') renderChats();
             document.getElementById('sidebar').classList.remove('active');
         }
 
@@ -209,11 +219,11 @@
             html += `</div>`; document.getElementById('sec-profile').innerHTML = html;
         }
 
-        // --- NUOVA LOGICA: LISTA SOMMELIER E GETTONI ---
+        // --- GESTIONE SOMMELIER ---
         async function renderS() {
             const r = await fetch('/api/users');
             const utenti = await r.json();
-            const list = utenti.filter(u => u.tipo === 'Sommelier'); // Solo i Sommelier
+            const list = utenti.filter(u => u.tipo === 'Sommelier'); 
             const container = document.getElementById('sommelier-list');
             container.innerHTML = '';
 
@@ -226,9 +236,7 @@
             document.getElementById('gettoni-count').innerText = `${maxGettoni - usati} su ${maxGettoni}`;
 
             list.forEach((s, index) => {
-                // Controllo se l'id del sommelier è tra i contatti sbloccati
                 const isUnlocked = user.unlockedContacts && user.unlockedContacts.includes(s._id);
-                
                 let nameDisplay = isUnlocked ? s.nome : `Sommelier N. ${index + 1} (Nome Oscurato)`;
                 let btnHtml = isUnlocked 
                     ? `<button class="btn-main" style="background:#27ae60;" onclick="openChat('${s._id}', '${s.nome}')">💬 Chat</button>` 
@@ -249,25 +257,57 @@
         }
 
         async function unlockSommelier(targetId, gettoniRimasti) {
-            if(gettoniRimasti <= 0) {
-                return alert("Hai esaurito i gettoni gratuiti! Esegui l'upgrade del piano per sbloccare altri profili.");
-            }
+            if(gettoniRimasti <= 0) return alert("Hai esaurito i gettoni gratuiti! Esegui l'upgrade del piano per sbloccare altri profili.");
             if(!confirm('Vuoi usare 1 gettone per sbloccare questo Sommelier e avviare la chat?')) return;
 
-            let arr = user.unlockedContacts || [];
-            arr.push(targetId);
-
-            const r = await fetch('/api/user/' + user._id, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ unlockedContacts: arr })
-            });
+            let arr = user.unlockedContacts || []; arr.push(targetId);
+            const r = await fetch('/api/user/' + user._id, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ unlockedContacts: arr }) });
             const res = await r.json();
-            if(res.success) {
-                user = res.user;
-                localStorage.setItem('enohub_user', JSON.stringify(user));
-                renderS(); // Ricarica la lista
+            if(res.success) { user = res.user; localStorage.setItem('enohub_user', JSON.stringify(user)); renderS(); }
+        }
+
+        // --- GESTIONE ARCHIVIO CHAT ---
+        async function renderChats() {
+            const r1 = await fetch('/api/chats/' + user._id);
+            const msgs = await r1.json();
+            const r2 = await fetch('/api/users');
+            const allUsers = await r2.json();
+            
+            const container = document.getElementById('chats-list');
+            container.innerHTML = '';
+            
+            if(msgs.length === 0) {
+                container.innerHTML = '<p style="color:#666;">Nessuna chat archiviata.</p>';
+                return;
             }
+
+            const contacts = {};
+            msgs.forEach(m => {
+                const contactId = m.from === user._id ? m.to : m.from;
+                if(!contacts[contactId]) contacts[contactId] = m; // Mantiene solo l'ultimo msg
+            });
+
+            Object.keys(contacts).forEach(contactId => {
+                const contactUser = allUsers.find(u => u._id === contactId);
+                if(!contactUser) return;
+                const lastMsg = contacts[contactId];
+                const isMe = lastMsg.from === user._id;
+                const preview = (isMe ? 'Tu: ' : '') + lastMsg.text;
+                const dateStr = new Date(lastMsg.time).toLocaleString();
+
+                container.innerHTML += `
+                    <div style="padding:15px; border:1px solid #eee; border-radius:10px; margin-bottom:10px; background:white; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'" onclick="openChat('${contactUser._id}', '${contactUser.nome}')">
+                        <div style="flex:1;">
+                            <h4 style="margin:0; color:var(--main);">${contactUser.nome} <span style="font-size:12px; color:#999; font-weight:normal;">(${contactUser.tipo || 'Utente'})</span></h4>
+                            <p style="margin:5px 0 0 0; font-size:14px; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%;">${preview}</p>
+                            <small style="color:#aaa;">${dateStr}</small>
+                        </div>
+                        <div>
+                            <button class="btn-main" style="background:#27ae60; padding:8px 15px;">Apri Chat</button>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
         // --- SISTEMA CHAT ---
@@ -278,6 +318,18 @@
             document.getElementById('chat-title').innerText = nome;
             document.getElementById('chat-modal').style.display = 'flex';
             document.getElementById('chat-messages').innerHTML = ''; 
+            
+            // Logica blocco inserimento messaggi se Free
+            const inputArea = document.getElementById('chat-input-container');
+            if (user.piano === 'Freemium' && user.email !== 'dome0082@gmail.com') {
+                inputArea.innerHTML = `<div style="padding:12px; text-align:center; width:100%; color:red; font-size:13px; font-weight:bold; background:#ffebeb;">Esegui l'upgrade per inviare messaggi.</div>`;
+            } else {
+                inputArea.innerHTML = `
+                    <input type="text" id="chat-input" style="flex:1; border:none; padding:12px; outline:none;" placeholder="Scrivi messaggio...">
+                    <button onclick="sendMsg()" style="background:#27ae60; color:white; border:none; padding:0 15px; cursor:pointer; font-weight:bold;">Invia</button>
+                `;
+            }
+
             socket.emit('get_history', { me: user._id, to: id });
         }
 
@@ -287,10 +339,13 @@
         }
 
         function sendMsg() {
-            const text = document.getElementById('chat-input').value;
+            const inputEl = document.getElementById('chat-input');
+            if(!inputEl) return; // Selettore di sicurezza
+            const text = inputEl.value;
             if(!text || !currentChatTarget) return;
+            
             socket.emit('send_msg', { from: user._id, to: currentChatTarget, fromName: user.nome, text: text });
-            document.getElementById('chat-input').value = '';
+            inputEl.value = '';
             
             document.getElementById('chat-messages').innerHTML += `<div style="align-self:flex-end; background:#dcf8c6; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${text}</div>`;
             document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
@@ -381,11 +436,8 @@
 
         // --- FUNZIONI SUPER ADMIN ---
         async function loadA() {
-            const r = await fetch('/api/users'); 
-            const utenti = await r.json();
-            const l = document.getElementById('admin-list'); 
-            l.innerHTML = '';
-            
+            const r = await fetch('/api/users'); const utenti = await r.json();
+            const l = document.getElementById('admin-list'); l.innerHTML = '';
             utenti.forEach(u => {
                 if(u.email === user.email) return; 
                 l.innerHTML += `
@@ -423,4 +475,3 @@
     </script>
 </body>
 </html>
-
