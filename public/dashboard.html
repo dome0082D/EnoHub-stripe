@@ -39,6 +39,7 @@
         
         <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none; font-weight:bold;">👥 Sommelier</a>
         <a id="nav-tastings" onclick="show('tastings')" style="display:none; font-weight:bold;">🍷 Note di Degustazione</a>
+        
         <a onclick="show('subs')">💎 Upgrade Piano</a>
         <a id="nav-admin" onclick="show('admin')" style="display:none; color:orange;">🛡️ Staff Panel</a>
         <hr><a onclick="logout()" style="color:red;">🚪 Esci</a>
@@ -58,8 +59,16 @@
 
         <section id="sec-sommeliers" style="display:none;">
             <div class="card">
-                <h2>Lista Sommelier</h2>
-                <p>Gettoni disponibili: <b id="gettoni-count" style="color:var(--main); font-size:18px;">...</b></p>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:20px;">
+                    <div>
+                        <h2 style="margin-top:0;">Lista Sommelier</h2>
+                        <p>Gettoni disponibili: <b id="gettoni-count" style="color:var(--main); font-size:18px;">...</b></p>
+                    </div>
+                    <div style="background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd; min-width:280px;">
+                        <b style="color:var(--main); display:block; margin-bottom:8px;">🔍 Cerca Sommelier</b>
+                        <input type="text" id="search-somm" placeholder="Es: Toscana, WSET, AIS..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;" onkeyup="filterSommeliers()">
+                    </div>
+                </div>
                 <hr>
                 <div id="sommelier-list"></div>
             </div>
@@ -170,16 +179,19 @@
             localStorage.setItem('enohub_user', JSON.stringify(user));
             
             if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
-            document.getElementById('nav-tastings').style.display = 'block';
             document.getElementById('current-plan-display').innerText = user.piano;
             
+            // LOGICA MOSTRA/NASCONDI MENU E PIANI
             if(user.tipo === 'Cantina') {
                 document.getElementById('subs-cantina').style.display = 'grid';
                 document.getElementById('subs-sommelier').style.display = 'none';
                 document.getElementById('nav-sommeliers').style.display = 'block'; 
+                document.getElementById('nav-tastings').style.display = 'none'; // Rimosso Note per Cantina
             } else {
                 document.getElementById('subs-cantina').style.display = 'none';
                 document.getElementById('subs-sommelier').style.display = 'grid';
+                document.getElementById('nav-sommeliers').style.display = 'none';
+                document.getElementById('nav-tastings').style.display = 'block'; // Visibile per Sommelier
             }
 
             document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('active'));
@@ -223,40 +235,73 @@
             html += `</div>`; document.getElementById('sec-profile').innerHTML = html;
         }
 
+        // --- GESTIONE SOMMELIER & RICERCA ---
+        let globalSommeliers = [];
+
         async function renderS() {
             const r = await fetch('/api/users');
             const utenti = await r.json();
-            const list = utenti.filter(u => u.tipo === 'Sommelier'); 
-            const container = document.getElementById('sommelier-list');
-            container.innerHTML = '';
-
+            globalSommeliers = utenti.filter(u => u.tipo === 'Sommelier'); 
+            
             let maxGettoni = 0;
             if(user.piano === 'Pro') maxGettoni = 2;
             if(user.piano === 'Premium') maxGettoni = 5;
             if(user.email === 'dome0082@gmail.com') maxGettoni = 999;
-            
             const usati = user.unlockedContacts ? user.unlockedContacts.length : 0;
+            
             document.getElementById('gettoni-count').innerText = `${maxGettoni - usati} su ${maxGettoni}`;
 
-            list.forEach((s, index) => {
+            drawSommList(globalSommeliers, maxGettoni - usati);
+        }
+
+        function drawSommList(list, gettoniRimasti) {
+            const container = document.getElementById('sommelier-list');
+            container.innerHTML = '';
+            
+            if(list.length === 0) {
+                container.innerHTML = '<p style="color:#666;">Nessun sommelier trovato corrispondente alla ricerca.</p>';
+                return;
+            }
+
+            list.forEach(s => {
                 const isUnlocked = user.unlockedContacts && user.unlockedContacts.includes(s._id);
-                let nameDisplay = isUnlocked ? s.nome : `Sommelier N. ${index + 1} (Nome Oscurato)`;
+                let nameDisplay = isUnlocked ? s.nome : `Sommelier (Nome Oscurato)`;
                 let btnHtml = isUnlocked 
-                    ? `<button class="btn-main" style="background:#27ae60;" onclick="openChat('${s._id}', '${s.nome}')">💬 Chat</button>` 
-                    : `<button class="btn-main" style="background:var(--gold);" onclick="unlockSommelier('${s._id}', ${maxGettoni - usati})">🔓 Usa Gettone</button>`;
+                    ? `<button class="btn-main" style="background:#27ae60;" onclick="openChat('${s._id}', '${s.nome.replace(/'/g, "\\'")}')">💬 Chat</button>` 
+                    : `<button class="btn-main" style="background:var(--gold);" onclick="unlockSommelier('${s._id}', ${gettoniRimasti})">🔓 Usa Gettone</button>`;
 
                 container.innerHTML += `
                     <div style="padding:20px; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:15px; background:white;">
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
                             <div style="flex:1;">
                                 <h3 style="margin:0; color:${isUnlocked ? 'var(--main)' : '#666'};">${nameDisplay}</h3>
-                                <p style="font-size:14px; color:#555; margin-top:8px;"><b>Bio & Certificati:</b><br>${s.bio || 'Nessuna informazione inserita.'}</p>
+                                <p style="font-size:14px; color:#555; margin-top:8px;">
+                                    <b>📍 Zona:</b> ${s.location || 'Non specificata'}<br><br>
+                                    <b>Bio & Certificati:</b><br>${s.bio || 'Nessuna informazione inserita.'}
+                                </p>
                             </div>
                             <div>${btnHtml}</div>
                         </div>
                     </div>
                 `;
             });
+        }
+
+        function filterSommeliers() {
+            const term = document.getElementById('search-somm').value.toLowerCase();
+            const filtered = globalSommeliers.filter(s => {
+                const loc = (s.location || '').toLowerCase();
+                const bio = (s.bio || '').toLowerCase();
+                return loc.includes(term) || bio.includes(term);
+            });
+            
+            let maxGettoni = 0;
+            if(user.piano === 'Pro') maxGettoni = 2;
+            if(user.piano === 'Premium') maxGettoni = 5;
+            if(user.email === 'dome0082@gmail.com') maxGettoni = 999;
+            const usati = user.unlockedContacts ? user.unlockedContacts.length : 0;
+            
+            drawSommList(filtered, maxGettoni - usati);
         }
 
         async function unlockSommelier(targetId, gettoniRimasti) {
@@ -266,7 +311,12 @@
             let arr = user.unlockedContacts || []; arr.push(targetId);
             const r = await fetch('/api/user/' + user._id, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ unlockedContacts: arr }) });
             const res = await r.json();
-            if(res.success) { user = res.user; localStorage.setItem('enohub_user', JSON.stringify(user)); renderS(); }
+            if(res.success) { 
+                user = res.user; 
+                localStorage.setItem('enohub_user', JSON.stringify(user)); 
+                document.getElementById('search-somm').value = ''; // Resetta il filtro
+                renderS(); 
+            }
         }
 
         async function renderChats() {
@@ -298,7 +348,7 @@
                 const dateStr = new Date(lastMsg.time).toLocaleString();
 
                 container.innerHTML += `
-                    <div style="padding:15px; border:1px solid #eee; border-radius:10px; margin-bottom:10px; background:white; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'" onclick="openChat('${contactUser._id}', '${contactUser.nome}')">
+                    <div style="padding:15px; border:1px solid #eee; border-radius:10px; margin-bottom:10px; background:white; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'" onclick="openChat('${contactUser._id}', '${contactUser.nome.replace(/'/g, "\\'")}')">
                         <div style="flex:1;">
                             <h4 style="margin:0; color:var(--main);">${contactUser.nome} <span style="font-size:12px; color:#999; font-weight:normal;">(${contactUser.tipo || 'Utente'})</span></h4>
                             <p style="margin:5px 0 0 0; font-size:14px; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%;">${preview}</p>
@@ -320,7 +370,7 @@
             document.getElementById('chat-title').innerText = nome;
             document.getElementById('chat-modal').style.display = 'flex';
             document.getElementById('chat-messages').innerHTML = ''; 
-            document.getElementById('chat-warning').style.display = 'block'; // Mostra sempre l'avviso
+            document.getElementById('chat-warning').style.display = 'block'; 
             
             const inputArea = document.getElementById('chat-input-container');
             if (user.piano === 'Freemium' && user.email !== 'dome0082@gmail.com') {
@@ -349,7 +399,6 @@
             socket.emit('send_msg', { from: user._id, to: currentChatTarget, fromName: user.nome, text: text });
             inputEl.value = '';
             
-            // Il messaggio appare subito, ma se viola la regola il server resetterà la UI.
             document.getElementById('chat-messages').innerHTML += `<div style="align-self:flex-end; background:#dcf8c6; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${text}</div>`;
             document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
         }
@@ -371,15 +420,14 @@
             }
         });
 
-        // Evento se si viola la regola e il server ordina di chiudere la chat
         socket.on('force_close_chat', () => {
             closeChat();
-            if(document.getElementById('sec-chats').style.display === 'block') renderChats(); // Aggiorna archivio
+            if(document.getElementById('sec-chats').style.display === 'block') renderChats(); 
         });
 
         socket.on('chat_error', d => alert(d.error));
 
-        // --- FINESTRA DEGUSTAZIONI ---
+        // --- DEGUSTAZIONI ---
         let tmpImageUrl = ''; let editingId = null;
 
         function handleTastingImage(input) {
@@ -485,4 +533,3 @@
     </script>
 </body>
 </html>
-
