@@ -5,531 +5,128 @@
     <title>EnoHub - Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --main: #8a1c1c; --grey: #f8f9fa; --border: #e2e8f0; --gold: #d4af37; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fafafa; }
-        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: var(--grey); border-right: 1px solid var(--border); transition: 0.4s; z-index: 1000; padding-top: 60px; }
+        :root { --main: #8a1c1c; --main-hover: #6a1515; --gold: #d4af37; --bg: #f4f6f8; --surface: #ffffff; --border: #e2e8f0; --text-dark: #1e293b; --text-muted: #64748b; }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text-dark); }
+        .navbar { background: var(--surface); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 5%; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; }
+        .navbar-brand { font-weight: 800; font-size: 22px; color: var(--main); }
+        .sidebar { position: fixed; top: 60px; left: -280px; width: 280px; height: calc(100vh - 60px); background: var(--surface); border-right: 1px solid var(--border); transition: 0.3s; z-index: 999; }
         .sidebar.active { left: 0; }
-        .sidebar a { display: block; padding: 18px 25px; color: #444; text-decoration: none; border-bottom: 1px solid #eee; cursor: pointer; }
-        .menu-btn { position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--main); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
-        .content { padding: 80px 5% 40px 5%; }
-        .card { background: rgba(255,255,255,0.95); padding: 30px; border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 25px; background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=20&w=1200') center/cover fixed; }
-        .eh-badge { display: inline-flex; align-items: center; color: #28a745; font-weight: bold; background: #e6ffed; padding: 5px 12px; border-radius: 20px; font-size: 14px; border: 1px solid #28a745; }
-        .eh-badge span { color: var(--main); border: 1px solid var(--main); padding: 1px 4px; border-radius: 4px; font-size: 10px; margin-right: 6px; }
-        .btn-main { background: var(--main); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .preview-container { margin-top: 10px; display: none; position: relative; width: fit-content; }
-        .preview-img { height: 120px; border-radius: 8px; border: 2px solid var(--main); object-fit: cover; }
-        .btn-remove-img { position: absolute; top: -10px; right: -10px; background: #ff5252; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-weight: bold; }
-        .tasting-item { display: flex; gap: 20px; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; align-items: center; }
-        .btn-action { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 5px; }
-        .tier-card { background: white; border: 1px solid #ddd; padding: 25px; border-radius: 15px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; transition: 0.3s; }
-        .tier-card.active { border: 2px solid var(--main); box-shadow: 0 5px 15px rgba(138,28,28,0.2); }
-        .tier-card h3 { color: var(--main); margin-top: 0; }
-        .price { font-size: 32px; font-weight: bold; margin: 15px 0; }
-        .benefits { text-align: left; font-size: 14px; margin-bottom: 20px; padding: 0; list-style: none; }
-        .benefits li { margin-bottom: 8px; }
+        .sidebar a { display: flex; padding: 15px 25px; color: var(--text-dark); text-decoration: none; font-weight: 600; cursor: pointer; }
+        .sidebar a:hover { background: #fdf5f5; color: var(--main); }
+        .content { max-width: 900px; margin: 30px auto; padding: 0 20px 60px 20px; }
+        .card { background: var(--surface); padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid var(--border); }
+        .eh-badge { color: #10b981; background: #ecfdf5; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+        .btn-main { background: var(--main); color: white; border: none; padding: 10px 24px; border-radius: 30px; cursor: pointer; font-weight: bold; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); padding: 10px 24px; border-radius: 30px; cursor: pointer; }
+        .btn-outline:hover { border-color: var(--main); color: var(--main); }
+        input[type="text"], textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #f8fafc; }
+        .tier-card { border: 2px solid var(--border); border-radius: 16px; padding: 25px; text-align: center; background: white; }
+        .tier-card.active { border-color: var(--main); box-shadow: 0 10px 25px rgba(138,28,28,0.1); }
+        .price { font-size: 32px; font-weight: 800; margin: 10px 0; color: var(--main); }
+        #chat-modal { position: fixed; bottom: 20px; right: 20px; width: 350px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); z-index: 2000; display: none; flex-direction: column; overflow: hidden; }
+        .chat-msg-me { align-self: flex-end; background: var(--main); color: white; padding: 8px 15px; border-radius: 15px 15px 4px 15px; max-width: 80%; }
+        .chat-msg-other { align-self: flex-start; background: #e2e8f0; padding: 8px 15px; border-radius: 15px 15px 15px 4px; max-width: 80%; }
     </style>
 </head>
 <body>
-    <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
+    <nav class="navbar"><div class="navbar-brand">EnoHub Dashboard</div><button style="background:none; border:none; font-size:24px; cursor:pointer;" onclick="toggleMenu()">☰</button></nav>
     <nav class="sidebar" id="sidebar">
-        <h3 style="padding:0 25px; color:var(--main);">EnoHub Diamond</h3>
         <a onclick="show('profile')">👤 Il mio Profilo</a>
-        
-        <a id="nav-chats" onclick="show('chats')" style="font-weight:bold; color:var(--main);">💬 Archivio Chat</a>
-        
-        <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none; font-weight:bold;">👥 Sommelier</a>
-        <a id="nav-tastings" onclick="show('tastings')" style="display:none; font-weight:bold;">🍷 Note di Degustazione</a>
-        
+        <a onclick="show('chats')" style="color:var(--main);">💬 Archivio Chat</a>
+        <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none;">👥 Trova Sommelier</a>
+        <a id="nav-tastings" onclick="show('tastings')" style="display:none;">🍷 Note di Degustazione</a>
         <a onclick="show('subs')">💎 Upgrade Piano</a>
         <a id="nav-admin" onclick="show('admin')" style="display:none; color:orange;">🛡️ Staff Panel</a>
         <hr><a onclick="logout()" style="color:red;">🚪 Esci</a>
     </nav>
-
     <div class="content">
         <section id="sec-profile"></section>
-
-        <section id="sec-chats" style="display:none;">
-            <div class="card">
-                <h2>💬 Archivio Chat</h2>
-                <p style="font-size:14px; color:#666;">Qui trovi lo storico di tutte le tue conversazioni.</p>
-                <hr>
-                <div id="chats-list"></div>
-            </div>
-        </section>
-
-        <section id="sec-sommeliers" style="display:none;">
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:20px;">
-                    <div>
-                        <h2 style="margin-top:0;">Lista Sommelier</h2>
-                        <p>Gettoni disponibili: <b id="gettoni-count" style="color:var(--main); font-size:18px;">...</b></p>
-                    </div>
-                    <div style="background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd; min-width:280px;">
-                        <b style="color:var(--main); display:block; margin-bottom:8px;">🔍 Cerca Sommelier</b>
-                        <input type="text" id="search-somm" placeholder="Es: Toscana, WSET, AIS..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;" onkeyup="filterSommeliers()">
-                    </div>
-                </div>
-                <hr>
-                <div id="sommelier-list"></div>
-            </div>
-        </section>
-
-        <section id="sec-tastings" style="display:none;">
-            <div class="card">
-                <h2 id="tasting-form-title">Aggiungi Nota di degustazione</h2>
-                <div style="background:rgba(255,255,255,0.8); padding:20px; border-radius:10px;">
-                    <input type="text" id="t-vino" placeholder="Nome del vino e annata..." style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-                    <textarea id="t-note" placeholder="Descrizione..." style="width:100%; height:80px; padding:12px; border-radius:8px; border:1px solid #ddd;"></textarea>
-                    
-                    <div style="margin-top:15px;">
-                        <input type="file" id="t-file" onchange="handleTastingImage(this)">
-                        <div id="preview-wrapper" class="preview-container">
-                            <img id="t-preview-img" class="preview-img" src="" alt="Anteprima">
-                            <button class="btn-remove-img" onclick="removeImageFromForm()">✕</button>
-                        </div>
-                    </div>
-                    <button id="t-save-btn" onclick="saveTasting()" class="btn-main" style="margin-top:25px; width:100%; background:#27ae60;">💾 SALVA DEGUSTAZIONE</button>
-                    <button id="t-cancel-edit" onclick="resetTastingForm()" class="btn-main" style="margin-top:10px; width:100%; background:#666; display:none;">ANNULLA</button>
-                </div>
-                <hr><div id="tastings-list"></div>
-            </div>
-        </section>
-
+        <section id="sec-chats" style="display:none;"><div class="card"><h2 style="color:var(--main);">💬 Archivio Chat</h2><div id="chats-list"></div></div></section>
+        <section id="sec-sommeliers" style="display:none;"><div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px; margin-bottom:20px;"><div><h2 style="color:var(--main);">Network Sommelier</h2><p>Gettoni: <b id="gettoni-count">...</b></p></div><input type="text" id="search-somm" placeholder="🔍 Cerca zona o certificato..." onkeyup="filterSommeliers()" style="max-width:300px;"></div><div id="sommelier-list"></div></div></section>
+        <section id="sec-tastings" style="display:none;"><div class="card"><h2 style="color:var(--main);">Aggiungi Degustazione</h2><input type="text" id="t-vino" placeholder="Vino e annata..."><br><br><textarea id="t-note" placeholder="Note..."></textarea><br><br><button class="btn-main" onclick="saveTasting()">Pubblica</button></div><div id="tastings-list"></div></section>
         <section id="sec-subs" style="display:none;">
-            <div class="card" style="text-align:center;">
-                <h2>Il tuo Piano: <span id="current-plan-display" style="color:var(--main);"></span></h2>
-                
-                <div id="subs-sommelier" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-top:30px;">
-                    <div class="tier-card" id="tier-Freemium">
-                        <h3>Free</h3><div class="price">€0</div>
-                        <ul class="benefits"><li>✅ Dati profilo</li><li>❌ 0 Note degustazione</li><li>❌ 0 Chat cantine</li></ul>
-                        <button class="btn-main" style="background:#ccc; cursor:default;">Attivo</button>
-                    </div>
-                    <div class="tier-card" id="tier-Pro">
-                        <h3>Pro</h3><div class="price">€15<small>/mese</small></div>
-                        <ul class="benefits"><li>✅ Dati profilo</li><li>✅ 3 Note degustazione</li><li>✅ 1 Chat cantina</li></ul>
-                        <button onclick="pay('Pro', 15)" class="btn-main">Scegli Pro</button>
-                    </div>
-                    <div class="tier-card" id="tier-Premium">
-                        <h3>Premium</h3><div class="price">€29<small>/mese</small></div>
-                        <ul class="benefits"><li>✅ Dati profilo</li><li>✅ 10 Note degustazione</li><li>✅ 3 Chat cantine diverse</li><li>✅ <b>Spunta EH ✅ Automatica</b></li></ul>
-                        <button onclick="pay('Premium', 29)" class="btn-main" style="background:var(--gold);">Scegli Premium</button>
-                    </div>
+            <div class="card" style="text-align:center;"><h2 style="color:var(--main);">Scegli il tuo piano</h2>
+                <div id="subs-sommelier" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px;">
+                    <div class="tier-card" id="tier-Freemium"><h3>Free</h3><div class="price">€0</div><button class="btn-outline">Attivo</button></div>
+                    <div class="tier-card" id="tier-Pro"><h3>Pro</h3><div class="price">€15</div><button class="btn-main" onclick="pay('Pro', 15)">Scegli</button></div>
+                    <div class="tier-card" id="tier-Premium"><h3>Premium</h3><div class="price">€29</div><button class="btn-main" onclick="pay('Premium', 29)" style="background:var(--gold);">Scegli</button></div>
                 </div>
-
-                <div id="subs-cantina" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-top:30px;">
-                    <div class="tier-card" id="tier-Freemium-Cantina">
-                        <h3>Free</h3><div class="price">€0</div>
-                        <ul class="benefits"><li>✅ Inserisci dati Cantina</li><li>✅ Sblocca profilo di 1 Sommelier (15€/mese)</li></ul>
-                        <button class="btn-main" style="background:#ccc; cursor:default;">Attivo</button>
-                    </div>
-                    <div class="tier-card" id="tier-Pro-Cantina">
-                        <h3>Pro</h3><div class="price">€25<small>/mese</small></div>
-                        <ul class="benefits"><li>✅ Dati profilo completi</li><li>✅ 2 gettoni per sbloccare Sommelier al mese</li><li>✅ Chat attiva</li></ul>
-                        <button onclick="pay('Pro', 25)" class="btn-main">Scegli Pro</button>
-                    </div>
-                    <div class="tier-card" id="tier-Premium-Cantina">
-                        <h3>Premium</h3><div class="price">€50<small>/mese</small></div>
-                        <ul class="benefits"><li>✅ Dati profilo completi</li><li>✅ 5 gettoni per sbloccare contatti Sommelier</li><li>✅ Chat attiva</li><li>✅ Contatto diretto staff tramite chat apposita</li></ul>
-                        <button onclick="pay('Premium', 50)" class="btn-main" style="background:var(--gold);">Scegli Premium</button>
-                    </div>
+                <div id="subs-cantina" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px;">
+                    <div class="tier-card" id="tier-Freemium-Cantina"><h3>Free</h3><div class="price">€0</div><button class="btn-outline">Attivo</button></div>
+                    <div class="tier-card" id="tier-Pro-Cantina"><h3>Pro</h3><div class="price">€25</div><button class="btn-main" onclick="pay('Pro', 25)">Scegli</button></div>
+                    <div class="tier-card" id="tier-Premium-Cantina"><h3>Premium</h3><div class="price">€50</div><button class="btn-main" onclick="pay('Premium', 50)" style="background:var(--gold);">Scegli</button></div>
                 </div>
             </div>
         </section>
-
-        <section id="sec-admin" style="display:none;" class="card">
-            <h2>🛡️ Pannello Staff EnoHub</h2>
-            <div id="admin-list"></div>
-        </section>
+        <section id="sec-admin" style="display:none;"><div class="card"><h2 style="color:var(--main);">🛡️ Staff Panel</h2><div id="admin-list"></div></div></section>
     </div>
-
-    <div id="chat-modal" style="display:none; position:fixed; bottom:20px; right:20px; width:320px; background:white; border-radius:10px; box-shadow:0 5px 20px rgba(0,0,0,0.3); z-index:2000; flex-direction:column; border:1px solid #ccc;">
-        <div style="background:var(--main); color:white; padding:12px; display:flex; justify-content:space-between; border-radius:10px 10px 0 0;">
-            <b id="chat-title">Chat</b>
-            <button onclick="closeChat()" style="background:none; border:none; color:white; cursor:pointer; font-size:16px;">✖</button>
-        </div>
-        
-        <div id="chat-warning" style="background:#fff3cd; color:#856404; padding:10px 25px 10px 10px; font-size:11px; text-align:center; position:relative; border-bottom:1px solid #ffeeba; line-height:1.3;">
-            <b>REGOLA FONDAMENTALE:</b> Nelle chat non ci si può scambiare numeri di telefono o link a chat esterne, il sito se ne accorge ed elimina la chat immediatamente impedendo ai 2 interlocutori di continuare a scriversi.
-            <button onclick="document.getElementById('chat-warning').style.display='none'" style="position:absolute; right:5px; top:5px; background:none; border:none; cursor:pointer; font-size:12px; font-weight:bold; color:#856404;">✖</button>
-        </div>
-
-        <div id="chat-messages" style="height:250px; overflow-y:auto; padding:10px; background:#f4f4f4; font-size:14px; display:flex; flex-direction:column; gap:8px;"></div>
-        
-        <div id="chat-input-container" style="display:flex; border-top:1px solid #ddd; background:white;"></div>
+    <div id="chat-modal">
+        <div style="background:var(--main); color:white; padding:15px; display:flex; justify-content:space-between;"><b>Chat</b><button onclick="closeChat()" style="color:white; background:none; border:none; cursor:pointer;">✖</button></div>
+        <div id="chat-warning" style="background:#fff7ed; color:#c2410c; padding:10px; font-size:11px;"><b>REGOLA FONDAMENTALE:</b> Vietato scambiare numeri o link esterni. Pena: blocco chat. <button onclick="this.parentElement.remove()" style="float:right; border:none; background:none; cursor:pointer;">X</button></div>
+        <div id="chat-messages" style="height:280px; overflow-y:auto; padding:15px; background:var(--bg); display:flex; flex-direction:column; gap:10px;"></div>
+        <div id="chat-input-container" style="display:flex; padding:10px; border-top:1px solid var(--border);"></div>
     </div>
-
     <script>
-        let user = JSON.parse(localStorage.getItem('enohub_user'));
-        if(!user) window.location.href = "/index.html";
-
+        let user = JSON.parse(localStorage.getItem('enohub_user')); if(!user) window.location.href = "/index.html";
         const socket = io(); socket.emit('join', user._id);
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
-
         async function refresh() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if(urlParams.get('payment') === 'success') {
-                const piano = urlParams.get('piano');
-                const uid = urlParams.get('uid') || user._id;
-                await fetch('/api/activate-plan', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: uid, piano: piano }) });
-                window.location.href = "/dashboard.html"; return;
-            }
-
-            const r = await fetch('/api/user/'+user._id); user = await r.json();
-            localStorage.setItem('enohub_user', JSON.stringify(user));
-            
+            const r = await fetch('/api/user/'+user._id); user = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(user));
             if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
-            document.getElementById('current-plan-display').innerText = user.piano;
-            
-            // LOGICA MOSTRA/NASCONDI MENU E PIANI
-            if(user.tipo === 'Cantina') {
-                document.getElementById('subs-cantina').style.display = 'grid';
-                document.getElementById('subs-sommelier').style.display = 'none';
-                document.getElementById('nav-sommeliers').style.display = 'block'; 
-                document.getElementById('nav-tastings').style.display = 'none'; // Rimosso Note per Cantina
-            } else {
-                document.getElementById('subs-cantina').style.display = 'none';
-                document.getElementById('subs-sommelier').style.display = 'grid';
-                document.getElementById('nav-sommeliers').style.display = 'none';
-                document.getElementById('nav-tastings').style.display = 'block'; // Visibile per Sommelier
-            }
-
-            document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('active'));
-            const tierId = user.tipo === 'Cantina' ? 'tier-' + user.piano + '-Cantina' : 'tier-' + user.piano;
-            if(document.getElementById(tierId)) document.getElementById(tierId).classList.add('active');
-
+            if(user.tipo === 'Cantina') { document.getElementById('subs-cantina').style.display = 'grid'; document.getElementById('nav-sommeliers').style.display = 'block'; } 
+            else { document.getElementById('subs-sommelier').style.display = 'grid'; document.getElementById('nav-tastings').style.display = 'block'; }
             show(sessionStorage.getItem('last_v') || 'profile');
         }
         refresh();
-
         function show(id) {
-            sessionStorage.setItem('last_v', id);
-            document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+            sessionStorage.setItem('last_v', id); document.querySelectorAll('.content > section').forEach(s => s.style.display = 'none');
             document.getElementById('sec-'+id).style.display = 'block';
-            if(id === 'profile') renderP();
-            if(id === 'tastings') renderT();
-            if(id === 'admin') loadA();
-            if(id === 'sommeliers') renderS();
-            if(id === 'chats') renderChats();
+            if(id === 'profile') renderP(); if(id === 'sommeliers') renderS(); if(id === 'chats') renderChats(); if(id === 'tastings') renderT(); if(id === 'admin') loadA();
             document.getElementById('sidebar').classList.remove('active');
         }
-
         function renderP() {
-            const badge = user.isVerified ? `<div class="eh-badge"><span>EH</span> ✅ Verificato</div>` : '';
-            let html = `<div class="card"><div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div><h1 style="margin-top:0;">${user.nome} ${badge}</h1><p>📍 ${user.location || 'Località non specificata'} | Piano: <b>${user.piano}</b></p></div>
-                        <div style="text-align:center;">
-                            ${user.profilePic ? `<img src="${user.profilePic}" style="width:100px; height:100px; border-radius:10px; object-fit:cover; border:2px solid var(--main);">` : `<div style="width:100px; height:100px; background:#eee; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; font-size:12px; color:#666;">Nessuna Foto</div>`}
-                            <br><a href="modifica-profilo.html" class="btn-main" style="display:inline-block; margin-top:10px; text-decoration:none; padding:8px 15px; font-size:12px;">✎ Modifica Profilo</a>
-                        </div></div><hr>`;
-
-            if (user.tipo === 'Cantina') {
-                html += `<h3>🍷 I Nostri Vini</h3><table style="width:100%; text-align:left; border-collapse:collapse; margin-bottom:20px;"><tr style="background:#f8f9fa;"><th style="padding:10px; border-bottom:2px solid #ddd;">Nome</th><th style="padding:10px; border-bottom:2px solid #ddd;">Tipologia</th></tr>
-                        ${(user.vini && user.vini.length > 0) ? user.vini.map(v => `<tr><td style="padding:10px; border-bottom:1px solid #eee;">${v.nome}</td><td style="padding:10px; border-bottom:1px solid #eee;">${v.tipologia}</td></tr>`).join('') : '<tr><td colspan="2" style="padding:10px; text-align:center;">Nessun vino inserito.</td></tr>'}</table>
-                        <h3>📸 Galleria Cantina</h3><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:10px;">
-                        ${(user.gallery && user.gallery.length > 0) ? user.gallery.map(img => `<img src="${img}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="window.open('${img}', '_blank')">`).join('') : '<p style="color:#666; font-size:14px;">Nessuna immagine in galleria.</p>'}</div>`;
-            } else {
-                html += `<h3>👤 Biografia</h3><p style="white-space: pre-wrap;">${user.bio || "Nessuna biografia inserita."}</p>
-                        <h3 style="margin-top:20px;">🍷 Ultime Degustazioni (${user.degustazioni ? user.degustazioni.length : 0})</h3><p style="font-size:14px; color:#666;">Vai alla sezione "Note di Degustazione" dal menù.</p>`;
-            }
-            html += `</div>`; document.getElementById('sec-profile').innerHTML = html;
+            const badge = user.isVerified ? `<span class="eh-badge">EH ✅ Verificato</span>` : '';
+            document.getElementById('sec-profile').innerHTML = `<div class="card"><h1 style="color:var(--main);">${user.nome} ${badge}</h1><p>📍 ${user.location} • ${user.tipo}</p><a href="modifica-profilo.html" class="btn-outline">✎ Modifica</a></div>`;
         }
-
-        // --- GESTIONE SOMMELIER & RICERCA ---
-        let globalSommeliers = [];
-
+        let globalS = [];
         async function renderS() {
-            const r = await fetch('/api/users');
-            const utenti = await r.json();
-            globalSommeliers = utenti.filter(u => u.tipo === 'Sommelier'); 
-            
-            let maxGettoni = 0;
-            if(user.piano === 'Pro') maxGettoni = 2;
-            if(user.piano === 'Premium') maxGettoni = 5;
-            if(user.email === 'dome0082@gmail.com') maxGettoni = 999;
-            const usati = user.unlockedContacts ? user.unlockedContacts.length : 0;
-            
-            document.getElementById('gettoni-count').innerText = `${maxGettoni - usati} su ${maxGettoni}`;
-
-            drawSommList(globalSommeliers, maxGettoni - usati);
+            const r = await fetch('/api/users'); const u = await r.json(); globalS = u.filter(x => x.tipo === 'Sommelier');
+            let max = user.piano === 'Pro' ? 2 : (user.piano === 'Premium' ? 5 : 0);
+            if(user.email === 'dome0082@gmail.com') max = 999;
+            document.getElementById('gettoni-count').innerText = `${max - (user.unlockedContacts?.length || 0)} su ${max}`;
+            drawS(globalS, max - (user.unlockedContacts?.length || 0));
         }
-
-        function drawSommList(list, gettoniRimasti) {
-            const container = document.getElementById('sommelier-list');
-            container.innerHTML = '';
-            
-            if(list.length === 0) {
-                container.innerHTML = '<p style="color:#666;">Nessun sommelier trovato corrispondente alla ricerca.</p>';
-                return;
-            }
-
+        function drawS(list, gett) {
+            const c = document.getElementById('sommelier-list'); c.innerHTML = '';
             list.forEach(s => {
-                const isUnlocked = user.unlockedContacts && user.unlockedContacts.includes(s._id);
-                let nameDisplay = isUnlocked ? s.nome : `Sommelier (Nome Oscurato)`;
-                let btnHtml = isUnlocked 
-                    ? `<button class="btn-main" style="background:#27ae60;" onclick="openChat('${s._id}', '${s.nome.replace(/'/g, "\\'")}')">💬 Chat</button>` 
-                    : `<button class="btn-main" style="background:var(--gold);" onclick="unlockSommelier('${s._id}', ${gettoniRimasti})">🔓 Usa Gettone</button>`;
-
-                container.innerHTML += `
-                    <div style="padding:20px; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:15px; background:white;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
-                            <div style="flex:1;">
-                                <h3 style="margin:0; color:${isUnlocked ? 'var(--main)' : '#666'};">${nameDisplay}</h3>
-                                <p style="font-size:14px; color:#555; margin-top:8px;">
-                                    <b>📍 Zona:</b> ${s.location || 'Non specificata'}<br><br>
-                                    <b>Bio & Certificati:</b><br>${s.bio || 'Nessuna informazione inserita.'}
-                                </p>
-                            </div>
-                            <div>${btnHtml}</div>
-                        </div>
-                    </div>
-                `;
+                const unl = user.unlockedContacts?.includes(s._id);
+                c.innerHTML += `<div style="padding:15px; border:1px solid var(--border); border-radius:12px; margin-bottom:10px; display:flex; justify-content:space-between;">
+                <div><b style="color:${unl ? 'var(--main)' : '#999'}">${unl ? s.nome : 'Sommelier (Oscurato)'}</b><br><small>📍 ${s.location}</small><p style="font-size:13px;">${s.bio}</p></div>
+                <div>${unl ? `<button class="btn-main" onclick="openChat('${s._id}','${s.nome}')">💬 Chat</button>` : `<button class="btn-main" onclick="unlockS('${s._id}',${gett})">🔓 Sblocca</button>`}</div></div>`;
             });
         }
-
-        function filterSommeliers() {
-            const term = document.getElementById('search-somm').value.toLowerCase();
-            const filtered = globalSommeliers.filter(s => {
-                const loc = (s.location || '').toLowerCase();
-                const bio = (s.bio || '').toLowerCase();
-                return loc.includes(term) || bio.includes(term);
-            });
-            
-            let maxGettoni = 0;
-            if(user.piano === 'Pro') maxGettoni = 2;
-            if(user.piano === 'Premium') maxGettoni = 5;
-            if(user.email === 'dome0082@gmail.com') maxGettoni = 999;
-            const usati = user.unlockedContacts ? user.unlockedContacts.length : 0;
-            
-            drawSommList(filtered, maxGettoni - usati);
-        }
-
-        async function unlockSommelier(targetId, gettoniRimasti) {
-            if(gettoniRimasti <= 0) return alert("Hai esaurito i gettoni gratuiti! Esegui l'upgrade del piano per sbloccare altri profili.");
-            if(!confirm('Vuoi usare 1 gettone per sbloccare questo Sommelier e avviare la chat?')) return;
-
-            let arr = user.unlockedContacts || []; arr.push(targetId);
-            const r = await fetch('/api/user/' + user._id, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ unlockedContacts: arr }) });
-            const res = await r.json();
-            if(res.success) { 
-                user = res.user; 
-                localStorage.setItem('enohub_user', JSON.stringify(user)); 
-                document.getElementById('search-somm').value = ''; // Resetta il filtro
-                renderS(); 
-            }
-        }
-
+        function filterSommeliers() { const t = document.getElementById('search-somm').value.toLowerCase(); const f = globalS.filter(s => (s.location.toLowerCase().includes(t) || s.bio.toLowerCase().includes(t))); drawS(f, 0); }
+        async function unlockS(id, g) { if(g<=0) return alert('Pochi gettoni!'); let a = user.unlockedContacts || []; a.push(id); await fetch('/api/user/'+user._id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({unlockedContacts:a})}); location.reload(); }
         async function renderChats() {
-            const r1 = await fetch('/api/chats/' + user._id);
-            const msgs = await r1.json();
-            const r2 = await fetch('/api/users');
-            const allUsers = await r2.json();
-            
-            const container = document.getElementById('chats-list');
-            container.innerHTML = '';
-            
-            if(msgs.length === 0) {
-                container.innerHTML = '<p style="color:#666;">Nessuna chat archiviata.</p>';
-                return;
-            }
-
-            const contacts = {};
-            msgs.forEach(m => {
-                const contactId = m.from === user._id ? m.to : m.from;
-                if(!contacts[contactId]) contacts[contactId] = m; 
-            });
-
-            Object.keys(contacts).forEach(contactId => {
-                const contactUser = allUsers.find(u => u._id === contactId);
-                if(!contactUser) return;
-                const lastMsg = contacts[contactId];
-                const isMe = lastMsg.from === user._id;
-                const preview = (isMe ? 'Tu: ' : '') + lastMsg.text;
-                const dateStr = new Date(lastMsg.time).toLocaleString();
-
-                container.innerHTML += `
-                    <div style="padding:15px; border:1px solid #eee; border-radius:10px; margin-bottom:10px; background:white; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'" onclick="openChat('${contactUser._id}', '${contactUser.nome.replace(/'/g, "\\'")}')">
-                        <div style="flex:1;">
-                            <h4 style="margin:0; color:var(--main);">${contactUser.nome} <span style="font-size:12px; color:#999; font-weight:normal;">(${contactUser.tipo || 'Utente'})</span></h4>
-                            <p style="margin:5px 0 0 0; font-size:14px; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%;">${preview}</p>
-                            <small style="color:#aaa;">${dateStr}</small>
-                        </div>
-                        <div>
-                            <button class="btn-main" style="background:#27ae60; padding:8px 15px;">Apri Chat</button>
-                        </div>
-                    </div>
-                `;
-            });
+            const r = await fetch('/api/chats/'+user._id); const msgs = await r.json(); const r2 = await fetch('/api/users'); const all = await r2.json();
+            const c = document.getElementById('chats-list'); c.innerHTML = '';
+            const list = {}; msgs.forEach(m => { const id = m.from === user._id ? m.to : m.from; if(!list[id]) list[id] = m; });
+            Object.keys(list).forEach(cid => { const u = all.find(x => x._id === cid); c.innerHTML += `<div class="card" onclick="openChat('${u._id}','${u.nome}')" style="cursor:pointer;"><b>${u.nome}</b><p>${list[cid].text}</p></div>`; });
         }
-
-        // --- SISTEMA CHAT ---
-        let currentChatTarget = null;
-        
+        let target = null;
         function openChat(id, nome) {
-            currentChatTarget = id;
-            document.getElementById('chat-title').innerText = nome;
-            document.getElementById('chat-modal').style.display = 'flex';
-            document.getElementById('chat-messages').innerHTML = ''; 
-            document.getElementById('chat-warning').style.display = 'block'; 
-            
-            const inputArea = document.getElementById('chat-input-container');
-            if (user.piano === 'Freemium' && user.email !== 'dome0082@gmail.com') {
-                inputArea.innerHTML = `<div style="padding:12px; text-align:center; width:100%; color:red; font-size:13px; font-weight:bold; background:#ffebeb;">Esegui l'upgrade per inviare messaggi.</div>`;
-            } else {
-                inputArea.innerHTML = `
-                    <input type="text" id="chat-input" style="flex:1; border:none; padding:12px; outline:none;" placeholder="Scrivi messaggio...">
-                    <button onclick="sendMsg()" style="background:#27ae60; color:white; border:none; padding:0 15px; cursor:pointer; font-weight:bold;">Invia</button>
-                `;
-            }
-
-            socket.emit('get_history', { me: user._id, to: id });
+            target = id; document.getElementById('chat-title').innerText = nome; document.getElementById('chat-modal').style.display = 'flex';
+            const i = document.getElementById('chat-input-container');
+            if(user.piano==='Freemium' && user.email!=='dome0082@gmail.com') i.innerHTML = `<p style="color:red;width:100%;text-align:center;">Fai upgrade per chattare.</p>`;
+            else i.innerHTML = `<input type="text" id="chat-in" style="flex:1;"><button onclick="send()">➤</button>`;
+            socket.emit('get_history', {me:user._id, to:id});
         }
-
-        function closeChat() {
-            document.getElementById('chat-modal').style.display = 'none';
-            currentChatTarget = null;
-        }
-
-        function sendMsg() {
-            const inputEl = document.getElementById('chat-input');
-            if(!inputEl) return; 
-            const text = inputEl.value;
-            if(!text || !currentChatTarget) return;
-            
-            socket.emit('send_msg', { from: user._id, to: currentChatTarget, fromName: user.nome, text: text });
-            inputEl.value = '';
-            
-            document.getElementById('chat-messages').innerHTML += `<div style="align-self:flex-end; background:#dcf8c6; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${text}</div>`;
-            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-        }
-
-        socket.on('chat_history', msgs => {
-            const box = document.getElementById('chat-messages');
-            box.innerHTML = msgs.map(m => {
-                const isMe = m.from === user._id;
-                return `<div style="align-self:${isMe ? 'flex-end' : 'flex-start'}; background:${isMe ? '#dcf8c6' : 'white'}; border:1px solid #eee; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${m.text}</div>`;
-            }).join('');
-            box.scrollTop = box.scrollHeight;
-        });
-
-        socket.on('new_msg', m => {
-            if(m.from === currentChatTarget || m.to === currentChatTarget) {
-                const isMe = m.from === user._id;
-                document.getElementById('chat-messages').innerHTML += `<div style="align-self:${isMe ? 'flex-end' : 'flex-start'}; background:${isMe ? '#dcf8c6' : 'white'}; border:1px solid #eee; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${m.text}</div>`;
-                document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-            }
-        });
-
-        socket.on('force_close_chat', () => {
-            closeChat();
-            if(document.getElementById('sec-chats').style.display === 'block') renderChats(); 
-        });
-
-        socket.on('chat_error', d => alert(d.error));
-
-        // --- DEGUSTAZIONI ---
-        let tmpImageUrl = ''; let editingId = null;
-
-        function handleTastingImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => { document.getElementById('t-preview-img').src = e.target.result; document.getElementById('preview-wrapper').style.display = 'block'; }
-                reader.readAsDataURL(input.files[0]);
-                const fd = new FormData(); fd.append('file', input.files[0]);
-                fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(data => tmpImageUrl = data.url);
-            }
-        }
-
-        function removeImageFromForm() { tmpImageUrl = ''; document.getElementById('t-file').value = ''; document.getElementById('preview-wrapper').style.display = 'none'; }
-
-        async function saveTasting() {
-            const vino = document.getElementById('t-vino').value;
-            const nota = document.getElementById('t-note').value;
-            if(!vino) return alert("Inserisci il nome del vino");
-
-            let list = user.degustazioni || [];
-            let limite = user.piano === 'Pro' ? 3 : (user.piano === 'Premium' ? 10 : 0);
-            if(user.email === 'dome0082@gmail.com') limite = 999;
-
-            if(!editingId && list.length >= limite) return alert(`Limite raggiunto! Il piano ${user.piano} permette massimo ${limite} note.`);
-
-            if(editingId) list = list.map(d => d.id === editingId ? { ...d, vino, nota, img: tmpImageUrl || d.img } : d);
-            else list.push({ id: Date.now().toString(), vino, nota, img: tmpImageUrl, date: new Date() });
-
-            const res = await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list, adminEmail: user.email})});
-            const data = await res.json();
-            if(!data.success) alert(data.error); else location.reload();
-        }
-
-        function renderT() {
-            const l = document.getElementById('tastings-list'); l.innerHTML = '';
-            (user.degustazioni || []).reverse().forEach(d => {
-                l.innerHTML += `<div class="tasting-item">
-                    ${d.img ? `<img src="${d.img}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;">` : '<div style="width:70px;height:70px;background:#eee;border-radius:8px;"></div>'}
-                    <div style="flex:1"><b>${d.vino}</b><br><small>${new Date(d.date).toLocaleDateString()}</small><p>${d.nota}</p></div>
-                    <div><button class="btn-action" style="background:orange;color:white;" onclick="editTasting('${d.id}')">Modifica</button>
-                    <button class="btn-action" style="background:red;color:white;" onclick="deleteTasting('${d.id}')">Elimina</button></div></div>`;
-            });
-        }
-
-        function editTasting(id) {
-            const d = user.degustazioni.find(x => x.id === id); editingId = id; document.getElementById('t-vino').value = d.vino; document.getElementById('t-note').value = d.nota;
-            document.getElementById('tasting-form-title').innerText = "Modifica Nota"; document.getElementById('t-cancel-edit').style.display = 'block';
-            if(d.img) { document.getElementById('t-preview-img').src = d.img; document.getElementById('preview-wrapper').style.display = 'block'; }
-            window.scrollTo(0,0);
-        }
-
-        async function deleteTasting(id) {
-            if(!confirm("Eliminare?")) return;
-            const list = user.degustazioni.filter(x => x.id !== id);
-            await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list, adminEmail: user.email})});
-            location.reload();
-        }
-
-        function resetTastingForm() { editingId = null; document.getElementById('t-vino').value = ''; document.getElementById('t-note').value = ''; removeImageFromForm(); document.getElementById('t-cancel-edit').style.display = 'none'; }
-
-        async function pay(piano, prezzo) {
-            const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano, prezzo, userId: user._id}) });
-            const d = await r.json(); if(d.url) window.location.href = d.url;
-        }
-
-        // --- ADMIN ---
-        async function loadA() {
-            const r = await fetch('/api/users'); const utenti = await r.json();
-            const l = document.getElementById('admin-list'); l.innerHTML = '';
-            utenti.forEach(u => {
-                if(u.email === user.email) return; 
-                l.innerHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee; background: white; margin-bottom:5px; border-radius:8px;">
-                    <div>
-                        <b style="color:#333;">${u.nome}</b> (${u.tipo || 'N/A'})<br>
-                        <small>${u.email} - Piano: ${u.piano}</small>
-                    </div>
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn-main" style="padding:5px 10px; background:${u.isVerified ? '#666' : '#27ae60'};" onclick="toggleVerify('${u._id}', ${u.isVerified})">
-                            ${u.isVerified ? 'Togli Spunta ❌' : 'Metti Spunta ✅'}
-                        </button>
-                        <button class="btn-main" style="padding:5px 10px; background:#e74c3c;" onclick="deleteUser('${u._id}', '${u.nome}')">
-                            Elimina 🗑️
-                        </button>
-                    </div>
-                </div>`;
-            });
-        }
-
-        async function toggleVerify(id, currentStatus) {
-            await fetch('/api/admin/verify', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ adminEmail: user.email, targetId: id, verifyStatus: !currentStatus }) });
-            loadA(); 
-        }
-
-        async function deleteUser(id, nome) {
-            if(!confirm(`Sei SICURO di voler eliminare definitivamente il profilo di ${nome}? Questa azione non è reversibile.`)) return;
-            const r = await fetch('/api/admin/user/' + id, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ adminEmail: user.email }) });
-            const res = await r.json(); 
-            if(res.success) { alert("Utente eliminato con successo."); loadA(); } else alert("Errore: " + res.error);
-        }
-
-        function logout() { localStorage.clear(); sessionStorage.clear(); window.location.href="/index.html"; }
+        function closeChat() { document.getElementById('chat-modal').style.display='none'; target=null; }
+        function send() { const t = document.getElementById('chat-in').value; socket.emit('send_msg', {from:user._id, to:target, text:t}); document.getElementById('chat-in').value=''; document.getElementById('chat-messages').innerHTML += `<div class="chat-msg-me">${t}</div>`; }
+        socket.on('chat_history', msgs => { document.getElementById('chat-messages').innerHTML = msgs.map(m => `<div class="${m.from===user._id?'chat-msg-me':'chat-msg-other'}">${m.text}</div>`).join(''); });
+        socket.on('new_msg', m => { if(m.from===target) document.getElementById('chat-messages').innerHTML += `<div class="chat-msg-other">${m.text}</div>`; });
+        socket.on('chat_error', d => alert(d.error)); socket.on('force_close_chat', closeChat);
+        function logout() { localStorage.clear(); window.location.href="/index.html"; }
     </script>
 </body>
 </html>

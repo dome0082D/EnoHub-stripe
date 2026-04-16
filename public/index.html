@@ -1,188 +1,29 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EnoHub - Connettiamo il mondo del vino</title>
     <style>
-        :root { 
-            --main: #8a1c1c; 
-            --grey: #f8f9fa; 
-            --dark: #333;
-        }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: var(--grey); 
-            color: var(--dark);
-        }
-
-        /* --- NAVBAR --- */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 5%;
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .logo {
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--main);
-            text-decoration: none;
-        }
-        .nav-buttons a {
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-left: 10px;
-            transition: 0.3s;
-        }
-        .btn-login {
-            color: var(--main);
-            border: 2px solid var(--main);
-        }
-        .btn-login:hover {
-            background-color: var(--main);
-            color: white;
-        }
-        .btn-register {
-            background-color: var(--main);
-            color: white;
-            border: 2px solid var(--main);
-        }
-        .btn-register:hover {
-            background-color: #6d1515;
-            border-color: #6d1515;
-        }
-
-        /* --- HERO IMMAGINE CENTRALE --- */
-        .hero {
-            width: 100%;
-            height: 60vh;
-            background: url('https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=2000') center/cover no-repeat;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* --- SEZIONE: COSA PUOI FARE SU ENOHUB --- */
-        .section {
-            padding: 60px 5%;
-            text-align: center;
-        }
-        .section h2 {
-            font-size: 32px;
-            color: var(--main);
-            margin-bottom: 40px;
-        }
-        .boxes-container {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            flex-wrap: wrap;
-        }
-        .box {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            width: 400px;
-            max-width: 100%;
-            transition: transform 0.3s;
-        }
-        .box:hover {
-            transform: translateY(-5px);
-        }
-        .icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-        }
-
-        /* --- SEZIONE: IL FASCINO DEL VINO --- */
-        .gallery-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .gallery-item {
-            flex: 1;
-            min-width: 250px;
-            max-width: 350px;
-            position: relative;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .gallery-item img {
-            width: 100%;
-            height: 300px;
-            object-fit: cover;
-            display: block;
-        }
-        .gallery-text {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(138, 28, 28, 0.85);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 18px;
-            letter-spacing: 1px;
-            white-space: nowrap;
-        }
-
-        /* --- CTA COMMUNITY (BOX ROSSO) --- */
-        .cta-section {
-            background-color: var(--main);
-            color: white;
-            text-align: center;
-            padding: 60px 5%;
-            margin-top: 40px;
-        }
-        .cta-section h2 {
-            font-size: 36px;
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
-        .cta-section p {
-            font-size: 18px;
-            margin-bottom: 30px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.5;
-        }
-        .btn-cta {
-            display: inline-block;
-            background-color: white;
-            color: var(--main);
-            text-decoration: none;
-            padding: 15px 40px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 18px;
-            transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .btn-cta:hover {
-            background-color: #f1f1f1;
-            transform: scale(1.05);
-        }
+        :root { --main: #8a1c1c; --grey: #f8f9fa; --dark: #333; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background-color: var(--grey); color: var(--dark); }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 5%; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 28px; font-weight: bold; color: var(--main); text-decoration: none; }
+        .nav-buttons a { text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; margin-left: 10px; }
+        .btn-login { color: var(--main); border: 2px solid var(--main); }
+        .btn-register { background-color: var(--main); color: white; }
+        .hero { width: 100%; height: 60vh; background: url('https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?q=80&w=2000') center/cover no-repeat; }
+        .section { padding: 60px 5%; text-align: center; }
+        .boxes { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+        .box { background: white; padding: 30px; border-radius: 15px; width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .gallery { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .gallery-item { flex: 1; min-width: 250px; position: relative; border-radius: 15px; overflow: hidden; }
+        .gallery-item img { width: 100%; height: 300px; object-fit: cover; }
+        .gallery-text { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: var(--main); color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; }
+        .cta { background: var(--main); color: white; padding: 60px 5%; text-align: center; }
+        .btn-cta { background: white; color: var(--main); padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-
     <nav class="navbar">
         <a href="/" class="logo">EnoHub</a>
         <div class="nav-buttons">
@@ -190,53 +31,26 @@
             <a href="https://enohub-stripe.onrender.com/auth/register.html" class="btn-register">Registrati</a>
         </div>
     </nav>
-
     <header class="hero"></header>
-
     <section class="section">
         <h2>Cosa puoi fare su EnoHub</h2>
-        
-        <div class="boxes-container">
-            <div class="box">
-                <div class="icon">🍇</div>
-                <h3 style="font-size:22px; color:var(--main);">Scopri nuove cantine</h3>
-                <p>Esplora le migliori cantine italiane, filtra per regione e denominazione.</p>
-            </div>
-            
-            <div class="box">
-                <div class="icon">👥</div>
-                <h3 style="font-size:22px; color:var(--main);">Trova Sommelier</h3>
-                <p>Cerca professionisti del vino e Restaurant Manager per specializzazione, certificazione e disponibilità.</p>
-            </div>
+        <div class="boxes">
+            <div class="box"><h3>🍇 <b>Scopri nuove cantine</b></h3><p>Esplora le migliori cantine italiane, filtra per regione e denominazione.</p></div>
+            <div class="box"><h3>👥 <b>Trova Sommelier</b></h3><p>Cerca professionisti del vino e Restaurant Manager per specializzazione e certificazione.</p></div>
         </div>
     </section>
-
-    <section class="section" style="background-color: white;">
+    <section class="section" style="background:white;">
         <h2>Il fascino del vino</h2>
-        
-        <div class="gallery-container">
-            <div class="gallery-item">
-                <div class="gallery-text">Degustazione</div>
-                <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=800" alt="Calice di vino rosso">
-            </div>
-
-            <div class="gallery-item">
-                <div class="gallery-text">Tradizione</div>
-                <img src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=800" alt="Botte in cantina">
-            </div>
-
-            <div class="gallery-item">
-                <div class="gallery-text">Professionalità</div>
-                <img src="https://images.unsplash.com/photo-1585553616435-2dc0a54e271d?q=80&w=800" alt="Sommelier che assaggia vino">
-            </div>
+        <div class="gallery">
+            <div class="gallery-item"><div class="gallery-text">Degustazione</div><img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?q=80&w=800"></div>
+            <div class="gallery-item"><div class="gallery-text">Tradizione</div><img src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=800"></div>
+            <div class="gallery-item"><div class="gallery-text">Professionalità</div><img src="https://images.unsplash.com/photo-1585553616435-2dc0a54e271d?q=80&w=800"></div>
         </div>
     </section>
-
-    <section class="cta-section">
-        <h2>Unisciti alla Community</h2>
-        <p>Registrati come cantina o sommelier e inizia a connetterti con i professionisti del vino.</p>
+    <section class="cta">
+        <h2><b>Unisciti alla Community</b></h2>
+        <p>Registrati come cantina o sommelier e inizia a connetterti.</p><br>
         <a href="https://enohub-stripe.onrender.com/auth/register.html" class="btn-cta">Registrati</a>
     </section>
-
 </body>
 </html>
