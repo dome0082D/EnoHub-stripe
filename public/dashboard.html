@@ -82,7 +82,27 @@
                         <input type="text" id="w-loc" placeholder="Luogo di origine" style="padding:12px; border-radius:6px; border:1px solid #ccc;">
                     </div>
                     <textarea id="w-nota" placeholder="Nota di degustazione..." style="margin-top:15px; height:80px; width:100%; box-sizing:border-box; padding:12px; border:1px solid #ccc; border-radius:6px;"></textarea>
-                    <input type="text" id="w-promo" placeholder="Promozione allegata (Opzionale - se compilata, il vino andrà nei 'Selezionati')" style="margin-top:15px; width:100%; box-sizing:border-box; padding:12px; border:2px solid var(--gold); border-radius:6px;">
+                    
+                    <div style="margin-top:15px; padding:15px; border:2px solid var(--gold); border-radius:6px; background:#fffcf5;">
+                        <label style="font-weight:bold; color:var(--gold); display:flex; align-items:center; gap:8px; cursor:pointer;">
+                            <input type="checkbox" id="w-is-promo" style="width:18px; height:18px;" onchange="togglePromoFields()"> 
+                            Inserisci nei "Vini Selezionati" (Promozione)
+                        </label>
+                        
+                        <div id="promo-fields" style="display:none; margin-top:15px;">
+                            <input type="text" id="w-promo-text" placeholder="Dettagli Promozione (es. Sconto 20% sul primo ordine)" style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; margin-bottom:10px;">
+                            <div style="display:flex; gap:15px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:12px; color:#666; font-weight:bold;">Data Inizio:</label>
+                                    <input type="date" id="w-promo-start" style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; margin-top:5px;">
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:12px; color:#666; font-weight:bold;">Data Fine:</label>
+                                    <input type="date" id="w-promo-end" style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; margin-top:5px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div style="margin-top:20px; display:flex; gap:10px;">
                         <button class="btn-main" onclick="saveWine()" id="btn-save-wine" style="background:#27ae60;">💾 Salva Vino</button>
@@ -216,7 +236,7 @@
             if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
             document.getElementById('current-plan-display').innerText = user.piano;
            
-            // Sblocca Modulo Inserimento Vini solo per le cantine o admin
+            // Sblocca Modulo Inserimento Vini SOLO per la Cantina (o admin)
             if(user.tipo === 'Cantina' || user.email === 'dome0082@gmail.com') {
                 document.getElementById('wine-form-container').style.display = 'block';
             }
@@ -246,7 +266,7 @@
             document.querySelectorAll('section').forEach(s => s.style.display = 'none');
             document.getElementById('sec-'+id).style.display = 'block';
             if(id === 'profile') renderP();
-            if(id === 'wines') renderWines(); // NUOVO MENU VINI
+            if(id === 'wines') renderWines();
             if(id === 'tastings') renderT();
             if(id === 'admin') loadA();
             if(id === 'sommeliers') renderS();
@@ -254,9 +274,14 @@
             document.getElementById('sidebar').classList.remove('active');
         }
 
-        // --- GESTIONE ARCHIVIO VINI ---
+        // --- GESTIONE ARCHIVIO VINI CON PROMOZIONI E DATE ---
         let globalWines = [];
         let editingWineId = null;
+
+        function togglePromoFields() {
+            const isChecked = document.getElementById('w-is-promo').checked;
+            document.getElementById('promo-fields').style.display = isChecked ? 'block' : 'none';
+        }
 
         async function renderWines() {
             const r = await fetch('/api/wines');
@@ -272,19 +297,31 @@
 
             const canSeeNames = user.piano !== 'Freemium' || user.email === 'dome0082@gmail.com';
 
-            const normalWines = wines.filter(w => !w.promozione).sort((a, b) => a.nome.localeCompare(b.nome));
-            const promoWines = wines.filter(w => w.promozione).sort((a, b) => a.nome.localeCompare(b.nome));
+            const normalWines = wines.filter(w => !w.isPromo).sort((a, b) => a.nome.localeCompare(b.nome));
+            const promoWines = wines.filter(w => w.isPromo).sort((a, b) => a.nome.localeCompare(b.nome));
 
             const drawItem = (w) => {
                 const cantinaName = (canSeeNames || w.cantinaId === user._id) ? w.cantinaNome : 'Cantina (Oscurata - Upgrade richiesto)';
                 const isOwner = w.cantinaId === user._id || user.email === 'dome0082@gmail.com';
                 
+                let promoHtml = '';
+                if(w.isPromo) {
+                    promoHtml = `
+                    <div style="background:#fff3cd; color:#856404; padding:10px; border-radius:5px; font-size:13px; margin-bottom:8px; border:1px solid #ffeeba;">
+                        <b>⭐ Promozione:</b> ${w.promoText}<br>
+                        <small style="color:#666; display:inline-block; margin-top:5px;">
+                            🗓️ Valida dal <b>${w.promoStart ? new Date(w.promoStart).toLocaleDateString() : 'N/A'}</b> 
+                            al <b>${w.promoEnd ? new Date(w.promoEnd).toLocaleDateString() : 'N/A'}</b>
+                        </small>
+                    </div>`;
+                }
+
                 return `
                     <div style="padding:15px; border:1px solid #ddd; border-radius:8px; margin-bottom:10px; background:white; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
                         <b style="color:var(--main); font-size:16px;">${w.nome}</b><br>
                         <small style="color:#666;">📍 ${w.location} | 🏢 <b>${cantinaName}</b></small>
                         <p style="font-size:14px; margin:8px 0; color:#333;">${w.nota}</p>
-                        ${w.promozione ? `<div style="background:#fff3cd; color:#856404; padding:8px; border-radius:5px; font-size:12px; margin-bottom:8px; border:1px solid #ffeeba;"><b>Promozione:</b> ${w.promozione}</div>` : ''}
+                        ${promoHtml}
                         ${isOwner ? `<div style="margin-top:10px;">
                             <button class="btn-main" style="padding:5px 10px; font-size:12px; background:orange;" onclick="editWine('${w._id}')">Modifica</button>
                             <button class="btn-main" style="padding:5px 10px; font-size:12px; background:#ff5252;" onclick="deleteWine('${w._id}')">Elimina</button>
@@ -310,11 +347,25 @@
             const nome = document.getElementById('w-nome').value;
             const loc = document.getElementById('w-loc').value;
             const nota = document.getElementById('w-nota').value;
-            const promo = document.getElementById('w-promo').value;
+            const isPromo = document.getElementById('w-is-promo').checked;
+            const promoText = document.getElementById('w-promo-text').value;
+            const promoStart = document.getElementById('w-promo-start').value;
+            const promoEnd = document.getElementById('w-promo-end').value;
 
             if(!nome || !loc || !nota) return alert('Compila Nome, Luogo e Nota di degustazione.');
+            if(isPromo && (!promoStart || !promoEnd)) return alert('Devi inserire la data di inizio e di fine per la promozione.');
 
-            const payload = { nome: nome, location: loc, nota: nota, promozione: promo, cantinaId: user._id, cantinaNome: user.nome };
+            const payload = { 
+                nome: nome, 
+                location: loc, 
+                nota: nota, 
+                isPromo: isPromo, 
+                promoText: promoText, 
+                promoStart: promoStart, 
+                promoEnd: promoEnd, 
+                cantinaId: user._id, 
+                cantinaNome: user.nome 
+            };
 
             if(editingWineId) {
                 await fetch('/api/wines/' + editingWineId, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
@@ -331,7 +382,14 @@
             document.getElementById('w-nome').value = w.nome;
             document.getElementById('w-loc').value = w.location;
             document.getElementById('w-nota').value = w.nota;
-            document.getElementById('w-promo').value = w.promozione || '';
+            document.getElementById('w-is-promo').checked = w.isPromo || false;
+            document.getElementById('w-promo-text').value = w.promoText || '';
+            
+            // Imposta date nei riquadri
+            if(w.promoStart) document.getElementById('w-promo-start').value = new Date(w.promoStart).toISOString().split('T')[0];
+            if(w.promoEnd) document.getElementById('w-promo-end').value = new Date(w.promoEnd).toISOString().split('T')[0];
+            
+            togglePromoFields();
             document.getElementById('wine-form-title').innerText = "Modifica Vino";
             document.getElementById('btn-cancel-wine').style.display = 'inline-block';
             document.getElementById('wine-form-container').scrollIntoView({behavior: 'smooth'});
@@ -342,7 +400,12 @@
             document.getElementById('w-nome').value = '';
             document.getElementById('w-loc').value = '';
             document.getElementById('w-nota').value = '';
-            document.getElementById('w-promo').value = '';
+            document.getElementById('w-is-promo').checked = false;
+            document.getElementById('w-promo-text').value = '';
+            document.getElementById('w-promo-start').value = '';
+            document.getElementById('w-promo-end').value = '';
+            togglePromoFields();
+            
             document.getElementById('wine-form-title').innerText = "Inserisci un nuovo vino";
             document.getElementById('btn-cancel-wine').style.display = 'none';
         }
@@ -572,7 +635,7 @@
 
         socket.on('chat_error', d => alert(d.error));
 
-        // --- DEGUSTAZIONI ---
+        // --- DEGUSTAZIONI (PER SOMMELIER) ---
         let tmpImageUrl = ''; let editingTastingId = null;
 
         function handleTastingImage(input) {
