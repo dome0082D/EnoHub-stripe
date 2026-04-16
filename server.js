@@ -20,28 +20,29 @@ mongoose.connect(process.env.MONGO_URI)
 
 // --- SCHEMA UTENTE ---
 const User = mongoose.model('User', new mongoose.Schema({
-    nome: String, 
-    email: { type: String, unique: true }, 
-    password: { type: String }, 
-    tipo: { type: String }, 
+    nome: String,
+    email: { type: String, unique: true },
+    password: { type: String },
+    tipo: { type: String },
     piano: { type: String, default: "Freemium" },
-    location: { type: String, default: "Italia" }, 
+    location: { type: String, default: "Italia" },
     bio: { type: String, default: "" },
     isVerified: { type: Boolean, default: false },
     degustazioni: { type: Array, default: [] },
     unlockedContacts: { type: Array, default: [] },
     blockedUsers: { type: Array, default: [] }, // NUOVO: Array per gli utenti bloccati dalla regola chat
     profilePic: { type: String, default: "" },
+    coverPic: { type: String, default: "" }, // Sfondo personalizzato del profilo
     vini: { type: Array, default: [] },
     gallery: { type: Array, default: [] }
 }));
 
-const Message = mongoose.model('Message', new mongoose.Schema({ 
-    from: String, to: String, fromName: String, text: String, fileUrl: String, time: { type: Date, default: Date.now } 
+const Message = mongoose.model('Message', new mongoose.Schema({
+    from: String, to: String, fromName: String, text: String, fileUrl: String, time: { type: Date, default: Date.now }
 }));
 
 // --- CONFIGURAZIONE MIDDLEWARE ---
-app.use(cors()); 
+app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
@@ -125,7 +126,7 @@ app.put('/api/user/:id', async (req, res) => {
             if (req.body.degustazioni.length > limite) return res.status(403).json({ success: false, error: "Limite raggiunto." });
         }
         Object.assign(u, req.body);
-        await u.save(); 
+        await u.save();
         res.json({ success: true, user: u });
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
@@ -139,7 +140,7 @@ io.on('connection', (socket) => {
         const target = await User.findById(d.to);
 
         // Controllo se sono bloccati tra di loro
-        if ((sender.blockedUsers && sender.blockedUsers.includes(d.to)) || 
+        if ((sender.blockedUsers && sender.blockedUsers.includes(d.to)) ||
             (target.blockedUsers && target.blockedUsers.includes(d.from))) {
             return socket.emit('chat_error', { error: '🚨 Non puoi più scrivere a questo utente. La chat è stata disabilitata per violazione delle regole.' });
         }
