@@ -9,6 +9,14 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
+// --- NUOVO: CLOUDINARY ---
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({ 
+  cloud_name: 'dcebk5ld8', 
+  api_key: '452572242791641', 
+  api_secret: 'dsqUbIfHxT4qF5N7I_mVeaUN' 
+});
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
@@ -52,7 +60,7 @@ const Wine = mongoose.model('Wine', new mongoose.Schema({
     promoEnd: String,
     cantinaId: String,
     cantinaNome: String,
-    likes: { type: Array, default: [] }, // NUOVO: Array che contiene gli ID di chi ha messo like
+    likes: { type: Array, default: [] }, 
     time: { type: Date, default: Date.now }
 }));
 
@@ -60,8 +68,8 @@ const Wine = mongoose.model('Wine', new mongoose.Schema({
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
+// Creazione cartella temporanea per le immagini
 fs.ensureDirSync('public/uploads/media');
 const upload = multer({ storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'public/uploads/media'),
@@ -101,8 +109,23 @@ app.post('/api/activate-plan', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
+// --- API UPLOAD MODIFICATA PER CLOUDINARY ---
 app.post('/api/upload', upload.single('file'), async (req, res) => {
-    res.json({ url: '/uploads/media/' + req.file.filename });
+    try {
+        // Carica il file temporaneo su Cloudinary
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: 'enohub_media' // Crea una cartella apposita nel tuo account Cloudinary
+        });
+        
+        // Elimina il file locale temporaneo per non riempire il server
+        fs.unlinkSync(req.file.path);
+        
+        // Restituisce l'URL sicuro di Cloudinary al frontend
+        res.json({ url: result.secure_url });
+    } catch (error) {
+        console.error('Errore Cloudinary:', error);
+        res.status(500).json({ error: 'Errore durante il caricamento immagine' });
+    }
 });
 
 app.get('/api/users', async (req, res) => res.json(await User.find({}, '-password')));
@@ -121,7 +144,6 @@ app.post('/api/wines', async (req, res) => { const w = new Wine(req.body); await
 app.put('/api/wines/:id', async (req, res) => { await Wine.findByIdAndUpdate(req.params.id, req.body); res.json({success:true}); });
 app.delete('/api/wines/:id', async (req, res) => { await Wine.findByIdAndDelete(req.params.id); res.json({success:true}); });
 
-// Toggle Like
 app.post('/api/wines/:id/like', async (req, res) => {
     try {
         const wine = await Wine.findById(req.params.id);
@@ -130,9 +152,9 @@ app.post('/api/wines/:id/like', async (req, res) => {
         
         const index = wine.likes.indexOf(userId);
         if (index === -1) {
-            wine.likes.push(userId); // Aggiungi like
+            wine.likes.push(userId); 
         } else {
-            wine.likes.splice(index, 1); // Rimuovi like
+            wine.likes.splice(index, 1); 
         }
         await wine.save();
         res.json({success: true, wine});
