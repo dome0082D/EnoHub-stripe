@@ -22,7 +22,7 @@ header.header { background: white; padding: 15px 0; box-shadow: var(--shadow); p
 /* GALLERIA HOME */
 .wine-visual-experience { padding: 40px 0 20px 0; }
 .visual-grid { display: flex; gap: 15px; height: 350px; }
-.visual-item { 
+.visual-item {
     flex: 1; border-radius: 20px; background-size: cover; background-position: center;
     display: flex; align-items: flex-end; padding: 20px; transition: 0.5s;
     box-shadow: var(--shadow); cursor: pointer; text-decoration: none;
@@ -32,8 +32,8 @@ header.header { background: white; padding: 15px 0; box-shadow: var(--shadow); p
 
 /* CARDS CENTRALI */
 .home__content { display: flex; gap: 30px; padding: 20px 0; }
-.home__card { 
-    flex: 1; background: white; border-radius: 20px; height: 200px; 
+.home__card {
+    flex: 1; background: white; border-radius: 20px; height: 200px;
     box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-decoration: none; border: 3px solid transparent; transition: 0.3s; text-align: center; padding: 20px;
 }
