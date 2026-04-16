@@ -193,4 +193,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🚀 EnoHub V4 Onlin
+server.listen(PORT, () => console.log(`🚀 EnoHub V4 Online sulla porta ${PORT}`));
