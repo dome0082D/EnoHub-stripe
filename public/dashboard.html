@@ -34,6 +34,9 @@
     <nav class="sidebar" id="sidebar">
         <h3 style="padding:0 25px; color:var(--main);">EnoHub Diamond</h3>
         <a onclick="show('profile')">👤 Il mio Profilo</a>
+        
+        <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none; color:var(--main); font-weight:bold;">👥 Sommelier</a>
+        
         <a id="nav-tastings" onclick="show('tastings')" style="display:none; font-weight:bold;">🍷 Note di Degustazione</a>
         <a onclick="show('subs')">💎 Upgrade Piano</a>
         <a id="nav-admin" onclick="show('admin')" style="display:none; color:orange;">🛡️ Staff Panel</a>
@@ -42,6 +45,15 @@
 
     <div class="content">
         <section id="sec-profile"></section>
+
+        <section id="sec-sommeliers" style="display:none;">
+            <div class="card">
+                <h2>Lista Sommelier</h2>
+                <p>Gettoni disponibili: <b id="gettoni-count" style="color:var(--main); font-size:18px;">...</b></p>
+                <hr>
+                <div id="sommelier-list"></div>
+            </div>
+        </section>
 
         <section id="sec-tastings" style="display:none;">
             <div class="card">
@@ -113,6 +125,18 @@
         </section>
     </div>
 
+    <div id="chat-modal" style="display:none; position:fixed; bottom:20px; right:20px; width:320px; background:white; border-radius:10px; box-shadow:0 5px 20px rgba(0,0,0,0.3); z-index:2000; flex-direction:column; border:1px solid #ccc;">
+        <div style="background:var(--main); color:white; padding:12px; display:flex; justify-content:space-between; border-radius:10px 10px 0 0;">
+            <b id="chat-title">Chat</b>
+            <button onclick="closeChat()" style="background:none; border:none; color:white; cursor:pointer; font-size:16px;">✖</button>
+        </div>
+        <div id="chat-messages" style="height:250px; overflow-y:auto; padding:10px; background:#f4f4f4; font-size:14px; display:flex; flex-direction:column; gap:8px;"></div>
+        <div style="display:flex; border-top:1px solid #ddd;">
+            <input type="text" id="chat-input" style="flex:1; border:none; padding:12px; outline:none;" placeholder="Scrivi messaggio...">
+            <button onclick="sendMsg()" style="background:#27ae60; color:white; border:none; padding:0 15px; cursor:pointer; font-weight:bold;">Invia</button>
+        </div>
+    </div>
+
     <script>
         let user = JSON.parse(localStorage.getItem('enohub_user'));
         if(!user) window.location.href = "/index.html";
@@ -136,17 +160,16 @@
             document.getElementById('nav-tastings').style.display = 'block';
             document.getElementById('current-plan-display').innerText = user.piano;
             
-            // Logica per mostrare i box corretti in base al tipo di utente
             if(user.tipo === 'Cantina') {
                 document.getElementById('subs-cantina').style.display = 'grid';
                 document.getElementById('subs-sommelier').style.display = 'none';
+                document.getElementById('nav-sommeliers').style.display = 'block'; // Mostra menu Sommelier
             } else {
                 document.getElementById('subs-cantina').style.display = 'none';
                 document.getElementById('subs-sommelier').style.display = 'grid';
             }
 
             document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('active'));
-            // Attiva il bordo colorato sul piano corretto in base all'id dinamico
             const tierId = user.tipo === 'Cantina' ? 'tier-' + user.piano + '-Cantina' : 'tier-' + user.piano;
             if(document.getElementById(tierId)) document.getElementById(tierId).classList.add('active');
 
@@ -161,6 +184,7 @@
             if(id === 'profile') renderP();
             if(id === 'tastings') renderT();
             if(id === 'admin') loadA();
+            if(id === 'sommeliers') renderS();
             document.getElementById('sidebar').classList.remove('active');
         }
 
@@ -185,6 +209,111 @@
             html += `</div>`; document.getElementById('sec-profile').innerHTML = html;
         }
 
+        // --- NUOVA LOGICA: LISTA SOMMELIER E GETTONI ---
+        async function renderS() {
+            const r = await fetch('/api/users');
+            const utenti = await r.json();
+            const list = utenti.filter(u => u.tipo === 'Sommelier'); // Solo i Sommelier
+            const container = document.getElementById('sommelier-list');
+            container.innerHTML = '';
+
+            let maxGettoni = 0;
+            if(user.piano === 'Pro') maxGettoni = 2;
+            if(user.piano === 'Premium') maxGettoni = 5;
+            if(user.email === 'dome0082@gmail.com') maxGettoni = 999;
+            
+            const usati = user.unlockedContacts ? user.unlockedContacts.length : 0;
+            document.getElementById('gettoni-count').innerText = `${maxGettoni - usati} su ${maxGettoni}`;
+
+            list.forEach((s, index) => {
+                // Controllo se l'id del sommelier è tra i contatti sbloccati
+                const isUnlocked = user.unlockedContacts && user.unlockedContacts.includes(s._id);
+                
+                let nameDisplay = isUnlocked ? s.nome : `Sommelier N. ${index + 1} (Nome Oscurato)`;
+                let btnHtml = isUnlocked 
+                    ? `<button class="btn-main" style="background:#27ae60;" onclick="openChat('${s._id}', '${s.nome}')">💬 Chat</button>` 
+                    : `<button class="btn-main" style="background:var(--gold);" onclick="unlockSommelier('${s._id}', ${maxGettoni - usati})">🔓 Usa Gettone</button>`;
+
+                container.innerHTML += `
+                    <div style="padding:20px; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:15px; background:white;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
+                            <div style="flex:1;">
+                                <h3 style="margin:0; color:${isUnlocked ? 'var(--main)' : '#666'};">${nameDisplay}</h3>
+                                <p style="font-size:14px; color:#555; margin-top:8px;"><b>Bio & Certificati:</b><br>${s.bio || 'Nessuna informazione inserita.'}</p>
+                            </div>
+                            <div>${btnHtml}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function unlockSommelier(targetId, gettoniRimasti) {
+            if(gettoniRimasti <= 0) {
+                return alert("Hai esaurito i gettoni gratuiti! Esegui l'upgrade del piano per sbloccare altri profili.");
+            }
+            if(!confirm('Vuoi usare 1 gettone per sbloccare questo Sommelier e avviare la chat?')) return;
+
+            let arr = user.unlockedContacts || [];
+            arr.push(targetId);
+
+            const r = await fetch('/api/user/' + user._id, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ unlockedContacts: arr })
+            });
+            const res = await r.json();
+            if(res.success) {
+                user = res.user;
+                localStorage.setItem('enohub_user', JSON.stringify(user));
+                renderS(); // Ricarica la lista
+            }
+        }
+
+        // --- SISTEMA CHAT ---
+        let currentChatTarget = null;
+        
+        function openChat(id, nome) {
+            currentChatTarget = id;
+            document.getElementById('chat-title').innerText = nome;
+            document.getElementById('chat-modal').style.display = 'flex';
+            document.getElementById('chat-messages').innerHTML = ''; 
+            socket.emit('get_history', { me: user._id, to: id });
+        }
+
+        function closeChat() {
+            document.getElementById('chat-modal').style.display = 'none';
+            currentChatTarget = null;
+        }
+
+        function sendMsg() {
+            const text = document.getElementById('chat-input').value;
+            if(!text || !currentChatTarget) return;
+            socket.emit('send_msg', { from: user._id, to: currentChatTarget, fromName: user.nome, text: text });
+            document.getElementById('chat-input').value = '';
+            
+            document.getElementById('chat-messages').innerHTML += `<div style="align-self:flex-end; background:#dcf8c6; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${text}</div>`;
+            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+        }
+
+        socket.on('chat_history', msgs => {
+            const box = document.getElementById('chat-messages');
+            box.innerHTML = msgs.map(m => {
+                const isMe = m.from === user._id;
+                return `<div style="align-self:${isMe ? 'flex-end' : 'flex-start'}; background:${isMe ? '#dcf8c6' : 'white'}; border:1px solid #eee; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${m.text}</div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        });
+
+        socket.on('new_msg', m => {
+            if(m.from === currentChatTarget || m.to === currentChatTarget) {
+                const isMe = m.from === user._id;
+                document.getElementById('chat-messages').innerHTML += `<div style="align-self:${isMe ? 'flex-end' : 'flex-start'}; background:${isMe ? '#dcf8c6' : 'white'}; border:1px solid #eee; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${m.text}</div>`;
+                document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+            }
+        });
+
+        // --- DEGUSTAZIONI ---
         let tmpImageUrl = ''; let editingId = null;
 
         function handleTastingImage(input) {
@@ -250,7 +379,7 @@
             const d = await r.json(); if(d.url) window.location.href = d.url;
         }
 
-        // --- FUNZIONI SUPER ADMIN AGGIORNATE ---
+        // --- FUNZIONI SUPER ADMIN ---
         async function loadA() {
             const r = await fetch('/api/users'); 
             const utenti = await r.json();
@@ -258,7 +387,7 @@
             l.innerHTML = '';
             
             utenti.forEach(u => {
-                if(u.email === user.email) return; // Non mostrare se stesso
+                if(u.email === user.email) return; 
                 l.innerHTML += `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee; background: white; margin-bottom:5px; border-radius:8px;">
                     <div>
@@ -278,29 +407,15 @@
         }
 
         async function toggleVerify(id, currentStatus) {
-            await fetch('/api/admin/verify', { 
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ adminEmail: user.email, targetId: id, verifyStatus: !currentStatus }) 
-            });
-            loadA(); // Ricarica la lista per mostrare il pulsante aggiornato
+            await fetch('/api/admin/verify', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ adminEmail: user.email, targetId: id, verifyStatus: !currentStatus }) });
+            loadA(); 
         }
 
         async function deleteUser(id, nome) {
             if(!confirm(`Sei SICURO di voler eliminare definitivamente il profilo di ${nome}? Questa azione non è reversibile.`)) return;
-            
-            const r = await fetch('/api/admin/user/' + id, { 
-                method: 'DELETE', 
-                headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({ adminEmail: user.email }) 
-            });
+            const r = await fetch('/api/admin/user/' + id, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ adminEmail: user.email }) });
             const res = await r.json(); 
-            if(res.success) { 
-                alert("Utente eliminato con successo."); 
-                loadA(); // Ricarica la lista
-            } else {
-                alert("Errore: " + res.error);
-            }
+            if(res.success) { alert("Utente eliminato con successo."); loadA(); } else alert("Errore: " + res.error);
         }
 
         socket.on('chat_error', d => alert(d.error));
@@ -308,3 +423,4 @@
     </script>
 </body>
 </html>
+
