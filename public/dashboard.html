@@ -5,37 +5,39 @@
     <title>EnoHub - Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --main: #8a1c1c; --grey: #f8f9fa; }
-        body { font-family: sans-serif; margin: 0; background: #fdfdfd; }
+        :root { --main: #8a1c1c; --grey: #f8f9fa; --border: #e2e8f0; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fafafa; }
         
-        /* MENU A SCOMPARSA */
-        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: #1a1a1a; color: white; transition: 0.4s; z-index: 1000; padding-top: 60px; }
+        /* MENU A SCOMPARSA GRIGIO CHIARO */
+        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: var(--grey); border-right: 1px solid var(--border); transition: 0.4s; z-index: 1000; padding-top: 60px; }
         .sidebar.active { left: 0; }
-        .sidebar a { display: block; padding: 18px 25px; color: #ccc; text-decoration: none; border-bottom: 1px solid #333; cursor: pointer; }
+        .sidebar a { display: block; padding: 18px 25px; color: #444; text-decoration: none; border-bottom: 1px solid #eee; cursor: pointer; }
         .menu-btn { position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--main); color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
 
-        .content { margin-left: 0; padding: 80px 5% 40px 5%; transition: 0.4s; }
+        .content { padding: 80px 5% 40px 5%; }
         .card { 
-            background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 25px;
+            background: rgba(255,255,255,0.95); padding: 30px; border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 25px;
             background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('https://images.unsplash.com/photo-1504275107627-0c2ba7a43dba?q=20&w=1200') center/cover fixed;
         }
 
         .eh-badge { display: inline-flex; align-items: center; color: #28a745; font-weight: bold; background: #e6ffed; padding: 5px 12px; border-radius: 20px; font-size: 14px; border: 1px solid #28a745; }
         .eh-badge span { color: var(--main); border: 1px solid var(--main); padding: 1px 4px; border-radius: 4px; font-size: 10px; margin-right: 6px; }
 
-        .tasting-box { border: 2px dashed #ddd; padding: 20px; border-radius: 10px; margin-top: 15px; background: rgba(255,255,255,0.8); }
         .btn-main { background: var(--main); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .preview-img { height: 100px; border-radius: 8px; margin-top: 10px; border: 2px solid var(--main); display: none; }
+        
+        .tasting-item { display: flex; gap: 20px; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; align-items: center; position: relative; }
+        .btn-action { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 5px; }
     </style>
 </head>
 <body>
     <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
     <nav class="sidebar" id="sidebar">
-        <h3 style="padding:0 25px;">EnoHub Diamond</h3>
-        <a onclick="show('profile')">👤 Profilo Pubblico</a>
-        <a id="nav-tastings" onclick="show('tastings')" style="display:none;">🍷 Note di Degustazione</a>
-        <a onclick="show('chat')">💬 Community Network</a>
+        <h3 style="padding:0 25px; color:var(--main);">EnoHub Diamond</h3>
+        <a onclick="show('profile')">👤 Il mio Profilo</a>
+        <a id="nav-tastings" onclick="show('tastings')" style="display:none; font-weight:bold;">🍷 Diario Degustazioni</a>
         <a onclick="show('subs')">💎 Upgrade Piano</a>
-        <a onclick="show('settings')">⚙️ Modifica Profilo</a>
+        <a id="nav-admin" onclick="show('admin')" style="display:none; color:orange;">🛡️ Staff Panel</a>
         <hr><a onclick="logout()" style="color:red;">🚪 Esci</a>
     </nav>
 
@@ -44,48 +46,48 @@
 
         <section id="sec-tastings" style="display:none;">
             <div class="card">
-                <h2>Note di degustazione</h2>
-                <div class="tasting-box">
-                    <input type="text" id="t-vino" placeholder="Nome del vino e annata..." style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;">
-                    <textarea id="t-note" placeholder="Descrivi la tua degustazione..." style="width:100%; height:100px; padding:10px; border-radius:5px; border:1px solid #ccc;"></textarea>
-                    <input type="file" onchange="upTasting(this)" style="margin-top:10px;">
-                    <div id="t-preview" style="margin-top:10px;"></div>
-                    <button onclick="saveTasting()" class="btn-main" style="margin-top:15px; width:100%;">Salva Degustazione</button>
-                </div>
-                <div id="tastings-archive" style="margin-top:30px;"></div>
-            </div>
-        </section>
+                <h2 id="tasting-title">Aggiungi Degustazione</h2>
+                <div style="background:rgba(255,255,255,0.8); padding:20px; border-radius:10px;">
+                    <input type="text" id="t-vino" placeholder="Nome Vino..." style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+                    <textarea id="t-note" placeholder="Descrizione..." style="width:100%; height:80px; padding:12px; border-radius:8px; border:1px solid #ddd;"></textarea>
+                    
+                    <div style="margin-top:10px;">
+                        <label><b>Foto Etichetta:</b></label><br>
+                        <input type="file" id="t-file" onchange="previewAndUpload(this)">
+                        <img id="t-preview" class="preview-img" alt="Anteprima">
+                    </div>
 
-        <section id="sec-chat" style="display:none;">
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
-                <div class="card"><h3>🤵 Sommelier</h3><div id="l-somm"></div></div>
-                <div class="card"><h3>🍷 Cantine</h3><div id="l-cant"></div></div>
+                    <button id="t-save-btn" onclick="saveTasting()" class="btn-main" style="margin-top:20px; width:100%; background:#27ae60;">SALVA DEGUSTAZIONE</button>
+                    <button id="t-cancel-edit" onclick="resetTastingForm()" class="btn-main" style="margin-top:10px; width:100%; background:#666; display:none;">ANNULLA MODIFICA</button>
+                </div>
+                <hr><div id="tastings-list"></div>
             </div>
         </section>
 
         <section id="sec-subs" style="display:none;">
-            <h2>Scegli il tuo Upgrade</h2>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                <div class="card" style="text-align:center;">
-                    <h3>Piano Pro</h3><p>€15.00</p>
-                    <button onclick="pay('Pro', 15, 'card')" class="btn-main">Paga con Carta</button>
-                </div>
-                <div class="card" style="text-align:center;">
-                    <h3>Piano Business</h3><p>€29.00</p>
-                    <button onclick="pay('Business', 29, 'card')" class="btn-main">Paga con Carta</button>
-                </div>
+            <div class="card" style="text-align:center;">
+                <h2>Upgrade Account</h2>
+                <button onclick="pay('Sommelier Pro', 15, 'card')" class="btn-main">Carta/Bancomat €15</button>
+                <button onclick="pay('Sommelier Pro', 15, 'bank')" class="btn-main" style="background:#2c3e50; margin-top:10px;">Bonifico Bancario</button>
             </div>
+        </section>
+
+        <section id="sec-admin" style="display:none;" class="card">
+            <h2>🛡️ Staff Panel</h2>
+            <div id="admin-list"></div>
         </section>
     </div>
 
     <script>
-        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
         let user = JSON.parse(localStorage.getItem('enohub_user'));
         if(!user) window.location.href = "/index.html";
+
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
 
         async function refresh() {
             const r = await fetch('/api/user/'+user._id); user = await r.json();
             localStorage.setItem('enohub_user', JSON.stringify(user));
+            if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
             if(user.tipo === 'Sommelier') document.getElementById('nav-tastings').style.display = 'block';
             show(sessionStorage.getItem('last_v') || 'profile');
         }
@@ -97,66 +99,129 @@
             document.getElementById('sec-'+id).style.display = 'block';
             if(id === 'profile') renderP();
             if(id === 'tastings') renderT();
-            if(id === 'chat') loadC();
-            toggleMenu();
+            if(id === 'admin') loadA();
+            document.getElementById('sidebar').classList.remove('active');
         }
 
         function renderP() {
             const badge = user.isVerified ? `<div class="eh-badge"><span>EH</span> ✅ Verificato</div>` : '';
-            document.getElementById('sec-profile').innerHTML = `
-                <div class="card">
-                    <h1>${user.nome} ${badge}</h1>
-                    <p>📍 ${user.location} • <b>${user.piano}</b></p>
-                    <hr><h3>Biografia</h3><p>${user.bio || 'Nessuna descrizione.'}</p>
-                </div>`;
+            document.getElementById('sec-profile').innerHTML = `<div class="card"><h1>${user.nome} ${badge}</h1><p>${user.piano}</p></div>`;
         }
 
-        let tmpFile = '';
-        async function upTasting(input) {
-            const fd = new FormData(); fd.append('file', input.files[0]); fd.append('ownerId', user._id);
-            const r = await fetch('/api/upload', {method:'POST', body:fd}); const m = await r.json();
-            tmpFile = m.url; document.getElementById('t-preview').innerHTML = `<img src="${m.url}" style="height:80px; border-radius:5px;">`;
+        // --- GESTIONE DEGUSTAZIONI: ANTEPRIMA, MODIFICA, ELIMINA ---
+        let tmpImageUrl = '';
+        let editingId = null;
+
+        function previewAndUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('t-preview');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+                
+                // Upload effettivo al server
+                const fd = new FormData(); fd.append('file', input.files[0]);
+                fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(data => {
+                    tmpImageUrl = data.url;
+                });
+            }
         }
 
         async function saveTasting() {
-            const v = document.getElementById('t-vino').value; const n = document.getElementById('t-note').value;
-            const deg = user.degustazioni || []; deg.push({vino:v, nota:n, img:tmpFile, date:new Date()});
-            await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:deg})});
+            const vino = document.getElementById('t-vino').value;
+            const nota = document.getElementById('t-note').value;
+            if(!vino) return alert("Inserisci il nome del vino");
+
+            let list = user.degustazioni || [];
+            
+            if(editingId) {
+                // Modifica
+                list = list.map(d => d.id === editingId ? { ...d, vino, nota, img: tmpImageUrl || d.img } : d);
+            } else {
+                // Nuovo
+                list.push({ id: Date.now().toString(), vino, nota, img: tmpImageUrl, date: new Date() });
+            }
+
+            await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list})});
             location.reload();
         }
 
         function renderT() {
-            const l = document.getElementById('tastings-archive'); l.innerHTML = '';
+            const l = document.getElementById('tastings-list'); l.innerHTML = '';
             (user.degustazioni || []).reverse().forEach(d => {
-                l.innerHTML += `<div class="card" style="display:flex; gap:20px; align-items:center;">
-                    ${d.img ? `<img src="${d.img}" style="width:100px;height:100px;object-fit:cover;border-radius:10px;">` : ''}
-                    <div><b>${d.vino}</b><br><small>${new Date(d.date).toLocaleDateString()}</small><p>${d.nota}</p></div>
+                l.innerHTML += `
+                <div class="tasting-row">
+                    ${d.img ? `<img src="${d.img}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;">` : '<div style="width:70px;height:70px;background:#eee;"></div>'}
+                    <div style="flex:1">
+                        <b>${d.vino}</b><br><small>${new Date(d.date).toLocaleDateString()}</small>
+                        <p style="margin:5px 0 0 0;">${d.nota}</p>
+                    </div>
+                    <div>
+                        <button class="btn-action" style="background:orange;color:white;" onclick="editTasting('${d.id}')">Modifica</button>
+                        <button class="btn-action" style="background:red;color:white;" onclick="deleteTasting('${d.id}')">Elimina</button>
+                    </div>
                 </div>`;
             });
         }
 
-        async function loadC() {
-            const r = await fetch('/api/users'); const users = await r.json();
-            const ls = document.getElementById('l-somm'); const lc = document.getElementById('l-cant');
-            ls.innerHTML = ''; lc.innerHTML = '';
-            users.filter(u => u._id !== user._id).forEach(u => {
-                let btn = `<button onclick="alert('Chat coming soon')" class="btn-main" style="padding:5px 10px;">Chat</button>`;
-                if(user.tipo === 'Cantina' && u.tipo === 'Sommelier' && !user.unlockedContacts.includes(u._id)) {
-                    btn = `<button onclick="payUnlock('${u._id}')" style="background:black; color:white; border:none; padding:8px 12px; border-radius:5px;">Sblocca (€15)</button>`;
-                }
-                const h = `<div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee;"><div><b>${u.nome}</b> ${u.isVerified?'✅':''}<br><small>${u.location}</small></div>${btn}</div>`;
-                if(u.tipo === 'Sommelier') ls.innerHTML += h; else lc.innerHTML += h;
+        function editTasting(id) {
+            const d = user.degustazioni.find(x => x.id === id);
+            editingId = id;
+            document.getElementById('t-vino').value = d.vino;
+            document.getElementById('t-note').value = d.nota;
+            document.getElementById('tasting-title').innerText = "Modifica Degustazione";
+            document.getElementById('t-cancel-edit').style.display = 'block';
+            if(d.img) {
+                const img = document.getElementById('t-preview');
+                img.src = d.img;
+                img.style.display = 'block';
+            }
+            window.scrollTo(0,0);
+        }
+
+        async function deleteTasting(id) {
+            if(!confirm("Eliminare questa nota?")) return;
+            const list = user.degustazioni.filter(x => x.id !== id);
+            await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list})});
+            location.reload();
+        }
+
+        function resetTastingForm() {
+            editingId = null; tmpImageUrl = '';
+            document.getElementById('t-vino').value = '';
+            document.getElementById('t-note').value = '';
+            document.getElementById('t-preview').style.display = 'none';
+            document.getElementById('tasting-title').innerText = "Aggiungi Degustazione";
+            document.getElementById('t-cancel-edit').style.display = 'none';
+        }
+
+        async function pay(piano, prezzo, metodo) {
+            if(metodo === 'card') {
+                const r = await fetch('/api/create-checkout', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano, prezzo})});
+                const d = await r.json(); if(d.url) window.location.href = d.url;
+            } else {
+                alert(`IBAN: IT 00 X 00000 00000 000000000000\nCausale: ${piano} - ${user.nome}`);
+            }
+        }
+
+        async function loadA() {
+            const r = await fetch('/api/users'); const utenti = await r.json();
+            const l = document.getElementById('admin-list'); l.innerHTML = '';
+            utenti.forEach(u => {
+                if(u.email === user.email) return;
+                l.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px;">
+                    <span>${u.nome}</span>
+                    <button class="btn-main" style="padding:5px 10px;" onclick="verify('${u._id}')">${u.isVerified?'Verificato':'Applica EH ✅'}</button>
+                </div>`;
             });
         }
 
-        async function payUnlock(tid) {
-            const r = await fetch('/api/create-checkout', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:'Sblocca Sommelier', prezzo:15, type:'unlock', targetId:tid, userId:user._id})});
-            const d = await r.json(); if(d.url) window.location.href = d.url;
-        }
-
-        async function pay(p, v, m) {
-            const r = await fetch('/api/create-checkout', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano:p, prezzo:v, userId:user._id, type:'upgrade'})});
-            const d = await r.json(); if(d.url) window.location.href = d.url;
+        async function verify(id) {
+            await fetch('/api/admin/verify', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({adminEmail:user.email, targetId:id, verifyStatus:true})});
+            loadA();
         }
 
         function logout() { localStorage.clear(); sessionStorage.clear(); window.location.href="/index.html"; }
