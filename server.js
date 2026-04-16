@@ -41,12 +41,15 @@ const Message = mongoose.model('Message', new mongoose.Schema({
     from: String, to: String, fromName: String, text: String, fileUrl: String, time: { type: Date, default: Date.now }
 }));
 
-// --- NUOVO SCHEMA: ARCHIVIO VINI ---
+// --- SCHEMA: ARCHIVIO VINI (AGGIORNATO) ---
 const Wine = mongoose.model('Wine', new mongoose.Schema({
     nome: String,
     location: String,
     nota: String,
-    promozione: { type: String, default: "" },
+    isPromo: { type: Boolean, default: false },
+    promoText: { type: String, default: "" },
+    promoStart: String,
+    promoEnd: String,
     cantinaId: String,
     cantinaNome: String,
     time: { type: Date, default: Date.now }
