@@ -14,10 +14,9 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ EnoHub Diamond V3.6 Online'))
+    .then(() => console.log('✅ DATABASE: EnoHub Diamond v4 Online'))
     .catch(e => console.log('❌ DB ERROR:', e.message));
 
-// SCHEMA UTENTE
 const User = mongoose.model('User', new mongoose.Schema({
     nome: String, email: { type: String, unique: true }, password: { type: String }, tipo: String,
     piano: { type: String, default: "Freemium" },
@@ -44,7 +43,6 @@ const upload = multer({ storage: multer.diskStorage({
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'))
 })});
 
-// --- API ---
 app.post('/api/login', async (req, res) => {
     const email = req.body.email.toLowerCase().trim();
     const u = await User.findOne({ email });
@@ -80,7 +78,6 @@ app.get('/api/users', async (req, res) => res.json(await User.find({}, '-passwor
 app.get('/api/user/:id', async (req, res) => res.json(await User.findById(req.params.id, '-password')));
 
 app.put('/api/user/:id', async (req, res) => {
-    // markModified serve a Mongoose per capire che l'oggetto certFiles è cambiato
     const u = await User.findById(req.params.id);
     Object.assign(u, req.body);
     if(req.body.certFiles) u.markModified('certFiles');
@@ -130,4 +127,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`🚀 Server EnoHub Pronto sulla porta ${PORT}`));
+server.listen(PORT, () => console.log(`🚀 Server EnoHub V4 Pronto sulla porta ${PORT}`));
