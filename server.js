@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
-// Assicurati di avere la tua Secret Key di Stripe nel file .env
+// Assicurati di inserire STRIPE_SECRET_KEY nelle variabili d'ambiente di Render
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
 const app = express();
@@ -18,25 +18,42 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ DATABASE: EnoHub Diamond v4 Online'))
     .catch(e => console.log('❌ DB ERROR:', e.message));
 
+// --- MODELLI DATABASE ---
 const User = mongoose.model('User', new mongoose.Schema({
-    nome: String, email: { type: String, unique: true }, password: { type: String }, tipo: String,
+    nome: String, 
+    email: { type: String, unique: true }, 
+    password: { type: String }, 
+    tipo: String,
     piano: { type: String, default: "Freemium" },
-    location: { type: String, default: "Italia" }, bio: { type: String, default: "" },
+    location: { type: String, default: "Italia" }, 
+    bio: { type: String, default: "" },
     ruolo: { type: String, default: "Wine Professional" },
-    specializzazioni: { type: String, default: "" }, certificazioni: { type: String, default: "" },
+    specializzazioni: { type: String, default: "" }, 
+    certificazioni: { type: String, default: "" },
     certFiles: { type: Object, default: {} },
-    degustazioni: { type: Array, default: [] },
-    regione: { type: String, default: "" }, filosofia: { type: String, default: "" },
-    storia: { type: String, default: "" }, sito: { type: String, default: "" },
+    degustazioni: { type: Array, default: [] }, // Archivio Degustazioni
+    regione: { type: String, default: "" }, 
+    filosofia: { type: String, default: "" },
+    storia: { type: String, default: "" }, 
+    sito: { type: String, default: "" },
     unlockedContacts: { type: Array, default: [] },
     unlocksRemaining: { type: Number, default: 0 },
-    isVerified: { type: Boolean, default: false }, identificativoCertificato: { type: String, default: "" }
+    isVerified: { type: Boolean, default: false }, 
+    identificativoCertificato: { type: String, default: "" }
 }));
 
-const Message = mongoose.model('Message', new mongoose.Schema({ from: String, to: String, fromName: String, text: String, fileUrl: String, time: { type: Date, default: Date.now } }));
-const Media = mongoose.model('Media', new mongoose.Schema({ ownerId: String, url: String, name: String, type: String, date: { type: Date, default: Date.now } }));
+const Message = mongoose.model('Message', new mongoose.Schema({ 
+    from: String, to: String, fromName: String, text: String, fileUrl: String, time: { type: Date, default: Date.now } 
+}));
 
-app.use(cors()); app.use(express.json()); app.use(express.static('public'));
+const Media = mongoose.model('Media', new mongoose.Schema({ 
+    ownerId: String, url: String, name: String, type: String, date: { type: Date, default: Date.now } 
+}));
+
+// --- MIDDLEWARE E CONFIGURAZIONE ---
+app.use(cors()); 
+app.use(express.json()); 
+app.use(express.static('public'));
 fs.ensureDirSync('public/uploads/media');
 
 const upload = multer({ storage: multer.diskStorage({
@@ -44,6 +61,7 @@ const upload = multer({ storage: multer.diskStorage({
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'))
 })});
 
+// --- ROTTE AUTENTICAZIONE ---
 app.post('/api/login', async (req, res) => {
     const email = req.body.email.toLowerCase().trim();
     const u = await User.findOne({ email });
@@ -51,44 +69,26 @@ app.post('/api/login', async (req, res) => {
     else res.status(401).json({ success: false });
 });
 
-/* ============================================================
-   STRIPE ENDPOINTS (AGGIORNATO PER COMUNICARE CON API.JS)
-   ============================================================ */
-app.post('/api/create-checkout-session', async (req, res) => {
-    const { plan, targetId, type } = req.body;
-    
-    // Sicurezza: mappiamo il piano richiesto ai prezzi definitivi lato server
-    let prezzo = 0;
-    let nomePiano = 'Upgrade EnoHub';
-
-    if (plan === 'sommelier_pro') {
-        prezzo = 15;
-        nomePiano = 'Piano Sommelier Pro';
-    } else if (plan === 'cantina_premium') {
-        prezzo = 29;
-        nomePiano = 'Piano Cantina Premium';
-    } else if (plan === 'sblocco_contatto') {
-        prezzo = 5; // Prezzo ipotetico per sbloccare un singolo contatto
-        nomePiano = 'Sblocco Contatto Singolo';
-    }
-
+// --- ROTTE STRIPE E PAGAMENTI ---
+app.post('/api/create-checkout', async (req, res) => {
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{ 
                 price_data: { 
                     currency: 'eur', 
-                    product_data: { name: nomePiano }, 
-                    unit_amount: prezzo * 100 // Stripe ragiona in centesimi (es. 1500 = €15.00)
+                    product_data: { name: `EnoHub: ${req.body.piano}` }, 
+                    unit_amount: req.body.prezzo * 100 // Stripe usa i centesimi
                 }, 
                 quantity: 1 
             }],
-            mode: 'payment', // Usa 'subscription' se decidi di creare Piani Ricorrenti sulla dashboard di Stripe
-            success_url: `${req.headers.origin}/dashboard.html?payment=success&type=${type || 'upgrade'}&target=${targetId || ''}&piano=${plan}`,
-            cancel_url: `${req.headers.origin}/`,
+            mode: 'payment',
+            success_url: `${req.headers.origin}/dashboard.html?payment=success&type=${req.body.type}&target=${req.body.targetId || ''}&piano=${req.body.piano}`,
+            cancel_url: `${req.headers.origin}/index.html`,
         });
         res.json({ url: session.url });
     } catch(e) { 
+        console.error("Stripe Error:", e.message);
         res.status(500).json({ error: e.message }); 
     }
 });
@@ -99,12 +99,12 @@ app.post('/api/confirm-payment', async (req, res) => {
         if(!u.unlockedContacts.includes(req.body.targetId)) u.unlockedContacts.push(req.body.targetId);
     } else {
         u.piano = req.body.piano;
-        if(u.tipo === 'Cantina' && req.body.piano === 'cantina_premium') u.unlocksRemaining = 5;
+        if(u.tipo === 'Cantina' && req.body.piano === 'Cantina Premium') u.unlocksRemaining = 5;
     }
     await u.save(); res.json({ success: true, user: u });
 });
-/* ============================================================ */
 
+// --- ROTTE UTENTI ---
 app.get('/api/users', async (req, res) => res.json(await User.find({}, '-password')));
 app.get('/api/user/:id', async (req, res) => res.json(await User.findById(req.params.id, '-password')));
 
@@ -116,6 +116,31 @@ app.put('/api/user/:id', async (req, res) => {
     res.json({ success: true, user: u });
 });
 
+// --- ROTTE ARCHIVIO DEGUSTAZIONI ---
+app.get('/api/user/:id/degustazioni', async (req, res) => {
+    try {
+        const u = await User.findById(req.params.id);
+        res.json(u.degustazioni || []);
+    } catch(e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/user/:id/degustazioni', async (req, res) => {
+    try {
+        const u = await User.findById(req.params.id);
+        u.degustazioni.push({
+            ...req.body,
+            date: new Date()
+        });
+        await u.save();
+        res.json({ success: true, degustazioni: u.degustazioni });
+    } catch(e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// --- ROTTE MEDIA E UPLOAD ---
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     const m = new Media({ ownerId: req.body.ownerId, url: '/uploads/media/'+req.file.filename, name: req.file.originalname, type: req.file.mimetype });
     await m.save(); res.json(m);
@@ -132,6 +157,7 @@ app.delete('/api/media/:id', async (req, res) => {
     res.json({ success: true });
 });
 
+// --- ROTTE ADMIN ---
 app.post('/api/admin/verify', async (req, res) => {
     if(req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false });
     const target = await User.findById(req.body.targetId);
@@ -145,18 +171,23 @@ app.delete('/api/admin/delete-user', async (req, res) => {
     res.json({ success: true });
 });
 
+// --- SOCKET.IO (CHAT IN TEMPO REALE) ---
 io.on('connection', (socket) => {
     socket.on('join', (id) => socket.join(id));
+    
     socket.on('send_msg', async (d) => {
-        const m = new Message(d); await m.save();
+        const m = new Message(d); 
+        await m.save();
         io.to(d.to).emit('new_msg', m);
     });
+    
     socket.on('get_history', async ({ me, to }) => {
         const msgs = await Message.find({ $or:[{from:me,to:to},{from:to,to:me}] }).sort({time:1});
         socket.emit('chat_history', msgs);
     });
 });
 
+// --- AVVIO SERVER ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 Server EnoHub V4 Pronto sulla porta ${PORT}`));
 
