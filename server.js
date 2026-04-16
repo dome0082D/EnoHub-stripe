@@ -30,7 +30,7 @@ const User = mongoose.model('User', new mongoose.Schema({
     isVerified: { type: Boolean, default: false },
     degustazioni: { type: Array, default: [] },
     unlockedContacts: { type: Array, default: [] },
-    blockedUsers: { type: Array, default: [] }, 
+    blockedUsers: { type: Array, default: [] }, // NUOVO: Array per gli utenti bloccati dalla regola chat
     profilePic: { type: String, default: "" },
     vini: { type: Array, default: [] },
     gallery: { type: Array, default: [] }
@@ -40,7 +40,7 @@ const Message = mongoose.model('Message', new mongoose.Schema({
     from: String, to: String, fromName: String, text: String, fileUrl: String, time: { type: Date, default: Date.now } 
 }));
 
-// --- MIDDLEWARE ---
+// --- CONFIGURAZIONE MIDDLEWARE ---
 app.use(cors()); 
 app.use(express.json());
 app.use(express.static('public'));
@@ -99,7 +99,7 @@ app.get('/api/chats/:id', async (req, res) => {
     } catch (e) { res.status(500).json([]); }
 });
 
-// --- ADMIN & MODIFICA ---
+// --- POTERI SUPER ADMIN E MODIFICA PROFILO ---
 app.delete('/api/admin/user/:id', async (req, res) => {
     if (req.body.adminEmail !== 'dome0082@gmail.com') return res.status(403).json({ success: false, error: "Accesso negato" });
     try {
@@ -119,7 +119,9 @@ app.put('/api/user/:id', async (req, res) => {
         const u = await User.findById(req.params.id);
         const isAdmin = req.body.adminEmail === 'dome0082@gmail.com';
         if (!isAdmin && req.body.degustazioni) {
-            let limite = u.piano === "Pro" ? 3 : (u.piano === "Premium" ? 10 : 0);
+            let limite = 0;
+            if(u.piano === "Pro") limite = 3;
+            if(u.piano === "Premium") limite = 10;
             if (req.body.degustazioni.length > limite) return res.status(403).json({ success: false, error: "Limite raggiunto." });
         }
         Object.assign(u, req.body);
@@ -128,7 +130,7 @@ app.put('/api/user/:id', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
-// --- SOCKET.IO CHAT & REGOLA FONDAMENTALE ---
+// --- CHAT CON LIMITI E FILTRO REGOLA FONDAMENTALE (SOCKET.IO) ---
 io.on('connection', (socket) => {
     socket.on('join', (id) => socket.join(id));
     
@@ -136,24 +138,50 @@ io.on('connection', (socket) => {
         const sender = await User.findById(d.from);
         const target = await User.findById(d.to);
 
+        // Controllo se sono bloccati tra di loro
         if ((sender.blockedUsers && sender.blockedUsers.includes(d.to)) || 
             (target.blockedUsers && target.blockedUsers.includes(d.from))) {
-            return socket.emit('chat_error', { error: '🚨 Chat disabilitata per violazione delle regole.' });
+            return socket.emit('chat_error', { error: '🚨 Non puoi più scrivere a questo utente. La chat è stata disabilitata per violazione delle regole.' });
         }
 
+        // REGOLA FONDAMENTALE: Filtro Link e Numeri di telefono (8+ numeri anche con spazi)
         const ruleRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|([+0-9][\s\-]*){8,})/i;
+        
+        // L'admin è immune al filtro
         if (ruleRegex.test(d.text) && sender.email !== 'dome0082@gmail.com') {
+            
+            // 1. Cancella tutto lo storico tra i due
             await Message.deleteMany({ $or: [{from: sender._id, to: target._id}, {from: target._id, to: sender._id}] });
+            
+            // 2. Blocca gli utenti a vicenda
+            if (!sender.blockedUsers) sender.blockedUsers = [];
+            if (!target.blockedUsers) target.blockedUsers = [];
             sender.blockedUsers.push(target._id.toString());
             target.blockedUsers.push(sender._id.toString());
-            await sender.save(); await target.save();
+            await sender.save();
+            await target.save();
 
-            socket.emit('chat_error', { error: '🚨 REGOLA VIOLATA: Link o numero rilevato. Chat eliminata.' });
+            // 3. Avvisa il mittente e chiudi la chat
+            socket.emit('chat_error', { error: '🚨 REGOLA VIOLATA: Hai inviato un link o un numero di telefono. La chat è stata eliminata definitivamente.' });
             socket.emit('force_close_chat');
-            io.to(d.to).emit('chat_error', { error: `🚨 Chat con ${sender.nome} eliminata dal sistema per violazione policy.` });
+            
+            // 4. Avvisa il destinatario (se online)
+            io.to(d.to).emit('chat_error', { error: `🚨 Il sistema ha bloccato ed eliminato la chat con ${sender.nome} per violazione delle policy sui contatti.` });
             return;
         }
 
+        // Controllo limite cantine contattate per i piani inferiori
+        if(sender.email !== 'dome0082@gmail.com' && target.tipo === 'Cantina') {
+            const history = await Message.find({ from: sender._id });
+            const cantineContattate = [...new Set(history.map(m => m.to.toString()))];
+            let maxCantine = 0;
+            if(sender.piano === "Pro") maxCantine = 1;
+            if(sender.piano === "Premium") maxCantine = 3;
+
+            if(!cantineContattate.includes(d.to.toString()) && cantineContattate.length >= maxCantine) {
+                return socket.emit('chat_error', { error: `Limite chat superato per il piano ${sender.piano}.` });
+            }
+        }
         const m = new Message(d); await m.save();
         io.to(d.to).emit('new_msg', m);
     });
