@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+// Assicurati di avere la tua Secret Key di Stripe nel file .env
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
 const app = express();
@@ -22,12 +23,12 @@ const User = mongoose.model('User', new mongoose.Schema({
     piano: { type: String, default: "Freemium" },
     location: { type: String, default: "Italia" }, bio: { type: String, default: "" },
     ruolo: { type: String, default: "Wine Professional" },
-    specializzazioni: { type: String, default: "" }, certificazioni: { type: String, default: "" }, 
-    certFiles: { type: Object, default: {} }, 
+    specializzazioni: { type: String, default: "" }, certificazioni: { type: String, default: "" },
+    certFiles: { type: Object, default: {} },
     degustazioni: { type: Array, default: [] },
-    regione: { type: String, default: "" }, filosofia: { type: String, default: "" }, 
+    regione: { type: String, default: "" }, filosofia: { type: String, default: "" },
     storia: { type: String, default: "" }, sito: { type: String, default: "" },
-    unlockedContacts: { type: Array, default: [] }, 
+    unlockedContacts: { type: Array, default: [] },
     unlocksRemaining: { type: Number, default: 0 },
     isVerified: { type: Boolean, default: false }, identificativoCertificato: { type: String, default: "" }
 }));
@@ -50,17 +51,46 @@ app.post('/api/login', async (req, res) => {
     else res.status(401).json({ success: false });
 });
 
-app.post('/api/create-checkout', async (req, res) => {
+/* ============================================================
+   STRIPE ENDPOINTS (AGGIORNATO PER COMUNICARE CON API.JS)
+   ============================================================ */
+app.post('/api/create-checkout-session', async (req, res) => {
+    const { plan, targetId, type } = req.body;
+    
+    // Sicurezza: mappiamo il piano richiesto ai prezzi definitivi lato server
+    let prezzo = 0;
+    let nomePiano = 'Upgrade EnoHub';
+
+    if (plan === 'sommelier_pro') {
+        prezzo = 15;
+        nomePiano = 'Piano Sommelier Pro';
+    } else if (plan === 'cantina_premium') {
+        prezzo = 29;
+        nomePiano = 'Piano Cantina Premium';
+    } else if (plan === 'sblocco_contatto') {
+        prezzo = 5; // Prezzo ipotetico per sbloccare un singolo contatto
+        nomePiano = 'Sblocco Contatto Singolo';
+    }
+
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            line_items: [{ price_data: { currency: 'eur', product_data: { name: `EnoHub: ${req.body.piano}` }, unit_amount: req.body.prezzo * 100 }, quantity: 1 }],
-            mode: 'payment',
-            success_url: `${req.headers.origin}/dashboard.html?payment=success&type=${req.body.type}&target=${req.body.targetId || ''}&piano=${req.body.piano}`,
-            cancel_url: `${req.headers.origin}/dashboard.html`,
+            line_items: [{ 
+                price_data: { 
+                    currency: 'eur', 
+                    product_data: { name: nomePiano }, 
+                    unit_amount: prezzo * 100 // Stripe ragiona in centesimi (es. 1500 = €15.00)
+                }, 
+                quantity: 1 
+            }],
+            mode: 'payment', // Usa 'subscription' se decidi di creare Piani Ricorrenti sulla dashboard di Stripe
+            success_url: `${req.headers.origin}/dashboard.html?payment=success&type=${type || 'upgrade'}&target=${targetId || ''}&piano=${plan}`,
+            cancel_url: `${req.headers.origin}/`,
         });
         res.json({ url: session.url });
-    } catch(e) { res.status(500).json({ error: e.message }); }
+    } catch(e) { 
+        res.status(500).json({ error: e.message }); 
+    }
 });
 
 app.post('/api/confirm-payment', async (req, res) => {
@@ -69,10 +99,11 @@ app.post('/api/confirm-payment', async (req, res) => {
         if(!u.unlockedContacts.includes(req.body.targetId)) u.unlockedContacts.push(req.body.targetId);
     } else {
         u.piano = req.body.piano;
-        if(u.tipo === 'Cantina' && req.body.piano === 'Business') u.unlocksRemaining = 5;
+        if(u.tipo === 'Cantina' && req.body.piano === 'cantina_premium') u.unlocksRemaining = 5;
     }
     await u.save(); res.json({ success: true, user: u });
 });
+/* ============================================================ */
 
 app.get('/api/users', async (req, res) => res.json(await User.find({}, '-password')));
 app.get('/api/user/:id', async (req, res) => res.json(await User.findById(req.params.id, '-password')));
@@ -93,7 +124,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 app.get('/api/media', async (req, res) => res.json(await Media.find().sort({date:-1})));
 app.delete('/api/media/:id', async (req, res) => {
     const item = await Media.findById(req.params.id);
-    if(item && item.url) { 
+    if(item && item.url) {
         const p = path.join(__dirname, 'public', item.url);
         if(fs.existsSync(p)) fs.unlinkSync(p);
     }
@@ -128,3 +159,4 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`🚀 Server EnoHub V4 Pronto sulla porta ${PORT}`));
+
