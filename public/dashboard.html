@@ -125,7 +125,6 @@
                         <button onclick="pay('Premium', 50)" class="btn-main" style="background:var(--gold);">Scegli Premium</button>
                     </div>
                 </div>
-
             </div>
         </section>
 
@@ -140,10 +139,15 @@
             <b id="chat-title">Chat</b>
             <button onclick="closeChat()" style="background:none; border:none; color:white; cursor:pointer; font-size:16px;">✖</button>
         </div>
+        
+        <div id="chat-warning" style="background:#fff3cd; color:#856404; padding:10px 25px 10px 10px; font-size:11px; text-align:center; position:relative; border-bottom:1px solid #ffeeba; line-height:1.3;">
+            <b>REGOLA FONDAMENTALE:</b> Nelle chat non ci si può scambiare numeri di telefono o link a chat esterne, il sito se ne accorge ed elimina la chat immediatamente impedendo ai 2 interlocutori di continuare a scriversi.
+            <button onclick="document.getElementById('chat-warning').style.display='none'" style="position:absolute; right:5px; top:5px; background:none; border:none; cursor:pointer; font-size:12px; font-weight:bold; color:#856404;">✖</button>
+        </div>
+
         <div id="chat-messages" style="height:250px; overflow-y:auto; padding:10px; background:#f4f4f4; font-size:14px; display:flex; flex-direction:column; gap:8px;"></div>
         
-        <div id="chat-input-container" style="display:flex; border-top:1px solid #ddd; background:white;">
-            </div>
+        <div id="chat-input-container" style="display:flex; border-top:1px solid #ddd; background:white;"></div>
     </div>
 
     <script>
@@ -219,7 +223,6 @@
             html += `</div>`; document.getElementById('sec-profile').innerHTML = html;
         }
 
-        // --- GESTIONE SOMMELIER ---
         async function renderS() {
             const r = await fetch('/api/users');
             const utenti = await r.json();
@@ -266,7 +269,6 @@
             if(res.success) { user = res.user; localStorage.setItem('enohub_user', JSON.stringify(user)); renderS(); }
         }
 
-        // --- GESTIONE ARCHIVIO CHAT ---
         async function renderChats() {
             const r1 = await fetch('/api/chats/' + user._id);
             const msgs = await r1.json();
@@ -284,7 +286,7 @@
             const contacts = {};
             msgs.forEach(m => {
                 const contactId = m.from === user._id ? m.to : m.from;
-                if(!contacts[contactId]) contacts[contactId] = m; // Mantiene solo l'ultimo msg
+                if(!contacts[contactId]) contacts[contactId] = m; 
             });
 
             Object.keys(contacts).forEach(contactId => {
@@ -318,8 +320,8 @@
             document.getElementById('chat-title').innerText = nome;
             document.getElementById('chat-modal').style.display = 'flex';
             document.getElementById('chat-messages').innerHTML = ''; 
+            document.getElementById('chat-warning').style.display = 'block'; // Mostra sempre l'avviso
             
-            // Logica blocco inserimento messaggi se Free
             const inputArea = document.getElementById('chat-input-container');
             if (user.piano === 'Freemium' && user.email !== 'dome0082@gmail.com') {
                 inputArea.innerHTML = `<div style="padding:12px; text-align:center; width:100%; color:red; font-size:13px; font-weight:bold; background:#ffebeb;">Esegui l'upgrade per inviare messaggi.</div>`;
@@ -340,13 +342,14 @@
 
         function sendMsg() {
             const inputEl = document.getElementById('chat-input');
-            if(!inputEl) return; // Selettore di sicurezza
+            if(!inputEl) return; 
             const text = inputEl.value;
             if(!text || !currentChatTarget) return;
             
             socket.emit('send_msg', { from: user._id, to: currentChatTarget, fromName: user.nome, text: text });
             inputEl.value = '';
             
+            // Il messaggio appare subito, ma se viola la regola il server resetterà la UI.
             document.getElementById('chat-messages').innerHTML += `<div style="align-self:flex-end; background:#dcf8c6; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${text}</div>`;
             document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
         }
@@ -368,7 +371,15 @@
             }
         });
 
-        // --- DEGUSTAZIONI ---
+        // Evento se si viola la regola e il server ordina di chiudere la chat
+        socket.on('force_close_chat', () => {
+            closeChat();
+            if(document.getElementById('sec-chats').style.display === 'block') renderChats(); // Aggiorna archivio
+        });
+
+        socket.on('chat_error', d => alert(d.error));
+
+        // --- FINESTRA DEGUSTAZIONI ---
         let tmpImageUrl = ''; let editingId = null;
 
         function handleTastingImage(input) {
@@ -434,7 +445,7 @@
             const d = await r.json(); if(d.url) window.location.href = d.url;
         }
 
-        // --- FUNZIONI SUPER ADMIN ---
+        // --- ADMIN ---
         async function loadA() {
             const r = await fetch('/api/users'); const utenti = await r.json();
             const l = document.getElementById('admin-list'); l.innerHTML = '';
@@ -470,7 +481,6 @@
             if(res.success) { alert("Utente eliminato con successo."); loadA(); } else alert("Errore: " + res.error);
         }
 
-        socket.on('chat_error', d => alert(d.error));
         function logout() { localStorage.clear(); sessionStorage.clear(); window.location.href="/index.html"; }
     </script>
 </body>
