@@ -8,11 +8,11 @@
         :root { --main: #8a1c1c; --grey: #f8f9fa; --border: #e2e8f0; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fafafa; }
         
-        /* MENU A SCOMPARSA GRIGIO CHIARO */
+        /* MENU A SCOMPARSA GRIGIO CHIARO (Invariato) */
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: var(--grey); border-right: 1px solid var(--border); transition: 0.4s; z-index: 1000; padding-top: 60px; }
         .sidebar.active { left: 0; }
         .sidebar a { display: block; padding: 18px 25px; color: #444; text-decoration: none; border-bottom: 1px solid #eee; cursor: pointer; }
-        .menu-btn { position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--main); color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        .menu-btn { position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--main); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
 
         .content { padding: 80px 5% 40px 5%; }
         .card { 
@@ -24,9 +24,13 @@
         .eh-badge span { color: var(--main); border: 1px solid var(--main); padding: 1px 4px; border-radius: 4px; font-size: 10px; margin-right: 6px; }
 
         .btn-main { background: var(--main); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .preview-img { height: 100px; border-radius: 8px; margin-top: 10px; border: 2px solid var(--main); display: none; }
         
-        .tasting-item { display: flex; gap: 20px; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; align-items: center; position: relative; }
+        /* --- STILI ANTEPRIMA IMMAGINE --- */
+        .preview-container { margin-top: 10px; display: none; position: relative; width: fit-content; }
+        .preview-img { height: 120px; border-radius: 8px; border: 2px solid var(--main); object-fit: cover; }
+        .btn-remove-img { position: absolute; top: -10px; right: -10px; background: #ff5252; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-weight: bold; }
+        
+        .tasting-item { display: flex; gap: 20px; background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee; align-items: center; }
         .btn-action { padding: 5px 10px; border-radius: 5px; border: none; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 5px; }
     </style>
 </head>
@@ -35,7 +39,7 @@
     <nav class="sidebar" id="sidebar">
         <h3 style="padding:0 25px; color:var(--main);">EnoHub Diamond</h3>
         <a onclick="show('profile')">👤 Il mio Profilo</a>
-        <a id="nav-tastings" onclick="show('tastings')" style="display:none; font-weight:bold;">🍷 Diario Degustazioni</a>
+        <a id="nav-tastings" onclick="show('tastings')" style="display:none; font-weight:bold;">🍷 Note di Degustazione</a>
         <a onclick="show('subs')">💎 Upgrade Piano</a>
         <a id="nav-admin" onclick="show('admin')" style="display:none; color:orange;">🛡️ Staff Panel</a>
         <hr><a onclick="logout()" style="color:red;">🚪 Esci</a>
@@ -46,18 +50,22 @@
 
         <section id="sec-tastings" style="display:none;">
             <div class="card">
-                <h2 id="tasting-title">Aggiungi Degustazione</h2>
+                <h2 id="tasting-title">Note di degustazione</h2>
                 <div style="background:rgba(255,255,255,0.8); padding:20px; border-radius:10px;">
-                    <input type="text" id="t-vino" placeholder="Nome Vino..." style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
-                    <textarea id="t-note" placeholder="Descrizione..." style="width:100%; height:80px; padding:12px; border-radius:8px; border:1px solid #ddd;"></textarea>
+                    <input type="text" id="t-vino" placeholder="Nome del vino e annata..." style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
+                    <textarea id="t-note" placeholder="Descrizione della degustazione..." style="width:100%; height:80px; padding:12px; border-radius:8px; border:1px solid #ddd;"></textarea>
                     
-                    <div style="margin-top:10px;">
-                        <label><b>Foto Etichetta:</b></label><br>
-                        <input type="file" id="t-file" onchange="previewAndUpload(this)">
-                        <img id="t-preview" class="preview-img" alt="Anteprima">
+                    <div style="margin-top:15px;">
+                        <label><b>Carica Etichetta:</b></label><br>
+                        <input type="file" id="t-file" onchange="handleTastingImage(this)" style="margin-top:5px;">
+                        
+                        <div id="preview-wrapper" class="preview-container">
+                            <img id="t-preview-img" class="preview-img" src="" alt="Anteprima">
+                            <button class="btn-remove-img" onclick="removeImageFromForm()">✕</button>
+                        </div>
                     </div>
 
-                    <button id="t-save-btn" onclick="saveTasting()" class="btn-main" style="margin-top:20px; width:100%; background:#27ae60;">SALVA DEGUSTAZIONE</button>
+                    <button id="t-save-btn" onclick="saveTasting()" class="btn-main" style="margin-top:25px; width:100%; background:#27ae60;">💾 SALVA NEL DIARIO</button>
                     <button id="t-cancel-edit" onclick="resetTastingForm()" class="btn-main" style="margin-top:10px; width:100%; background:#666; display:none;">ANNULLA MODIFICA</button>
                 </div>
                 <hr><div id="tastings-list"></div>
@@ -67,8 +75,8 @@
         <section id="sec-subs" style="display:none;">
             <div class="card" style="text-align:center;">
                 <h2>Upgrade Account</h2>
-                <button onclick="pay('Sommelier Pro', 15, 'card')" class="btn-main">Carta/Bancomat €15</button>
-                <button onclick="pay('Sommelier Pro', 15, 'bank')" class="btn-main" style="background:#2c3e50; margin-top:10px;">Bonifico Bancario</button>
+                <button onclick="pay('Sommelier Pro', 15, 'card')" class="btn-main">Paga con Carta €15</button>
+                <button onclick="pay('Sommelier Pro', 15, 'bank')" class="btn-main" style="background:#2c3e50; margin-top:10px;">Paga con Bonifico</button>
             </div>
         </section>
 
@@ -108,26 +116,32 @@
             document.getElementById('sec-profile').innerHTML = `<div class="card"><h1>${user.nome} ${badge}</h1><p>${user.piano}</p></div>`;
         }
 
-        // --- GESTIONE DEGUSTAZIONI: ANTEPRIMA, MODIFICA, ELIMINA ---
+        // --- GESTIONE DEGUSTAZIONI AGGIORNATA ---
         let tmpImageUrl = '';
         let editingId = null;
 
-        function previewAndUpload(input) {
+        function handleTastingImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const img = document.getElementById('t-preview');
-                    img.src = e.target.result;
-                    img.style.display = 'block';
+                    document.getElementById('t-preview-img').src = e.target.result;
+                    document.getElementById('preview-wrapper').style.display = 'block';
                 }
                 reader.readAsDataURL(input.files[0]);
                 
-                // Upload effettivo al server
+                // Caricamento immediato al server
                 const fd = new FormData(); fd.append('file', input.files[0]);
                 fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(data => {
                     tmpImageUrl = data.url;
                 });
             }
+        }
+
+        function removeImageFromForm() {
+            tmpImageUrl = '';
+            document.getElementById('t-file').value = '';
+            document.getElementById('t-preview-img').src = '';
+            document.getElementById('preview-wrapper').style.display = 'none';
         }
 
         async function saveTasting() {
@@ -138,10 +152,8 @@
             let list = user.degustazioni || [];
             
             if(editingId) {
-                // Modifica
-                list = list.map(d => d.id === editingId ? { ...d, vino, nota, img: tmpImageUrl || d.img } : d);
+                list = list.map(d => d.id === editingId ? { ...d, vino, nota, img: tmpImageUrl } : d);
             } else {
-                // Nuovo
                 list.push({ id: Date.now().toString(), vino, nota, img: tmpImageUrl, date: new Date() });
             }
 
@@ -153,8 +165,8 @@
             const l = document.getElementById('tastings-list'); l.innerHTML = '';
             (user.degustazioni || []).reverse().forEach(d => {
                 l.innerHTML += `
-                <div class="tasting-row">
-                    ${d.img ? `<img src="${d.img}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;">` : '<div style="width:70px;height:70px;background:#eee;"></div>'}
+                <div class="tasting-item">
+                    ${d.img ? `<img src="${d.img}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;">` : '<div style="width:80px;height:80px;background:#eee;border-radius:8px;"></div>'}
                     <div style="flex:1">
                         <b>${d.vino}</b><br><small>${new Date(d.date).toLocaleDateString()}</small>
                         <p style="margin:5px 0 0 0;">${d.nota}</p>
@@ -172,38 +184,42 @@
             editingId = id;
             document.getElementById('t-vino').value = d.vino;
             document.getElementById('t-note').value = d.nota;
-            document.getElementById('tasting-title').innerText = "Modifica Degustazione";
+            document.getElementById('tasting-title').innerText = "Modifica Nota di Degustazione";
             document.getElementById('t-cancel-edit').style.display = 'block';
+            
             if(d.img) {
-                const img = document.getElementById('t-preview');
-                img.src = d.img;
-                img.style.display = 'block';
+                tmpImageUrl = d.img;
+                document.getElementById('t-preview-img').src = d.img;
+                document.getElementById('preview-wrapper').style.display = 'block';
+            } else {
+                removeImageFromForm();
             }
             window.scrollTo(0,0);
         }
 
         async function deleteTasting(id) {
-            if(!confirm("Eliminare questa nota?")) return;
+            if(!confirm("Sei sicuro di voler eliminare questa nota?")) return;
             const list = user.degustazioni.filter(x => x.id !== id);
             await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list})});
             location.reload();
         }
 
         function resetTastingForm() {
-            editingId = null; tmpImageUrl = '';
+            editingId = null; 
             document.getElementById('t-vino').value = '';
             document.getElementById('t-note').value = '';
-            document.getElementById('t-preview').style.display = 'none';
-            document.getElementById('tasting-title').innerText = "Aggiungi Degustazione";
+            removeImageFromForm();
+            document.getElementById('tasting-title').innerText = "Note di degustazione";
             document.getElementById('t-cancel-edit').style.display = 'none';
         }
 
+        // --- LOGICA PAGAMENTI E ADMIN (Invariata) ---
         async function pay(piano, prezzo, metodo) {
             if(metodo === 'card') {
                 const r = await fetch('/api/create-checkout', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano, prezzo})});
                 const d = await r.json(); if(d.url) window.location.href = d.url;
             } else {
-                alert(`IBAN: IT 00 X 00000 00000 000000000000\nCausale: ${piano} - ${user.nome}`);
+                alert(`BONIFICO: IBAN IT 00 X 00000 00000 000000000000\nCausale: ${piano} - ${user.nome}`);
             }
         }
 
