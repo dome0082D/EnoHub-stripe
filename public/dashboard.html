@@ -34,15 +34,11 @@
     <nav class="sidebar" id="sidebar">
         <h3 style="padding:0 25px; color:var(--main);">EnoHub</h3>
         <a onclick="show('profile')">👤 Il mio Profilo</a>
-       
         <a id="nav-chats" onclick="show('chats')">💬 Archivio Chat</a>
-        
         <a id="nav-wines" onclick="show('wines')">🍷 Archivio Vini</a>
         <a id="nav-topwines" onclick="show('topwines')">🏆 Top 5 Vini</a>
-       
         <a id="nav-sommeliers" onclick="show('sommeliers')" style="display:none;">👥 Sommelier</a>
         <a id="nav-tastings" onclick="show('tastings')" style="display:none;">🍷 Note di Degustazione</a>
-       
         <a onclick="show('subs')">💎 Upgrade Piano</a>
         <a id="nav-admin" onclick="show('admin')" style="display:none;">🛡️ Staff Panel</a>
         <hr><a onclick="logout()">🚪 Esci</a>
@@ -159,15 +155,66 @@
         <section id="sec-subs" style="display:none;">
             <div class="card" style="text-align:center;">
                 <h2>Il tuo Piano: <span id="current-plan-display" style="color:var(--main);"></span></h2>
+                
                 <div id="subs-sommelier" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-top:30px;">
-                    <div class="tier-card" id="tier-Freemium"><h3>Free</h3><div class="price">€0</div><button class="btn-main" style="background:#ccc; cursor:default;">Attivo</button></div>
-                    <div class="tier-card" id="tier-Pro"><h3>Pro</h3><div class="price">€15</div><button onclick="pay('Pro', 15)" class="btn-main">Scegli Pro</button></div>
-                    <div class="tier-card" id="tier-Premium"><h3>Premium</h3><div class="price">€29</div><button onclick="pay('Premium', 29)" class="btn-main" style="background:var(--gold);">Scegli Premium</button></div>
+                    <div class="tier-card" id="tier-Freemium">
+                        <h3>Free</h3><div class="price">€0</div>
+                        <ul class="benefits">
+                            <li>✅ Dati profilo</li>
+                            <li>❌ 0 Note degustazione</li>
+                            <li>❌ 0 Chat cantine</li>
+                        </ul>
+                        <button class="btn-main" style="background:#ccc; cursor:default; width:100%;">Attivo</button>
+                    </div>
+                    <div class="tier-card" id="tier-Pro">
+                        <h3>Pro</h3><div class="price">€15<small>/mese</small></div>
+                        <ul class="benefits">
+                            <li>✅ Dati profilo</li>
+                            <li>✅ 3 Note degustazione</li>
+                            <li>✅ 1 Chat cantina</li>
+                        </ul>
+                        <button onclick="pay('Pro', 15)" class="btn-main" style="width:100%;">Scegli Pro</button>
+                    </div>
+                    <div class="tier-card" id="tier-Premium">
+                        <h3>Premium</h3><div class="price">€29<small>/mese</small></div>
+                        <ul class="benefits">
+                            <li>✅ Dati profilo</li>
+                            <li>✅ 10 Note degustazione</li>
+                            <li>✅ 3 Chat cantine diverse</li>
+                            <li>✅ <b>Spunta EH ✅ Automatica</b></li>
+                        </ul>
+                        <button onclick="pay('Premium', 29)" class="btn-main" style="background:var(--gold); width:100%;">Scegli Premium</button>
+                    </div>
                 </div>
+
                 <div id="subs-cantina" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-top:30px;">
-                    <div class="tier-card" id="tier-Freemium-Cantina"><h3>Free</h3><div class="price">€0</div><button class="btn-main" style="background:#ccc; cursor:default;">Attivo</button></div>
-                    <div class="tier-card" id="tier-Pro-Cantina"><h3>Pro</h3><div class="price">€25</div><button onclick="pay('Pro', 25)" class="btn-main">Scegli Pro</button></div>
-                    <div class="tier-card" id="tier-Premium-Cantina"><h3>Premium</h3><div class="price">€50</div><button onclick="pay('Premium', 50)" class="btn-main" style="background:var(--gold);">Scegli Premium</button></div>
+                    <div class="tier-card" id="tier-Freemium-Cantina">
+                        <h3>Free</h3><div class="price">€0</div>
+                        <ul class="benefits">
+                            <li>✅ Inserisci dati Cantina</li>
+                            <li>✅ Sblocca profilo di 1 Sommelier (15€/mese)</li>
+                        </ul>
+                        <button class="btn-main" style="background:#ccc; cursor:default; width:100%;">Attivo</button>
+                    </div>
+                    <div class="tier-card" id="tier-Pro-Cantina">
+                        <h3>Pro</h3><div class="price">€25<small>/mese</small></div>
+                        <ul class="benefits">
+                            <li>✅ Dati profilo completi</li>
+                            <li>✅ 2 gettoni sblocco Sommelier al mese</li>
+                            <li>✅ Chat attiva</li>
+                        </ul>
+                        <button onclick="pay('Pro', 25)" class="btn-main" style="width:100%;">Scegli Pro</button>
+                    </div>
+                    <div class="tier-card" id="tier-Premium-Cantina">
+                        <h3>Premium</h3><div class="price">€50<small>/mese</small></div>
+                        <ul class="benefits">
+                            <li>✅ Dati profilo completi</li>
+                            <li>✅ 5 gettoni sblocco Sommelier</li>
+                            <li>✅ Chat attiva</li>
+                            <li>✅ Contatto diretto staff</li>
+                        </ul>
+                        <button onclick="pay('Premium', 50)" class="btn-main" style="background:var(--gold); width:100%;">Scegli Premium</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -201,6 +248,7 @@
             const r = await fetch('/api/user/'+user._id); user = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(user));
             if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
             document.getElementById('current-plan-display').innerText = user.piano;
+            
             if(user.tipo === 'Cantina') {
                 document.getElementById('wine-form-container').style.display = 'block';
                 document.getElementById('subs-cantina').style.display = 'grid'; document.getElementById('subs-sommelier').style.display = 'none';
@@ -233,7 +281,6 @@
 
         function renderP() {
             const badge = user.isVerified ? `<div class="eh-badge"><span>EH</span> ✅ Verificato</div>` : '';
-            // FIX SFONDO: cover e posizione centrale
             let customBg = user.coverPic 
                 ? `background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.95)), url('${user.coverPic}') center/cover no-repeat; padding-top: 150px; min-height: 250px;` 
                 : '';
@@ -273,6 +320,7 @@
         function togglePromoFields() { document.getElementById('promo-fields').style.display = document.getElementById('w-is-promo').checked ? 'block' : 'none'; }
         async function renderWines() { const r = await fetch('/api/wines'); globalWines = await r.json(); drawWines(globalWines); }
         async function toggleLikeWine(id) { await fetch('/api/wines/' + id + '/like', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId: user._id}) }); renderWines(); if(document.getElementById('sec-topwines').style.display === 'block') renderTopWines(); }
+        
         function drawWines(wines) {
             const list1 = document.getElementById('wines-list'); const list2 = document.getElementById('promoted-wines-list');
             list1.innerHTML = ''; list2.innerHTML = '';
@@ -307,6 +355,7 @@
         }
 
         function filterWines() { const term = document.getElementById('search-wine').value.toLowerCase(); const f = globalWines.filter(w => w.nome.toLowerCase().includes(term) || w.cantinaNome.toLowerCase().includes(term)); drawWines(f); }
+        
         async function saveWine() {
             const n = document.getElementById('w-nome').value; const l = document.getElementById('w-loc').value; const nt = document.getElementById('w-nota').value;
             const p = document.getElementById('w-is-promo').checked; const pt = document.getElementById('w-promo-text').value; const ps = document.getElementById('w-promo-start').value; const pe = document.getElementById('w-promo-end').value;
@@ -331,7 +380,14 @@
         async function deleteWine(id) { if(!confirm('Eliminare?')) return; await fetch('/api/wines/' + id, { method: 'DELETE' }); renderWines(); }
 
         // --- GESTIONE SOMMELIER ---
-        let globalSommeliers = []; async function renderS() { const r = await fetch('/api/users'); const u = await r.json(); globalSommeliers = u.filter(x => x.tipo === 'Sommelier'); let max = user.piano === 'Pro' ? 2 : (user.piano === 'Premium' ? 5 : 0); if(user.email === 'dome0082@gmail.com') max = 999; const usati = user.unlockedContacts ? user.unlockedContacts.length : 0; document.getElementById('gettoni-count').innerText = `${max - usati} su ${max}`; drawSommList(globalSommeliers, max - usati); }
+        let globalSommeliers = []; 
+        async function renderS() { 
+            const r = await fetch('/api/users'); const u = await r.json(); globalSommeliers = u.filter(x => x.tipo === 'Sommelier'); 
+            let max = user.piano === 'Pro' ? 2 : (user.piano === 'Premium' ? 5 : 0); if(user.email === 'dome0082@gmail.com') max = 999; 
+            const usati = user.unlockedContacts ? user.unlockedContacts.length : 0; 
+            document.getElementById('gettoni-count').innerText = `${max - usati} su ${max}`; drawSommList(globalSommeliers, max - usati); 
+        }
+        
         function drawSommList(list, g) {
             const c = document.getElementById('sommelier-list'); c.innerHTML = '';
             list.forEach(s => {
@@ -341,9 +397,11 @@
                 c.innerHTML += `<div style="padding:20px; border:1px solid #eee; border-radius:10px; margin-bottom:15px; background:white;"><h3>${n}</h3><p>📍 ${s.location}</p><p>${s.bio}</p>${btn}</div>`;
             });
         }
+        
         function filterSommeliers() { const t = document.getElementById('search-somm').value.toLowerCase(); const f = globalSommeliers.filter(s => (s.location||'').toLowerCase().includes(t)); drawSommList(f, 0); }
         async function unlockSommelier(tid, g) { if(g <= 0) return alert("No gettoni."); if(!confirm('Sbloccare?')) return; let a = user.unlockedContacts || []; a.push(tid); await fetch('/api/user/' + user._id, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ unlockedContacts: a }) }); refresh(); }
 
+        // --- GESTIONE CHAT ---
         async function renderChats() {
             const r1 = await fetch('/api/chats/' + user._id); const msgs = await r1.json(); const r2 = await fetch('/api/users'); const all = await r2.json();
             const c = document.getElementById('chats-list'); c.innerHTML = '';
@@ -365,10 +423,11 @@
         socket.on('new_msg', m => { if(m.from === currentChatTarget || m.to === currentChatTarget) { const b = document.getElementById('chat-messages'); b.innerHTML += `<div style="align-self:${m.from===user._id?'flex-end':'flex-start'}; background:${m.from===user._id?'#dcf8c6':'white'}; padding:8px; border-radius:10px;">${m.text}</div>`; b.scrollTop = b.scrollHeight; } });
         socket.on('chat_error', d => alert(d.error)); socket.on('force_close_chat', closeChat);
 
-        // --- DEGUSTAZIONI ---
+        // --- GESTIONE DEGUSTAZIONI ---
         let tmpImageUrl = ''; let editingTastingId = null;
         function handleTastingImage(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = e => { document.getElementById('t-preview-img').src = e.target.result; document.getElementById('preview-wrapper').style.display = 'block'; }; reader.readAsDataURL(input.files[0]); const fd = new FormData(); fd.append('file', input.files[0]); fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(data => tmpImageUrl = data.url); } }
         function removeImageFromForm() { tmpImageUrl = ''; document.getElementById('t-file').value = ''; document.getElementById('preview-wrapper').style.display = 'none'; }
+        
         async function saveTasting() {
             const v = document.getElementById('t-vino').value; const n = document.getElementById('t-note').value; if(!v) return alert("Nome vino?");
             let list = user.degustazioni || []; let lim = user.piano === 'Pro' ? 3 : (user.piano === 'Premium' ? 10 : 0); if(user.email === 'dome0082@gmail.com') lim = 999;
@@ -378,16 +437,31 @@
             await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list, adminEmail: user.email})});
             location.reload();
         }
+
         function renderT() {
             const l = document.getElementById('tastings-list'); l.innerHTML = '';
             (user.degustazioni || []).slice().reverse().forEach(d => {
                 l.innerHTML += `<div class="tasting-item">${d.img ? `<img src="${d.img}" style="width:70px;height:70px;object-fit:cover;">` : ''}<div style="flex:1"><b>${d.vino}</b><p>${d.nota}</p></div><button onclick="editTasting('${d.id}')">Modifica</button><button onclick="deleteTasting('${d.id}')">Elimina</button></div>`;
             });
         }
+        
         function editTasting(id) { const d = user.degustazioni.find(x => x.id === id); editingTastingId = id; document.getElementById('t-vino').value = d.vino; document.getElementById('t-note').value = d.nota; if(d.img) { document.getElementById('t-preview-img').src = d.img; document.getElementById('preview-wrapper').style.display = 'block'; } window.scrollTo(0,0); }
         async function deleteTasting(id) { if(!confirm("Eliminare?")) return; const list = user.degustazioni.filter(x => x.id !== id); await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list, adminEmail: user.email})}); location.reload(); }
         function resetTastingForm() { editingTastingId = null; document.getElementById('t-vino').value = ''; document.getElementById('t-note').value = ''; removeImageFromForm(); }
-        async function pay(piano, prezzo) { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano, prezzo, userId: user._id}) }); const d = await r.json(); if(d.url) window.location.href = d.url; }
+        
+        // --- FUNZIONE PAGAMENTO STRIPE ---
+        async function pay(piano, prezzo) { 
+            const r = await fetch('/api/create-checkout', { 
+                method:'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body:JSON.stringify({piano, prezzo, userId: user._id}) 
+            }); 
+            const d = await r.json(); 
+            // Reindirizza l'utente alla pagina sicura di Stripe
+            if(d.url) window.location.href = d.url; 
+        }
+
+        // --- GESTIONE ADMIN ---
         async function loadA() {
             const r = await fetch('/api/users'); const ut = await r.json(); const l = document.getElementById('admin-list'); l.innerHTML = '';
             ut.forEach(u => { if(u.email === user.email) return; l.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px;"><div><b>${u.nome}</b> (${u.piano})</div><button onclick="deleteUser('${u._id}', '${u.nome}')">Elimina</button></div>`; });
