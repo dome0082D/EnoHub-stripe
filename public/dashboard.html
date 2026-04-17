@@ -98,9 +98,8 @@
                             <input type="checkbox" id="w-is-promo" style="width:18px; height:18px;" onchange="togglePromoFields()"> 
                             Inserisci nei "Vini Selezionati" (Promozione)
                         </label>
-                        
                         <div id="promo-fields" style="display:none; margin-top:15px;">
-                            <input type="text" id="w-promo-text" placeholder="Dettagli Promozione (es. Sconto 20% sul primo ordine)" style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; margin-bottom:10px;">
+                            <input type="text" id="w-promo-text" placeholder="Dettagli Promozione" style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; margin-bottom:10px;">
                             <div style="display:flex; gap:15px;">
                                 <div style="flex:1;">
                                     <label style="font-size:12px; color:#666; font-weight:bold;">Data Inizio:</label>
@@ -113,7 +112,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <div style="margin-top:20px; display:flex; gap:10px;">
                         <button class="btn-main" onclick="saveWine()" id="btn-save-wine" style="background:#27ae60;">💾 Salva Vino</button>
                         <button class="btn-main" onclick="resetWineForm()" id="btn-cancel-wine" style="display:none; background:#666;">Annulla</button>
@@ -131,11 +129,10 @@
                     </div>
                     <div style="background:#f9f9f9; padding:15px; border-radius:10px; border:1px solid #ddd; min-width:280px;">
                         <b style="color:var(--main); display:block; margin-bottom:8px;">🔍 Cerca Sommelier</b>
-                        <input type="text" id="search-somm" placeholder="Es: Toscana, WSET, AIS..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;" onkeyup="filterSommeliers()">
+                        <input type="text" id="search-somm" placeholder="Es: Toscana, AIS..." style="width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;" onkeyup="filterSommeliers()">
                     </div>
                 </div>
-                <hr>
-                <div id="sommelier-list"></div>
+                <hr><div id="sommelier-list"></div>
             </div>
         </section>
 
@@ -145,7 +142,6 @@
                 <div style="background:rgba(255,255,255,0.8); padding:20px; border-radius:10px;">
                     <input type="text" id="t-vino" placeholder="Nome del vino e annata..." style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd;">
                     <textarea id="t-note" placeholder="Descrizione..." style="width:100%; height:80px; padding:12px; border-radius:8px; border:1px solid #ddd;"></textarea>
-                   
                     <div style="margin-top:15px;">
                         <input type="file" id="t-file" onchange="handleTastingImage(this)">
                         <div id="preview-wrapper" class="preview-container">
@@ -163,41 +159,15 @@
         <section id="sec-subs" style="display:none;">
             <div class="card" style="text-align:center;">
                 <h2>Il tuo Piano: <span id="current-plan-display" style="color:var(--main);"></span></h2>
-               
                 <div id="subs-sommelier" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-top:30px;">
-                    <div class="tier-card" id="tier-Freemium">
-                        <h3>Free</h3><div class="price">€0</div>
-                        <ul class="benefits"><li>✅ Dati profilo</li><li>❌ 0 Note degustazione</li><li>❌ 0 Chat cantine</li></ul>
-                        <button class="btn-main" style="background:#ccc; cursor:default;">Attivo</button>
-                    </div>
-                    <div class="tier-card" id="tier-Pro">
-                        <h3>Pro</h3><div class="price">€15<small>/mese</small></div>
-                        <ul class="benefits"><li>✅ Dati profilo</li><li>✅ 3 Note degustazione</li><li>✅ 1 Chat cantina</li></ul>
-                        <button onclick="pay('Pro', 15)" class="btn-main">Scegli Pro</button>
-                    </div>
-                    <div class="tier-card" id="tier-Premium">
-                        <h3>Premium</h3><div class="price">€29<small>/mese</small></div>
-                        <ul class="benefits"><li>✅ Dati profilo</li><li>✅ 10 Note degustazione</li><li>✅ 3 Chat cantine diverse</li><li>✅ <b>Spunta EH ✅ Automatica</b></li></ul>
-                        <button onclick="pay('Premium', 29)" class="btn-main" style="background:var(--gold);">Scegli Premium</button>
-                    </div>
+                    <div class="tier-card" id="tier-Freemium"><h3>Free</h3><div class="price">€0</div><button class="btn-main" style="background:#ccc; cursor:default;">Attivo</button></div>
+                    <div class="tier-card" id="tier-Pro"><h3>Pro</h3><div class="price">€15</div><button onclick="pay('Pro', 15)" class="btn-main">Scegli Pro</button></div>
+                    <div class="tier-card" id="tier-Premium"><h3>Premium</h3><div class="price">€29</div><button onclick="pay('Premium', 29)" class="btn-main" style="background:var(--gold);">Scegli Premium</button></div>
                 </div>
-
                 <div id="subs-cantina" style="display:none; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:20px; margin-top:30px;">
-                    <div class="tier-card" id="tier-Freemium-Cantina">
-                        <h3>Free</h3><div class="price">€0</div>
-                        <ul class="benefits"><li>✅ Inserisci dati Cantina</li><li>✅ Sblocca profilo di 1 Sommelier (15€/mese)</li></ul>
-                        <button class="btn-main" style="background:#ccc; cursor:default;">Attivo</button>
-                    </div>
-                    <div class="tier-card" id="tier-Pro-Cantina">
-                        <h3>Pro</h3><div class="price">€25<small>/mese</small></div>
-                        <ul class="benefits"><li>✅ Dati profilo completi</li><li>✅ 2 gettoni per sbloccare Sommelier al mese</li><li>✅ Chat attiva</li></ul>
-                        <button onclick="pay('Pro', 25)" class="btn-main">Scegli Pro</button>
-                    </div>
-                    <div class="tier-card" id="tier-Premium-Cantina">
-                        <h3>Premium</h3><div class="price">€50<small>/mese</small></div>
-                        <ul class="benefits"><li>✅ Dati profilo completi</li><li>✅ 5 gettoni per sbloccare contatti Sommelier</li><li>✅ Chat attiva</li><li>✅ Contatto diretto staff tramite chat apposita</li></ul>
-                        <button onclick="pay('Premium', 50)" class="btn-main" style="background:var(--gold);">Scegli Premium</button>
-                    </div>
+                    <div class="tier-card" id="tier-Freemium-Cantina"><h3>Free</h3><div class="price">€0</div><button class="btn-main" style="background:#ccc; cursor:default;">Attivo</button></div>
+                    <div class="tier-card" id="tier-Pro-Cantina"><h3>Pro</h3><div class="price">€25</div><button onclick="pay('Pro', 25)" class="btn-main">Scegli Pro</button></div>
+                    <div class="tier-card" id="tier-Premium-Cantina"><h3>Premium</h3><div class="price">€50</div><button onclick="pay('Premium', 50)" class="btn-main" style="background:var(--gold);">Scegli Premium</button></div>
                 </div>
             </div>
         </section>
@@ -209,61 +179,40 @@
     </div>
 
     <div id="chat-modal" style="display:none; position:fixed; bottom:20px; right:20px; width:320px; background:white; border-radius:10px; box-shadow:0 5px 20px rgba(0,0,0,0.3); z-index:2000; flex-direction:column; border:1px solid #ccc;">
-        <div style="background:var(--main); color:white; padding:12px; display:flex; justify-content:space-between; border-radius:10px 10px 0 0;">
-            <b id="chat-title">Chat</b>
-            <button onclick="closeChat()" style="background:none; border:none; color:white; cursor:pointer; font-size:16px;">✖</button>
-        </div>
-       
-        <div id="chat-warning" style="background:#fff3cd; color:#856404; padding:10px 25px 10px 10px; font-size:11px; text-align:center; position:relative; border-bottom:1px solid #ffeeba; line-height:1.3;">
-            <b>REGOLA FONDAMENTALE:</b> Nelle chat non ci si può scambiare numeri di telefono o link a chat esterne, il sito se ne accorge ed elimina la chat immediatamente impedendo ai 2 interlocutori di continuare a scriversi.
-            <button onclick="document.getElementById('chat-warning').style.display='none'" style="position:absolute; right:5px; top:5px; background:none; border:none; cursor:pointer; font-size:12px; font-weight:bold; color:#856404;">✖</button>
-        </div>
-
-        <div id="chat-messages" style="height:250px; overflow-y:auto; padding:10px; background:#f4f4f4; font-size:14px; display:flex; flex-direction:column; gap:8px;"></div>
-       
+        <div style="background:var(--main); color:white; padding:12px; display:flex; justify-content:space-between; border-radius:10px 10px 0 0;"><b id="chat-title">Chat</b><button onclick="closeChat()" style="background:none; border:none; color:white; cursor:pointer; font-size:16px;">✖</button></div>
+        <div id="chat-warning" style="background:#fff3cd; color:#856404; padding:10px 25px 10px 10px; font-size:11px; text-align:center; position:relative; border-bottom:1px solid #ffeeba; line-height:1.3;"><b>REGOLA FONDAMENTALE:</b> No link o telefoni. <button onclick="document.getElementById('chat-warning').style.display='none'" style="position:absolute; right:5px; top:5px; background:none; border:none; cursor:pointer;">✖</button></div>
+        <div id="chat-messages" style="height:250px; overflow-y:auto; padding:10px; background:#f4f4f4; display:flex; flex-direction:column; gap:8px;"></div>
         <div id="chat-input-container" style="display:flex; border-top:1px solid #ddd; background:white;"></div>
     </div>
 
     <script>
         let user = JSON.parse(localStorage.getItem('enohub_user'));
         if(!user) window.location.href = "/index.html";
-
         const socket = io(); socket.emit('join', user._id);
         function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
 
         async function refresh() {
             const urlParams = new URLSearchParams(window.location.search);
             if(urlParams.get('payment') === 'success') {
-                const piano = urlParams.get('piano');
-                const uid = urlParams.get('uid') || user._id;
+                const piano = urlParams.get('piano'); const uid = urlParams.get('uid') || user._id;
                 await fetch('/api/activate-plan', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId: uid, piano: piano }) });
                 window.location.href = "/dashboard.html"; return;
             }
-
-            const r = await fetch('/api/user/'+user._id); user = await r.json();
-            localStorage.setItem('enohub_user', JSON.stringify(user));
-           
+            const r = await fetch('/api/user/'+user._id); user = await r.json(); localStorage.setItem('enohub_user', JSON.stringify(user));
             if(user.email === 'dome0082@gmail.com') document.getElementById('nav-admin').style.display = 'block';
             document.getElementById('current-plan-display').innerText = user.piano;
-           
             if(user.tipo === 'Cantina') {
                 document.getElementById('wine-form-container').style.display = 'block';
-                document.getElementById('subs-cantina').style.display = 'grid';
-                document.getElementById('subs-sommelier').style.display = 'none';
-                document.getElementById('nav-sommeliers').style.display = 'block';
-                document.getElementById('nav-tastings').style.display = 'none'; 
+                document.getElementById('subs-cantina').style.display = 'grid'; document.getElementById('subs-sommelier').style.display = 'none';
+                document.getElementById('nav-sommeliers').style.display = 'block'; document.getElementById('nav-tastings').style.display = 'none'; 
             } else {
                 if(document.getElementById('wine-form-container')) document.getElementById('wine-form-container').style.display = 'none';
-                document.getElementById('subs-cantina').style.display = 'none';
-                document.getElementById('subs-sommelier').style.display = 'grid';
-                document.getElementById('nav-sommeliers').style.display = 'none';
-                document.getElementById('nav-tastings').style.display = 'block'; 
+                document.getElementById('subs-cantina').style.display = 'none'; document.getElementById('subs-sommelier').style.display = 'grid';
+                document.getElementById('nav-sommeliers').style.display = 'none'; document.getElementById('nav-tastings').style.display = 'block'; 
             }
-
             document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('active'));
             const tierId = user.tipo === 'Cantina' ? 'tier-' + user.piano + '-Cantina' : 'tier-' + user.piano;
             if(document.getElementById(tierId)) document.getElementById(tierId).classList.add('active');
-
             show(sessionStorage.getItem('last_v') || 'profile');
         }
         refresh();
@@ -274,7 +223,7 @@
             document.getElementById('sec-'+id).style.display = 'block';
             if(id === 'profile') renderP();
             if(id === 'wines') renderWines();
-            if(id === 'topwines') renderTopWines(); // NUOVO MENU TOP 5
+            if(id === 'topwines') renderTopWines();
             if(id === 'tastings') renderT();
             if(id === 'admin') loadA();
             if(id === 'sommeliers') renderS();
@@ -282,542 +231,168 @@
             document.getElementById('sidebar').classList.remove('active');
         }
 
-        // --- GESTIONE ARCHIVIO VINI, LIKES E PROMOZIONI ---
-        let globalWines = [];
-        let editingWineId = null;
-
-        function togglePromoFields() {
-            const isChecked = document.getElementById('w-is-promo').checked;
-            document.getElementById('promo-fields').style.display = isChecked ? 'block' : 'none';
-        }
-
-        async function renderWines() {
-            const r = await fetch('/api/wines');
-            globalWines = await r.json();
-            drawWines(globalWines);
-        }
-
-        async function toggleLikeWine(id) {
-            await fetch('/api/wines/' + id + '/like', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({userId: user._id})
-            });
-            renderWines();
-            // Aggiorna in tempo reale anche la classifica se è aperta
-            if(document.getElementById('sec-topwines').style.display === 'block') {
-                renderTopWines();
-            }
-        }
-
-        function drawWines(wines) {
-            const list1 = document.getElementById('wines-list');
-            const list2 = document.getElementById('promoted-wines-list');
-            list1.innerHTML = '';
-            list2.innerHTML = '';
-
-            const isAdmin = user.email === 'dome0082@gmail.com';
-            const canSeeNames = user.piano !== 'Freemium' || isAdmin;
-
-            const normalWines = wines.filter(w => !w.isPromo).sort((a, b) => a.nome.localeCompare(b.nome));
-            const promoWines = wines.filter(w => w.isPromo).sort((a, b) => a.nome.localeCompare(b.nome));
-
-            const drawItem = (w) => {
-                const cantinaName = (canSeeNames || w.cantinaId === user._id) ? w.cantinaNome : 'Cantina (Oscurata - Upgrade richiesto)';
-                const isOwner = w.cantinaId === user._id;
-                const canModifyOrDelete = isOwner || isAdmin;
-                
-                let promoHtml = '';
-                if(w.isPromo) {
-                    promoHtml = `
-                    <div style="background:#fff3cd; color:#856404; padding:10px; border-radius:5px; font-size:13px; margin-bottom:8px; border:1px solid #ffeeba;">
-                        <b>⭐ Promozione:</b> ${w.promoText}<br>
-                        <small style="color:#666; display:inline-block; margin-top:5px;">
-                            🗓️ Valida dal <b>${w.promoStart ? new Date(w.promoStart).toLocaleDateString() : 'N/A'}</b> 
-                            al <b>${w.promoEnd ? new Date(w.promoEnd).toLocaleDateString() : 'N/A'}</b>
-                        </small>
-                    </div>`;
-                }
-
-                // Gestione Like Button
-                const hasLiked = w.likes && w.likes.includes(user._id);
-                const likeIcon = hasLiked ? '❤️' : '🤍';
-                const likeCount = w.likes ? w.likes.length : 0;
-
-                let actionButtons = `<div style="margin-top:10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">`;
-                
-                // Bottone Like (visibile a tutti)
-                actionButtons += `<button style="padding:6px 12px; font-size:13px; background:white; border:1px solid #ccc; border-radius:5px; cursor:pointer; font-weight:bold; display:flex; align-items:center; gap:5px;" onclick="toggleLikeWine('${w._id}')">${likeIcon} ${likeCount}</button>`;
-
-                if (canModifyOrDelete) {
-                    if (isOwner) {
-                        actionButtons += `<button class="btn-main" style="padding:6px 12px; font-size:12px; background:orange;" onclick="editWine('${w._id}')">Modifica</button>`;
-                    }
-                    actionButtons += `<button class="btn-main" style="padding:6px 12px; font-size:12px; background:#ff5252;" onclick="deleteWine('${w._id}')">${isAdmin && !isOwner ? '🗑️ Elimina (Staff)' : 'Elimina'}</button>`;
-                }
-                actionButtons += `</div>`;
-
-                return `
-                    <div style="padding:15px; border:1px solid #ddd; border-radius:8px; margin-bottom:10px; background:white; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                        <b style="color:var(--main); font-size:16px;">${w.nome}</b><br>
-                        <small style="color:#666;">📍 ${w.location} | 🏢 <b>${cantinaName}</b></small>
-                        <p style="font-size:14px; margin:8px 0; color:#333;">${w.nota}</p>
-                        ${promoHtml}
-                        ${actionButtons}
-                    </div>
-                `;
-            };
-
-            if(normalWines.length === 0) list1.innerHTML = '<p style="color:#666; font-size:14px;">Nessun vino presente.</p>';
-            else normalWines.forEach(w => list1.innerHTML += drawItem(w));
-
-            if(promoWines.length === 0) list2.innerHTML = '<p style="color:#666; font-size:14px;">Nessun vino selezionato al momento.</p>';
-            else promoWines.forEach(w => list2.innerHTML += drawItem(w));
-        }
-
-        // --- CLASSIFICA TOP 5 VINI ---
-        async function renderTopWines() {
-            const r = await fetch('/api/wines');
-            let wines = await r.json();
-            
-            // Ordina per numero di like (decrescente) e prendi solo i primi 5
-            wines = wines.sort((a, b) => (b.likes ? b.likes.length : 0) - (a.likes ? a.likes.length : 0)).slice(0, 5);
-            
-            const container = document.getElementById('top-wines-list');
-            container.innerHTML = '';
-            
-            if(wines.length === 0 || (wines[0].likes && wines[0].likes.length === 0)) {
-                container.innerHTML = '<p style="color:#666;">Nessun vino ha ancora ricevuto dei Mi Piace.</p>';
-                return;
-            }
-
-            wines.forEach((w, index) => {
-                if(!w.likes || w.likes.length === 0) return; // Nascondi se non ha like
-                
-                const likeCount = w.likes.length;
-                let rankMedal = '';
-                if(index === 0) rankMedal = '🥇';
-                else if(index === 1) rankMedal = '🥈';
-                else if(index === 2) rankMedal = '🥉';
-                else rankMedal = `<b style="color:#666;">#${index + 1}</b>`;
-
-                container.innerHTML += `
-                    <div style="padding:20px; border:1px solid var(--gold); border-radius:10px; margin-bottom:15px; background:linear-gradient(to right, #fff, #fffcf5); box-shadow:0 4px 10px rgba(0,0,0,0.05); display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
-                        <div style="font-size:35px; min-width:50px; text-align:center;">${rankMedal}</div>
-                        <div style="flex:1;">
-                            <h3 style="margin:0; color:var(--main); font-size:20px;">${w.nome}</h3>
-                            <p style="font-size:14px; color:#666; margin:5px 0;">📍 ${w.location}</p>
-                            <p style="font-size:15px; color:#333; margin:10px 0; font-style:italic;">"${w.nota}"</p>
-                        </div>
-                        <div style="text-align:center; background:white; padding:15px; border-radius:10px; border:1px solid #eee; min-width:80px;">
-                            <div style="font-size:24px;">❤️</div>
-                            <div style="font-size:20px; font-weight:bold; margin-top:5px;">${likeCount}</div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-
-        function filterWines() {
-            const term = document.getElementById('search-wine').value.toLowerCase();
-            const filtered = globalWines.filter(w => w.nome.toLowerCase().includes(term) || w.cantinaNome.toLowerCase().includes(term) || w.location.toLowerCase().includes(term));
-            drawWines(filtered);
-        }
-
-        async function saveWine() {
-            const nome = document.getElementById('w-nome').value;
-            const loc = document.getElementById('w-loc').value;
-            const nota = document.getElementById('w-nota').value;
-            const isPromo = document.getElementById('w-is-promo').checked;
-            const promoText = document.getElementById('w-promo-text').value;
-            const promoStart = document.getElementById('w-promo-start').value;
-            const promoEnd = document.getElementById('w-promo-end').value;
-
-            if(!nome || !loc || !nota) return alert('Compila Nome, Luogo e Nota di degustazione.');
-            if(isPromo && (!promoStart || !promoEnd)) return alert('Devi inserire la data di inizio e di fine per la promozione.');
-
-            const payload = { 
-                nome: nome, 
-                location: loc, 
-                nota: nota, 
-                isPromo: isPromo, 
-                promoText: promoText, 
-                promoStart: promoStart, 
-                promoEnd: promoEnd, 
-                cantinaId: user._id, 
-                cantinaNome: user.nome 
-            };
-
-            if(editingWineId) {
-                await fetch('/api/wines/' + editingWineId, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-            } else {
-                await fetch('/api/wines', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-            }
-            resetWineForm();
-            renderWines();
-        }
-
-        function editWine(id) {
-            const w = globalWines.find(x => x._id === id);
-            editingWineId = id;
-            document.getElementById('w-nome').value = w.nome;
-            document.getElementById('w-loc').value = w.location;
-            document.getElementById('w-nota').value = w.nota;
-            document.getElementById('w-is-promo').checked = w.isPromo || false;
-            document.getElementById('w-promo-text').value = w.promoText || '';
-            
-            if(w.promoStart) document.getElementById('w-promo-start').value = new Date(w.promoStart).toISOString().split('T')[0];
-            if(w.promoEnd) document.getElementById('w-promo-end').value = new Date(w.promoEnd).toISOString().split('T')[0];
-            
-            togglePromoFields();
-            document.getElementById('wine-form-title').innerText = "Modifica Vino";
-            document.getElementById('btn-cancel-wine').style.display = 'inline-block';
-            document.getElementById('wine-form-container').scrollIntoView({behavior: 'smooth'});
-        }
-
-        function resetWineForm() {
-            editingWineId = null;
-            document.getElementById('w-nome').value = '';
-            document.getElementById('w-loc').value = '';
-            document.getElementById('w-nota').value = '';
-            document.getElementById('w-is-promo').checked = false;
-            document.getElementById('w-promo-text').value = '';
-            document.getElementById('w-promo-start').value = '';
-            document.getElementById('w-promo-end').value = '';
-            togglePromoFields();
-            
-            document.getElementById('wine-form-title').innerText = "Inserisci un nuovo vino";
-            document.getElementById('btn-cancel-wine').style.display = 'none';
-        }
-
-        async function deleteWine(id) {
-            if(!confirm('Eliminare definitivamente questo vino dall\'archivio?')) return;
-            await fetch('/api/wines/' + id, { method: 'DELETE' });
-            renderWines();
-        }
-
-
-        // --- RENDER PROFILO ---
         function renderP() {
             const badge = user.isVerified ? `<div class="eh-badge"><span>EH</span> ✅ Verificato</div>` : '';
+            // FIX SFONDO: cover e posizione centrale
             let customBg = user.coverPic 
-                ? `background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.95)), url('${user.coverPic}') center/cover; padding-top: 150px; min-height: 200px;` 
+                ? `background: linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.95)), url('${user.coverPic}') center/cover no-repeat; padding-top: 150px; min-height: 250px;` 
                 : '';
 
             let html = `<div class="card" style="${customBg}"><div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div><h1 style="margin-top:0;">${user.nome} ${badge}</h1><p>📍 ${user.location || 'Località non specificata'} | Piano: <b>${user.piano}</b></p></div>
+                        <div><h1 style="margin-top:0;">${user.nome} ${badge}</h1><p>📍 ${user.location || 'N/A'} | Piano: <b>${user.piano}</b></p></div>
                         <div style="text-align:center;">
-                            ${user.profilePic ? `<img src="${user.profilePic}" style="width:100px; height:100px; border-radius:10px; object-fit:cover; border:2px solid var(--main);">` : `<div style="width:100px; height:100px; background:#eee; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc; font-size:12px; color:#666;">Nessuna Foto</div>`}
+                            ${user.profilePic ? `<img src="${user.profilePic}" style="width:100px; height:100px; border-radius:10px; object-fit:cover; border:2px solid var(--main);">` : `<div style="width:100px; height:100px; background:#eee; border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid #ccc;">No Foto</div>`}
                             <br><a href="modifica-profilo.html" class="btn-main" style="display:inline-block; margin-top:10px; text-decoration:none; padding:8px 15px; font-size:12px;">✎ Modifica Profilo</a>
                         </div></div><hr>`;
 
             if (user.tipo === 'Cantina') {
                 html += `<h3>🍷 I Nostri Vini</h3><table style="width:100%; text-align:left; border-collapse:collapse; margin-bottom:20px;"><tr style="background:#f8f9fa;"><th style="padding:10px; border-bottom:2px solid #ddd;">Nome</th><th style="padding:10px; border-bottom:2px solid #ddd;">Tipologia</th></tr>
                         ${(user.vini && user.vini.length > 0) ? user.vini.map(v => `<tr><td style="padding:10px; border-bottom:1px solid #eee;">${v.nome}</td><td style="padding:10px; border-bottom:1px solid #eee;">${v.tipologia}</td></tr>`).join('') : '<tr><td colspan="2" style="padding:10px; text-align:center;">Nessun vino inserito.</td></tr>'}</table>
-                        <h3>📸 Galleria Cantina</h3><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:10px;">
-                        ${(user.gallery && user.gallery.length > 0) ? user.gallery.map(img => `<img src="${img}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="window.open('${img}', '_blank')">`).join('') : '<p style="color:#666; font-size:14px;">Nessuna immagine in galleria.</p>'}</div>`;
+                        <h3>📸 Galleria</h3><div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px,1fr)); gap:10px;">
+                        ${(user.gallery && user.gallery.length > 0) ? user.gallery.map(img => `<img src="${img}" style="width:100%; height:120px; object-fit:cover; border-radius:8px;">`).join('') : '<p>Vuoto.</p>'}</div>`;
             } else {
-                html += `<h3>👤 Biografia</h3><p style="white-space: pre-wrap;">${user.bio || "Nessuna biografia inserita."}</p>
-                        <h3 style="margin-top:20px;">🍷 Ultime Degustazioni (${user.degustazioni ? user.degustazioni.length : 0})</h3><p style="font-size:14px; color:#666;">Vai alla sezione "Note di Degustazione" dal menù.</p>`;
+                html += `<h3>👤 Biografia</h3><p style="white-space: pre-wrap;">${user.bio || "Nessuna biografia."}</p>
+                        <h3 style="margin-top:20px;">🍷 Ultime Note di Degustazione</h3>
+                        <div style="display:grid; gap:15px; margin-top:15px;">
+                        ${(user.degustazioni && user.degustazioni.length > 0) ? user.degustazioni.slice().reverse().map(d => `
+                            <div style="display:flex; gap:15px; background:white; padding:15px; border-radius:12px; border:1px solid #eee; box-shadow:0 2px 5px rgba(0,0,0,0.03);">
+                                ${d.img ? `<img src="${d.img}" style="width:60px; height:60px; object-fit:cover; border-radius:8px;">` : `<div style="width:60px; height:60px; background:#f0f0f0; border-radius:8px;"></div>`}
+                                <div style="flex:1;">
+                                    <b style="color:var(--main); display:block; margin-bottom:4px;">${d.vino}</b>
+                                    <p style="margin:0; font-size:13px; color:#555; line-height:1.4;">${d.nota}</p>
+                                    <small style="color:#aaa; font-size:11px;">${new Date(d.date).toLocaleDateString()}</small>
+                                </div>
+                            </div>
+                        `).join('') : '<p style="color:#999; font-size:14px;">Ancora nessuna degustazione pubblicata.</p>'}
+                        </div>`;
             }
             html += `</div>`; document.getElementById('sec-profile').innerHTML = html;
         }
 
-        // --- GESTIONE SOMMELIER & RICERCA ---
-        let globalSommeliers = [];
-
-        async function renderS() {
-            const r = await fetch('/api/users');
-            const utenti = await r.json();
-            globalSommeliers = utenti.filter(u => u.tipo === 'Sommelier');
-           
-            let maxGettoni = 0;
-            if(user.piano === 'Pro') maxGettoni = 2;
-            if(user.piano === 'Premium') maxGettoni = 5;
-            if(user.email === 'dome0082@gmail.com') maxGettoni = 999;
-            const usati = user.unlockedContacts ? user.unlockedContacts.length : 0;
-           
-            document.getElementById('gettoni-count').innerText = `${maxGettoni - usati} su ${maxGettoni}`;
-
-            drawSommList(globalSommeliers, maxGettoni - usati);
+        let globalWines = []; let editingWineId = null;
+        function togglePromoFields() { document.getElementById('promo-fields').style.display = document.getElementById('w-is-promo').checked ? 'block' : 'none'; }
+        async function renderWines() { const r = await fetch('/api/wines'); globalWines = await r.json(); drawWines(globalWines); }
+        async function toggleLikeWine(id) { await fetch('/api/wines/' + id + '/like', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({userId: user._id}) }); renderWines(); if(document.getElementById('sec-topwines').style.display === 'block') renderTopWines(); }
+        function drawWines(wines) {
+            const list1 = document.getElementById('wines-list'); const list2 = document.getElementById('promoted-wines-list');
+            list1.innerHTML = ''; list2.innerHTML = '';
+            const isAdmin = user.email === 'dome0082@gmail.com'; const canSeeNames = user.piano !== 'Freemium' || isAdmin;
+            const normalWines = wines.filter(w => !w.isPromo).sort((a, b) => a.nome.localeCompare(b.nome));
+            const promoWines = wines.filter(w => w.isPromo).sort((a, b) => a.nome.localeCompare(b.nome));
+            const drawItem = (w) => {
+                const cantinaName = (canSeeNames || w.cantinaId === user._id) ? w.cantinaNome : 'Cantina (Oscurata)';
+                const isOwner = w.cantinaId === user._id; const canModifyOrDelete = isOwner || isAdmin;
+                let promoHtml = w.isPromo ? `<div style="background:#fff3cd; color:#856404; padding:10px; border-radius:5px; font-size:13px; margin-bottom:8px;"><b>⭐ Promozione:</b> ${w.promoText}<br><small>Fino al ${w.promoEnd ? new Date(w.promoEnd).toLocaleDateString() : 'N/A'}</small></div>` : '';
+                const hasLiked = w.likes && w.likes.includes(user._id); const likeCount = w.likes ? w.likes.length : 0;
+                let btns = `<div style="margin-top:10px; display:flex; gap:10px;"><button style="background:white; border:1px solid #ccc; border-radius:5px; cursor:pointer;" onclick="toggleLikeWine('${w._id}')">${hasLiked?'❤️':'🤍'} ${likeCount}</button>`;
+                if (canModifyOrDelete) { if (isOwner) btns += `<button class="btn-main" style="padding:6px 12px; font-size:12px; background:orange;" onclick="editWine('${w._id}')">Modifica</button>`; btns += `<button class="btn-main" style="padding:6px 12px; font-size:12px; background:#ff5252;" onclick="deleteWine('${w._id}')">${isAdmin && !isOwner ? '🗑️ Elimina (Staff)' : 'Elimina'}</button>`; }
+                btns += `</div>`;
+                return `<div style="padding:15px; border:1px solid #ddd; border-radius:8px; margin-bottom:10px; background:white;"><b>${w.nome}</b><br><small>📍 ${w.location} | 🏢 <b>${cantinaName}</b></small><p>${w.nota}</p>${promoHtml}${btns}</div>`;
+            };
+            if(normalWines.length === 0) list1.innerHTML = '<p>Nessun vino.</p>'; else normalWines.forEach(w => list1.innerHTML += drawItem(w));
+            if(promoWines.length === 0) list2.innerHTML = '<p>Nessuna promo.</p>'; else promoWines.forEach(w => list2.innerHTML += drawItem(w));
         }
 
-        function drawSommList(list, gettoniRimasti) {
-            const container = document.getElementById('sommelier-list');
-            container.innerHTML = '';
-           
-            if(list.length === 0) {
-                container.innerHTML = '<p style="color:#666;">Nessun sommelier trovato corrispondente alla ricerca.</p>';
-                return;
-            }
+        async function renderTopWines() {
+            const r = await fetch('/api/wines'); let wines = await r.json();
+            wines = wines.sort((a, b) => (b.likes ? b.likes.length : 0) - (a.likes ? a.likes.length : 0)).slice(0, 5);
+            const container = document.getElementById('top-wines-list'); container.innerHTML = '';
+            if(wines.length === 0 || (wines[0].likes && wines[0].likes.length === 0)) { container.innerHTML = '<p>Nessun like.</p>'; return; }
+            wines.forEach((w, index) => {
+                if(!w.likes || w.likes.length === 0) return;
+                const m = index===0?'🥇':index===1?'🥈':index===2?'🥉':`#${index+1}`;
+                container.innerHTML += `<div style="padding:20px; border:1px solid var(--gold); border-radius:10px; margin-bottom:15px; background:white; display:flex; align-items:center; gap:20px;">
+                    <div style="font-size:35px;">${m}</div><div style="flex:1;"><h3>${w.nome}</h3><p>${w.location}</p><p><i>"${w.nota}"</i></p></div><div style="text-align:center;">❤️<br><b>${w.likes.length}</b></div></div>`;
+            });
+        }
 
+        function filterWines() { const term = document.getElementById('search-wine').value.toLowerCase(); const f = globalWines.filter(w => w.nome.toLowerCase().includes(term) || w.cantinaNome.toLowerCase().includes(term)); drawWines(f); }
+        async function saveWine() {
+            const n = document.getElementById('w-nome').value; const l = document.getElementById('w-loc').value; const nt = document.getElementById('w-nota').value;
+            const p = document.getElementById('w-is-promo').checked; const pt = document.getElementById('w-promo-text').value; const ps = document.getElementById('w-promo-start').value; const pe = document.getElementById('w-promo-end').value;
+            if(!n || !l || !nt) return alert('Compila i campi.');
+            const pay = { nome: n, location: l, nota: nt, isPromo: p, promoText: pt, promoStart: ps, promoEnd: pe, cantinaId: user._id, cantinaNome: user.nome };
+            if(editingWineId) await fetch('/api/wines/' + editingWineId, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(pay) });
+            else await fetch('/api/wines', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(pay) });
+            resetWineForm(); renderWines();
+        }
+
+        function editWine(id) {
+            const w = globalWines.find(x => x._id === id); editingWineId = id;
+            document.getElementById('w-nome').value = w.nome; document.getElementById('w-loc').value = w.location; document.getElementById('w-nota').value = w.nota;
+            document.getElementById('w-is-promo').checked = w.isPromo || false; document.getElementById('w-promo-text').value = w.promoText || '';
+            if(w.promoStart) document.getElementById('w-promo-start').value = new Date(w.promoStart).toISOString().split('T')[0];
+            if(w.promoEnd) document.getElementById('w-promo-end').value = new Date(w.promoEnd).toISOString().split('T')[0];
+            togglePromoFields(); document.getElementById('wine-form-title').innerText = "Modifica Vino";
+            document.getElementById('btn-cancel-wine').style.display = 'inline-block'; document.getElementById('wine-form-container').scrollIntoView({behavior: 'smooth'});
+        }
+
+        function resetWineForm() { editingWineId = null; document.getElementById('w-nome').value = ''; document.getElementById('w-loc').value = ''; document.getElementById('w-nota').value = ''; document.getElementById('w-is-promo').checked = false; togglePromoFields(); document.getElementById('wine-form-title').innerText = "Nuovo vino"; document.getElementById('btn-cancel-wine').style.display = 'none'; }
+        async function deleteWine(id) { if(!confirm('Eliminare?')) return; await fetch('/api/wines/' + id, { method: 'DELETE' }); renderWines(); }
+
+        // --- GESTIONE SOMMELIER ---
+        let globalSommeliers = []; async function renderS() { const r = await fetch('/api/users'); const u = await r.json(); globalSommeliers = u.filter(x => x.tipo === 'Sommelier'); let max = user.piano === 'Pro' ? 2 : (user.piano === 'Premium' ? 5 : 0); if(user.email === 'dome0082@gmail.com') max = 999; const usati = user.unlockedContacts ? user.unlockedContacts.length : 0; document.getElementById('gettoni-count').innerText = `${max - usati} su ${max}`; drawSommList(globalSommeliers, max - usati); }
+        function drawSommList(list, g) {
+            const c = document.getElementById('sommelier-list'); c.innerHTML = '';
             list.forEach(s => {
-                const isUnlocked = user.unlockedContacts && user.unlockedContacts.includes(s._id);
-                let nameDisplay = isUnlocked ? s.nome : `Sommelier (Nome Oscurato)`;
-                let btnHtml = isUnlocked
-                    ? `<button class="btn-main" style="background:#27ae60;" onclick="openChat('${s._id}', '${s.nome.replace(/'/g, "\\'")}')">💬 Chat</button>`
-                    : `<button class="btn-main" style="background:var(--gold);" onclick="unlockSommelier('${s._id}', ${gettoniRimasti})">🔓 Usa Gettone</button>`;
-
-                container.innerHTML += `
-                    <div style="padding:20px; border:1px solid #e2e8f0; border-radius:10px; margin-bottom:15px; background:white;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
-                            <div style="flex:1;">
-                                <h3 style="margin:0; color:${isUnlocked ? 'var(--main)' : '#666'};">${nameDisplay}</h3>
-                                <p style="font-size:14px; color:#555; margin-top:8px;">
-                                    <b>📍 Zona:</b> ${s.location || 'Non specificata'}<br><br>
-                                    <b>Bio & Certificati:</b><br>${s.bio || 'Nessuna informazione inserita.'}
-                                </p>
-                            </div>
-                            <div>${btnHtml}</div>
-                        </div>
-                    </div>
-                `;
+                const unl = user.unlockedContacts && user.unlockedContacts.includes(s._id);
+                const n = unl ? s.nome : `Sommelier (Oscurato)`;
+                const btn = unl ? `<button class="btn-main" style="background:#27ae60;" onclick="openChat('${s._id}', '${s.nome}')">💬 Chat</button>` : `<button class="btn-main" style="background:var(--gold);" onclick="unlockSommelier('${s._id}', ${g})">🔓 Usa Gettone</button>`;
+                c.innerHTML += `<div style="padding:20px; border:1px solid #eee; border-radius:10px; margin-bottom:15px; background:white;"><h3>${n}</h3><p>📍 ${s.location}</p><p>${s.bio}</p>${btn}</div>`;
             });
         }
-
-        function filterSommeliers() {
-            const term = document.getElementById('search-somm').value.toLowerCase();
-            const filtered = globalSommeliers.filter(s => {
-                const loc = (s.location || '').toLowerCase();
-                const bio = (s.bio || '').toLowerCase();
-                return loc.includes(term) || bio.includes(term);
-            });
-           
-            let maxGettoni = 0;
-            if(user.piano === 'Pro') maxGettoni = 2;
-            if(user.piano === 'Premium') maxGettoni = 5;
-            if(user.email === 'dome0082@gmail.com') maxGettoni = 999;
-            const usati = user.unlockedContacts ? user.unlockedContacts.length : 0;
-           
-            drawSommList(filtered, maxGettoni - usati);
-        }
-
-        async function unlockSommelier(targetId, gettoniRimasti) {
-            if(gettoniRimasti <= 0) return alert("Hai esaurito i gettoni gratuiti! Esegui l'upgrade del piano per sbloccare altri profili.");
-            if(!confirm('Vuoi usare 1 gettone per sbloccare questo Sommelier e avviare la chat?')) return;
-
-            let arr = user.unlockedContacts || []; arr.push(targetId);
-            const r = await fetch('/api/user/' + user._id, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ unlockedContacts: arr }) });
-            const res = await r.json();
-            if(res.success) {
-                user = res.user;
-                localStorage.setItem('enohub_user', JSON.stringify(user));
-                document.getElementById('search-somm').value = ''; 
-                renderS();
-            }
-        }
+        function filterSommeliers() { const t = document.getElementById('search-somm').value.toLowerCase(); const f = globalSommeliers.filter(s => (s.location||'').toLowerCase().includes(t)); drawSommList(f, 0); }
+        async function unlockSommelier(tid, g) { if(g <= 0) return alert("No gettoni."); if(!confirm('Sbloccare?')) return; let a = user.unlockedContacts || []; a.push(tid); await fetch('/api/user/' + user._id, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ unlockedContacts: a }) }); refresh(); }
 
         async function renderChats() {
-            const r1 = await fetch('/api/chats/' + user._id);
-            const msgs = await r1.json();
-            const r2 = await fetch('/api/users');
-            const allUsers = await r2.json();
-           
-            const container = document.getElementById('chats-list');
-            container.innerHTML = '';
-           
-            if(msgs.length === 0) {
-                container.innerHTML = '<p style="color:#666;">Nessuna chat archiviata.</p>';
-                return;
-            }
-
-            const contacts = {};
-            msgs.forEach(m => {
-                const contactId = m.from === user._id ? m.to : m.from;
-                if(!contacts[contactId]) contacts[contactId] = m;
-            });
-
-            Object.keys(contacts).forEach(contactId => {
-                const contactUser = allUsers.find(u => u._id === contactId);
-                if(!contactUser) return;
-                const lastMsg = contacts[contactId];
-                const isMe = lastMsg.from === user._id;
-                const preview = (isMe ? 'Tu: ' : '') + lastMsg.text;
-                const dateStr = new Date(lastMsg.time).toLocaleString();
-
-                container.innerHTML += `
-                    <div style="padding:15px; border:1px solid #eee; border-radius:10px; margin-bottom:10px; background:white; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'" onclick="openChat('${contactUser._id}', '${contactUser.nome.replace(/'/g, "\\'")}')">
-                        <div style="flex:1;">
-                            <h4 style="margin:0; color:var(--main);">${contactUser.nome} <span style="font-size:12px; color:#999; font-weight:normal;">(${contactUser.tipo || 'Utente'})</span></h4>
-                            <p style="margin:5px 0 0 0; font-size:14px; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:80%;">${preview}</p>
-                            <small style="color:#aaa;">${dateStr}</small>
-                        </div>
-                        <div>
-                            <button class="btn-main" style="background:#27ae60; padding:8px 15px;">Apri Chat</button>
-                        </div>
-                    </div>
-                `;
-            });
+            const r1 = await fetch('/api/chats/' + user._id); const msgs = await r1.json(); const r2 = await fetch('/api/users'); const all = await r2.json();
+            const c = document.getElementById('chats-list'); c.innerHTML = '';
+            const cnt = {}; msgs.forEach(m => { const cid = m.from === user._id ? m.to : m.from; if(!cnt[cid]) cnt[cid] = m; });
+            Object.keys(cnt).forEach(cid => { const u = all.find(x => x._id === cid); if(!u) return; c.innerHTML += `<div onclick="openChat('${u._id}', '${u.nome}')" style="padding:15px; border:1px solid #eee; cursor:pointer;"><b>${u.nome}</b><p>${cnt[cid].text}</p></div>`; });
         }
 
-        // --- SISTEMA CHAT ---
         let currentChatTarget = null;
-       
         function openChat(id, nome) {
-            currentChatTarget = id;
-            document.getElementById('chat-title').innerText = nome;
-            document.getElementById('chat-modal').style.display = 'flex';
-            document.getElementById('chat-messages').innerHTML = '';
-            document.getElementById('chat-warning').style.display = 'block';
-           
-            const inputArea = document.getElementById('chat-input-container');
-            if (user.piano === 'Freemium' && user.email !== 'dome0082@gmail.com') {
-                inputArea.innerHTML = `<div style="padding:12px; text-align:center; width:100%; color:red; font-size:13px; font-weight:bold; background:#ffebeb;">Esegui l'upgrade per inviare messaggi.</div>`;
-            } else {
-                inputArea.innerHTML = `
-                    <input type="text" id="chat-input" style="flex:1; border:none; padding:12px; outline:none;" placeholder="Scrivi messaggio...">
-                    <button onclick="sendMsg()" style="background:#27ae60; color:white; border:none; padding:0 15px; cursor:pointer; font-weight:bold;">Invia</button>
-                `;
-            }
-
+            currentChatTarget = id; document.getElementById('chat-title').innerText = nome; document.getElementById('chat-modal').style.display = 'flex';
+            const i = document.getElementById('chat-input-container');
+            if (user.piano === 'Freemium' && user.email !== 'dome0082@gmail.com') i.innerHTML = `<div style="color:red; padding:10px;">Upgrade per chattare.</div>`;
+            else i.innerHTML = `<input type="text" id="chat-input" style="flex:1;"><button onclick="sendMsg()">Invia</button>`;
             socket.emit('get_history', { me: user._id, to: id });
         }
+        function closeChat() { document.getElementById('chat-modal').style.display = 'none'; currentChatTarget = null; }
+        function sendMsg() { const i = document.getElementById('chat-input'); if(!i.value) return; socket.emit('send_msg', { from: user._id, to: currentChatTarget, fromName: user.nome, text: i.value }); i.value = ''; }
+        socket.on('chat_history', msgs => { const b = document.getElementById('chat-messages'); b.innerHTML = msgs.map(m => `<div style="align-self:${m.from===user._id?'flex-end':'flex-start'}; background:${m.from===user._id?'#dcf8c6':'white'}; padding:8px; border-radius:10px;">${m.text}</div>`).join(''); b.scrollTop = b.scrollHeight; });
+        socket.on('new_msg', m => { if(m.from === currentChatTarget || m.to === currentChatTarget) { const b = document.getElementById('chat-messages'); b.innerHTML += `<div style="align-self:${m.from===user._id?'flex-end':'flex-start'}; background:${m.from===user._id?'#dcf8c6':'white'}; padding:8px; border-radius:10px;">${m.text}</div>`; b.scrollTop = b.scrollHeight; } });
+        socket.on('chat_error', d => alert(d.error)); socket.on('force_close_chat', closeChat);
 
-        function closeChat() {
-            document.getElementById('chat-modal').style.display = 'none';
-            currentChatTarget = null;
-        }
-
-        function sendMsg() {
-            const inputEl = document.getElementById('chat-input');
-            if(!inputEl) return;
-            const text = inputEl.value;
-            if(!text || !currentChatTarget) return;
-           
-            socket.emit('send_msg', { from: user._id, to: currentChatTarget, fromName: user.nome, text: text });
-            inputEl.value = '';
-           
-            document.getElementById('chat-messages').innerHTML += `<div style="align-self:flex-end; background:#dcf8c6; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${text}</div>`;
-            document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-        }
-
-        socket.on('chat_history', msgs => {
-            const box = document.getElementById('chat-messages');
-            box.innerHTML = msgs.map(m => {
-                const isMe = m.from === user._id;
-                return `<div style="align-self:${isMe ? 'flex-end' : 'flex-start'}; background:${isMe ? '#dcf8c6' : 'white'}; border:1px solid #eee; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${m.text}</div>`;
-            }).join('');
-            box.scrollTop = box.scrollHeight;
-        });
-
-        socket.on('new_msg', m => {
-            if(m.from === currentChatTarget || m.to === currentChatTarget) {
-                const isMe = m.from === user._id;
-                document.getElementById('chat-messages').innerHTML += `<div style="align-self:${isMe ? 'flex-end' : 'flex-start'}; background:${isMe ? '#dcf8c6' : 'white'}; border:1px solid #eee; padding:8px 12px; border-radius:10px; max-width:85%; word-wrap:break-word;">${m.text}</div>`;
-                document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-            }
-        });
-
-        socket.on('force_close_chat', () => {
-            closeChat();
-            if(document.getElementById('sec-chats').style.display === 'block') renderChats();
-        });
-
-        socket.on('chat_error', d => alert(d.error));
-
-        // --- DEGUSTAZIONI (PER SOMMELIER) ---
+        // --- DEGUSTAZIONI ---
         let tmpImageUrl = ''; let editingTastingId = null;
-
-        function handleTastingImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => { document.getElementById('t-preview-img').src = e.target.result; document.getElementById('preview-wrapper').style.display = 'block'; }
-                reader.readAsDataURL(input.files[0]);
-                const fd = new FormData(); fd.append('file', input.files[0]);
-                fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(data => tmpImageUrl = data.url);
-            }
-        }
-
+        function handleTastingImage(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = e => { document.getElementById('t-preview-img').src = e.target.result; document.getElementById('preview-wrapper').style.display = 'block'; }; reader.readAsDataURL(input.files[0]); const fd = new FormData(); fd.append('file', input.files[0]); fetch('/api/upload', {method:'POST', body:fd}).then(r => r.json()).then(data => tmpImageUrl = data.url); } }
         function removeImageFromForm() { tmpImageUrl = ''; document.getElementById('t-file').value = ''; document.getElementById('preview-wrapper').style.display = 'none'; }
-
         async function saveTasting() {
-            const vino = document.getElementById('t-vino').value;
-            const nota = document.getElementById('t-note').value;
-            if(!vino) return alert("Inserisci il nome del vino");
-
-            let list = user.degustazioni || [];
-            let limite = user.piano === 'Pro' ? 3 : (user.piano === 'Premium' ? 10 : 0);
-            if(user.email === 'dome0082@gmail.com') limite = 999;
-
-            if(!editingTastingId && list.length >= limite) return alert(`Limite raggiunto! Il piano ${user.piano} permette massimo ${limite} note.`);
-
-            if(editingTastingId) list = list.map(d => d.id === editingTastingId ? { ...d, vino, nota, img: tmpImageUrl || d.img } : d);
-            else list.push({ id: Date.now().toString(), vino, nota, img: tmpImageUrl, date: new Date() });
-
-            const res = await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list, adminEmail: user.email})});
-            const data = await res.json();
-            if(!data.success) alert(data.error); else location.reload();
-        }
-
-        function renderT() {
-            const l = document.getElementById('tastings-list'); l.innerHTML = '';
-            (user.degustazioni || []).reverse().forEach(d => {
-                l.innerHTML += `<div class="tasting-item">
-                    ${d.img ? `<img src="${d.img}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;">` : '<div style="width:70px;height:70px;background:#eee;border-radius:8px;"></div>'}
-                    <div style="flex:1"><b>${d.vino}</b><br><small>${new Date(d.date).toLocaleDateString()}</small><p>${d.nota}</p></div>
-                    <div><button class="btn-action" style="background:orange;color:white;" onclick="editTasting('${d.id}')">Modifica</button>
-                    <button class="btn-action" style="background:red;color:white;" onclick="deleteTasting('${d.id}')">Elimina</button></div></div>`;
-            });
-        }
-
-        function editTasting(id) {
-            const d = user.degustazioni.find(x => x.id === id); editingTastingId = id; document.getElementById('t-vino').value = d.vino; document.getElementById('t-note').value = d.nota;
-            document.getElementById('tasting-form-title').innerText = "Modifica Nota"; document.getElementById('t-cancel-edit').style.display = 'block';
-            if(d.img) { document.getElementById('t-preview-img').src = d.img; document.getElementById('preview-wrapper').style.display = 'block'; }
-            window.scrollTo(0,0);
-        }
-
-        async function deleteTasting(id) {
-            if(!confirm("Eliminare?")) return;
-            const list = user.degustazioni.filter(x => x.id !== id);
+            const v = document.getElementById('t-vino').value; const n = document.getElementById('t-note').value; if(!v) return alert("Nome vino?");
+            let list = user.degustazioni || []; let lim = user.piano === 'Pro' ? 3 : (user.piano === 'Premium' ? 10 : 0); if(user.email === 'dome0082@gmail.com') lim = 999;
+            if(!editingTastingId && list.length >= lim) return alert(`Limite raggiunto.`);
+            if(editingTastingId) list = list.map(d => d.id === editingTastingId ? { ...d, vino:v, nota:n, img: tmpImageUrl || d.img } : d);
+            else list.push({ id: Date.now().toString(), vino:v, nota:n, img: tmpImageUrl, date: new Date() });
             await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list, adminEmail: user.email})});
             location.reload();
         }
-
-        function resetTastingForm() { editingTastingId = null; document.getElementById('t-vino').value = ''; document.getElementById('t-note').value = ''; removeImageFromForm(); document.getElementById('t-cancel-edit').style.display = 'none'; }
-
-        async function pay(piano, prezzo) {
-            const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano, prezzo, userId: user._id}) });
-            const d = await r.json(); if(d.url) window.location.href = d.url;
-        }
-
-        // --- ADMIN ---
-        async function loadA() {
-            const r = await fetch('/api/users'); const utenti = await r.json();
-            const l = document.getElementById('admin-list'); l.innerHTML = '';
-            utenti.forEach(u => {
-                if(u.email === user.email) return;
-                l.innerHTML += `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee; background: white; margin-bottom:5px; border-radius:8px;">
-                    <div>
-                        <b style="color:#333;">${u.nome}</b> (${u.tipo || 'N/A'})<br>
-                        <small>${u.email} - Piano: ${u.piano}</small>
-                    </div>
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn-main" style="padding:5px 10px; background:${u.isVerified ? '#666' : '#27ae60'};" onclick="toggleVerify('${u._id}', ${u.isVerified})">
-                            ${u.isVerified ? 'Togli Spunta ❌' : 'Metti Spunta ✅'}
-                        </button>
-                        <button class="btn-main" style="padding:5px 10px; background:#e74c3c;" onclick="deleteUser('${u._id}', '${u.nome}')">
-                            Elimina 🗑️
-                        </button>
-                    </div>
-                </div>`;
+        function renderT() {
+            const l = document.getElementById('tastings-list'); l.innerHTML = '';
+            (user.degustazioni || []).slice().reverse().forEach(d => {
+                l.innerHTML += `<div class="tasting-item">${d.img ? `<img src="${d.img}" style="width:70px;height:70px;object-fit:cover;">` : ''}<div style="flex:1"><b>${d.vino}</b><p>${d.nota}</p></div><button onclick="editTasting('${d.id}')">Modifica</button><button onclick="deleteTasting('${d.id}')">Elimina</button></div>`;
             });
         }
-
-        async function toggleVerify(id, currentStatus) {
-            await fetch('/api/admin/verify', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ adminEmail: user.email, targetId: id, verifyStatus: !currentStatus }) });
-            loadA();
+        function editTasting(id) { const d = user.degustazioni.find(x => x.id === id); editingTastingId = id; document.getElementById('t-vino').value = d.vino; document.getElementById('t-note').value = d.nota; if(d.img) { document.getElementById('t-preview-img').src = d.img; document.getElementById('preview-wrapper').style.display = 'block'; } window.scrollTo(0,0); }
+        async function deleteTasting(id) { if(!confirm("Eliminare?")) return; const list = user.degustazioni.filter(x => x.id !== id); await fetch('/api/user/'+user._id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({degustazioni:list, adminEmail: user.email})}); location.reload(); }
+        function resetTastingForm() { editingTastingId = null; document.getElementById('t-vino').value = ''; document.getElementById('t-note').value = ''; removeImageFromForm(); }
+        async function pay(piano, prezzo) { const r = await fetch('/api/create-checkout', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({piano, prezzo, userId: user._id}) }); const d = await r.json(); if(d.url) window.location.href = d.url; }
+        async function loadA() {
+            const r = await fetch('/api/users'); const ut = await r.json(); const l = document.getElementById('admin-list'); l.innerHTML = '';
+            ut.forEach(u => { if(u.email === user.email) return; l.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px;"><div><b>${u.nome}</b> (${u.piano})</div><button onclick="deleteUser('${u._id}', '${u.nome}')">Elimina</button></div>`; });
         }
-
-        async function deleteUser(id, nome) {
-            if(!confirm(`Sei SICURO di voler eliminare definitivamente il profilo di ${nome}? Questa azione non è reversibile.`)) return;
-            const r = await fetch('/api/admin/user/' + id, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ adminEmail: user.email }) });
-            const res = await r.json();
-            if(res.success) { alert("Utente eliminato con successo."); loadA(); } else alert("Errore: " + res.error);
-        }
-
+        async function deleteUser(id, nome) { if(!confirm(`Eliminare ${nome}?`)) return; await fetch('/api/admin/user/' + id, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ adminEmail: user.email }) }); loadA(); }
         function logout() { localStorage.clear(); sessionStorage.clear(); window.location.href="/index.html"; }
     </script>
 </body>
