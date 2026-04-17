@@ -7,9 +7,10 @@ const path = require('path');
 const fs = require('fs-extra');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const os = require('os'); // AGGIUNTO PER GESTIRE I FILE TEMPORANEI IN TOTALE SICUREZZA SU RENDER
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
-// --- NUOVO: CLOUDINARY ---
+// --- CLOUDINARY ---
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({ 
   cloud_name: 'dcebk5ld8', 
@@ -69,12 +70,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Creazione cartella temporanea per le immagini
-fs.ensureDirSync('public/uploads/media');
-const upload = multer({ storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'public/uploads/media'),
-    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'))
-})});
+// FIX DEFINITIVO PER RENDER E CLOUDINARY: Usa la cartella temporanea di sistema
+const upload = multer({ dest: os.tmpdir() });
 
 // --- ROTTE API ---
 app.post('/api/login', async (req, res) => {
@@ -109,18 +106,22 @@ app.post('/api/activate-plan', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
-// --- API UPLOAD MODIFICATA PER CLOUDINARY ---
+// --- API UPLOAD CLOUDINARY CORRETTA ---
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Nessun file ricevuto' });
+        }
+        
         // Carica il file temporaneo su Cloudinary
         const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: 'enohub_media' // Crea una cartella apposita nel tuo account Cloudinary
+            folder: 'enohub_media' 
         });
         
-        // Elimina il file locale temporaneo per non riempire il server
+        // Elimina in sicurezza il file temporaneo
         fs.unlinkSync(req.file.path);
         
-        // Restituisce l'URL sicuro di Cloudinary al frontend
+        // Restituisce l'URL sicuro di Cloudinary
         res.json({ url: result.secure_url });
     } catch (error) {
         console.error('Errore Cloudinary:', error);
