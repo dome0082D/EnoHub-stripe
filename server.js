@@ -7,10 +7,9 @@ const path = require('path');
 const fs = require('fs-extra');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
-const os = require('os'); // AGGIUNTO PER GESTIRE I FILE TEMPORANEI IN TOTALE SICUREZZA SU RENDER
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
-// --- CLOUDINARY ---
+// --- CLOUDINARY CONFIG ---
 const cloudinary = require('cloudinary').v2;
 cloudinary.config({ 
   cloud_name: 'dcebk5ld8', 
@@ -65,13 +64,19 @@ const Wine = mongoose.model('Wine', new mongoose.Schema({
     time: { type: Date, default: Date.now }
 }));
 
-// --- CONFIGURAZIONE MIDDLEWARE ---
+// --- CONFIGURAZIONE MIDDLEWARE E CARICAMENTO ---
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// FIX DEFINITIVO PER RENDER E CLOUDINARY: Usa la cartella temporanea di sistema
-const upload = multer({ dest: os.tmpdir() });
+// Creazione sicura della cartella locale per le foto in transito
+const uploadDir = path.join(__dirname, 'public', 'uploads', 'media');
+fs.ensureDirSync(uploadDir);
+
+const upload = multer({ storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'))
+})});
 
 // --- ROTTE API ---
 app.post('/api/login', async (req, res) => {
@@ -106,22 +111,20 @@ app.post('/api/activate-plan', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false }); }
 });
 
-// --- API UPLOAD CLOUDINARY CORRETTA ---
+// --- API UPLOAD CLOUDINARY (ANTI-CRASH) ---
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'Nessun file ricevuto' });
+        if (!req.file) return res.status(400).json({ error: 'Nessun file ricevuto' });
+        
+        // Spedisce la foto al cloud
+        const result = await cloudinary.uploader.upload(req.file.path);
+        
+        // Cancella la foto dal server per non sprecare spazio
+        if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
         }
         
-        // Carica il file temporaneo su Cloudinary
-        const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: 'enohub_media' 
-        });
-        
-        // Elimina in sicurezza il file temporaneo
-        fs.unlinkSync(req.file.path);
-        
-        // Restituisce l'URL sicuro di Cloudinary
+        // Risponde con il link magico e sicuro
         res.json({ url: result.secure_url });
     } catch (error) {
         console.error('Errore Cloudinary:', error);
